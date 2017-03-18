@@ -1,0 +1,40 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "RUOK minimal",
+    "description": "A simple API that returns a string",
+    "contact": {
+      "name": "Jeremy Townson"
+    },
+    "license": {
+      "name": "n/a"
+    }
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "produces": [
+    "text/plain"
+  ],
+  "paths": {
+    "/ruok": {
+      "get": {
+        "description": "Returns YES if the service is running.",
+        "produces": [
+          "text/plain"
+        ],
+        "responses": {
+          "200": {
+            "description": "The string 'YES', indicating the service is running.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
