@@ -29,38 +29,38 @@ object JsonFormats {
     }
   }
 
-  implicit def booleanOrSchemaFormat[T] = new RootJsonFormat[BooleanOrSchema[T]] {
-    override def read(json: JsValue): BooleanOrSchema[T] = json match {
-      case JsBoolean(b) => Coproduct[BooleanOrSchema[T]](b)
-      case JsObject(_) => Coproduct[BooleanOrSchema[T]](jsonSchemaFormat.read(json))
-    }
+//  implicit def booleanOrSchemaFormat[T] = new RootJsonFormat[BooleanOrSchema[T]] {
+//    override def read(json: JsValue): BooleanOrSchema[T] = json match {
+//      case JsBoolean(b) => Coproduct[BooleanOrSchema[T]](b)
+//      case JsObject(_) => Coproduct[BooleanOrSchema[T]](jsonSchemaFormat.read(json))
+//    }
+//
+//    override def write(obj: BooleanOrSchema[T]): JsValue = (obj.select[Boolean], obj.select[JsonSchema[T]]) match {
+//      case (Some(b), _) => JsBoolean(b)
+//      case (_, Some(schema)) => jsonSchemaFormat.write(schema)
+//      case _ => throw DeserializationException(s"Illegal value: $obj")
+//    }
+//  }
 
-    override def write(obj: BooleanOrSchema[T]): JsValue = (obj.select[Boolean], obj.select[JsonSchema[T]]) match {
-      case (Some(b), _) => JsBoolean(b)
-      case (_, Some(schema)) => jsonSchemaFormat.write(schema)
-      case _ => throw DeserializationException(s"Illegal value: $obj")
-    }
-  }
+//  implicit val seqSchemaFormat = lazyFormat(seqFormat[JsonSchema[_]])
 
-  implicit val seqSchemaFormat = lazyFormat(seqFormat[JsonSchema[_]])
+//  implicit val seqBooleanSchemaFormat = seqFormat[BooleanOrSchema[_]] // TODO unused?
 
-  implicit val seqBooleanSchemaFormat = seqFormat[BooleanOrSchema[_]] // TODO unused?
-
-  implicit val schemaOrSchemaArrayFormat: RootJsonFormat[SchemaOrSchemaArray[_]] =
-    new RootJsonFormat[SchemaOrSchemaArray[_]] {
-      override def read(json: JsValue): SchemaOrSchemaArray[_] = json match {
-        case JsArray(_) => Coproduct[SchemaOrSchemaArray[_]](seqSchemaFormat.read(json))
-        case JsObject(_) => Coproduct[SchemaOrSchemaArray[_]](jsonSchemaFormat.read(json))
-        case _ => throw DeserializationException(s"Unable to read json: $json")
-      }
-
-      override def write(obj: SchemaOrSchemaArray[_]): JsValue =
-        (obj.select[JsonSchema[_]], obj.select[Seq[JsonSchema[_]]]) match {
-          case (Some(schema: JsonSchema[_]), _) => jsonSchemaFormat.write(schema)
-          case (_, Some(schemaArray)) => seqFormat[JsonSchema[_]].write(schemaArray)
-          case _ => throw DeserializationException(s"Illegal value: $obj")
-        }
-    }
+//  implicit val schemaOrSchemaArrayFormat: RootJsonFormat[SchemaOrSchemaArray[_]] =
+//    new RootJsonFormat[SchemaOrSchemaArray[_]] {
+//      override def read(json: JsValue): SchemaOrSchemaArray[_] = json match {
+//        case JsArray(_) => Coproduct[SchemaOrSchemaArray[_]](seqSchemaFormat.read(json))
+//        case JsObject(_) => Coproduct[SchemaOrSchemaArray[_]](jsonSchemaFormat.read(json))
+//        case _ => throw DeserializationException(s"Unable to read json: $json")
+//      }
+//
+//      override def write(obj: SchemaOrSchemaArray[_]): JsValue =
+//        (obj.select[JsonSchema[_]], obj.select[Seq[JsonSchema[_]]]) match {
+//          case (Some(schema: JsonSchema[_]), _) => jsonSchemaFormat.write(schema)
+//          case (_, Some(schemaArray)) => seqFormat[JsonSchema[_]].write(schemaArray)
+//          case _ => throw DeserializationException(s"Illegal value: $obj")
+//        }
+//    }
 
   def baseSchemaFormat[T]: RootJsonFormat[JsonSchema[T]] = new RootJsonFormat[JsonSchema[T]] {
     val fieldNames = List(
@@ -95,7 +95,7 @@ object JsonFormats {
     override def read(json: JsValue): JsonSchema[T] = {
       val fields = json.asJsObject.fields
       val fieldSeq: Seq[Option[JsValue]] = fieldNames.map(fields.get)
-      val (fields22, fieldsRemainder) = (fieldSeq.slice(0, 22), fieldSeq.slice(22, 23))
+      val (fields22, fieldsRemainder) = (fieldSeq.slice(0, 22), fieldSeq.slice(22, 24))
 
       (fields22, fieldsRemainder) match {
         case
@@ -124,34 +124,36 @@ object JsonFormats {
             items,
             allOf),
 
-            Seq (anyOf)
+            Seq (anyOf, default)
           ) =>
 
 
           JsonSchema[T](
-            id map asJsString,
-            schema map asJsString,
-            title map asJsString,
-            description map asJsString,
-            multipleOf map asJsNumber,
-            maximum map asJsNumber,
-            exclusiveMaximum map asJsBoolean,
-            minimum map asJsNumber,
-            exclusiveMinimum map asJsBoolean,
-            maxLength map asJsNumber,
-            minLength map asJsNumber,
-            pattern map asJsString,
-            additionalItems map seqFormat[BooleanOrSchema[_]].read,
-            uniqueItems map asJsBoolean,
-            ref map asJsString,
-            required map seqFormat[String].read,
-            additionalProperties map booleanOrSchemaFormat.read,
-            aType map jsonTypeFormat.read,
-            properties map mapFormat[String, JsonSchema[_]].read,
-            patternProperties map mapFormat[String, JsonSchema[_]].read,
-            items map schemaOrSchemaArrayFormat.read,
-            allOf map seqSchemaFormat.read,
-            anyOf map seqSchemaFormat.read)
+            id = id map asJsString,
+            `$schema` = schema map asJsString,
+            title = title map asJsString,
+            description = description map asJsString,
+            multipleOf = multipleOf map asJsNumber,
+            maximum = maximum map asJsNumber,
+            exclusiveMaximum = exclusiveMaximum map asJsBoolean,
+            minimum = minimum map asJsNumber,
+            exclusiveMinimum = exclusiveMinimum map asJsBoolean,
+            maxLength = maxLength map asJsNumber,
+            minLength = minLength map asJsNumber,
+            pattern = pattern map asJsString,
+            //additionalItems map seqFormat[BooleanOrSchema[_]].read,
+            uniqueItems = uniqueItems map asJsBoolean,
+            `$ref` = ref map asJsString,
+            required = required map seqFormat[String].read,
+            //additionalProperties map booleanOrSchemaFormat.read,
+            `type` = aType map jsonTypeFormat.read,
+//            properties map mapFormat[String, JsonSchema[_]].read,
+//            patternProperties map mapFormat[String, JsonSchema[_]].read,
+//            items map schemaOrSchemaArrayFormat.read,
+//            allOf map seqSchemaFormat.read,
+//            anyOf map seqSchemaFormat.read,
+          default = default map (/*_.convertTo[T]*/???)
+        )
       }
 
     }
@@ -170,17 +172,18 @@ object JsonFormats {
       "maxLength" -> obj.maxLength.map(JsNumber(_)),
       "minLength" -> obj.minLength.map(JsNumber(_)),
       "pattern" -> obj.pattern.map(JsString(_)),
-      "additionalItems" -> obj.additionalItems.map(seqBooleanSchemaFormat.write),
+      //"additionalItems" -> obj.additionalItems.map(seqBooleanSchemaFormat.write),
       "uniqueItems" -> obj.uniqueItems.map(JsBoolean(_)),
       "$ref" -> obj.`$ref`.map(JsString(_)),
       "required" -> obj.required.map(seqFormat[String].write),
-      "additionalProperties" -> obj.additionalProperties.map(booleanOrSchemaFormat.write),
+      //"additionalProperties" -> obj.additionalProperties.map(booleanOrSchemaFormat.write),
       "type" -> obj.`type`.map(jsonTypeFormat.write),
-      "properties" -> obj.properties.map(mapFormat[String, JsonSchema[_]].write),
-      "patternProperties" -> obj.patternProperties.map(mapFormat[String, JsonSchema[_]].write),
-      "items" -> obj.items.map(schemaOrSchemaArrayFormat.write),
-      "allOf" -> obj.allOf.map(seqFormat[JsonSchema[_]].write),
-      "anyOf" -> obj.anyOf.map(seqFormat[JsonSchema[_]].write)
+      //"properties" -> obj.properties.map(mapFormat[String, JsonSchema[_]].write),
+      //"patternProperties" -> obj.patternProperties.map(mapFormat[String, JsonSchema[_]].write),
+      //"items" -> obj.items.map(schemaOrSchemaArrayFormat.write),
+      //"allOf" -> obj.allOf.map(seqFormat[JsonSchema[_]].write),
+      //"anyOf" -> obj.anyOf.map(seqFormat[JsonSchema[_]].write)
+        "default" -> obj.default.map(/*_.toJson*/???)
       ).filter({ case (_, value) => value.isDefined })
         .map({ case (key, value) => (key, value.get) })
 

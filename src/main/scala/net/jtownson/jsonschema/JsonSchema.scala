@@ -18,9 +18,9 @@ object JsonSchemaTypes {
 
   case object JsonString extends JsonType
 
-  type BooleanOrSchema[T] = Boolean :+: JsonSchema[T] :+: CNil
-
-  type SchemaOrSchemaArray[T] = JsonSchema[T] :+: Seq[JsonSchema[T]] :+: CNil
+//  type BooleanOrSchema[T] = Boolean :+: JsonSchema[T] :+: CNil
+//
+//  type SchemaOrSchemaArray[T] = JsonSchema[T] :+: Seq[JsonSchema[T]] :+: CNil
 
 }
 
@@ -40,17 +40,17 @@ case class JsonSchema[T](
                        maxLength: Option[BigDecimal] = None,
                        minLength: Option[BigDecimal] = None,
                        pattern: Option[String] = None,
-                       additionalItems: Option[Seq[BooleanOrSchema[_]]] = None,
+                       //additionalItems: Option[Seq[BooleanOrSchema[_]]] = None,
                        uniqueItems: Option[Boolean] = None,
                        `$ref`: Option[String] = None,
                        required: Option[Seq[String]] = None,
-                       additionalProperties: Option[BooleanOrSchema[_]] = None,
+                       //additionalProperties: Option[BooleanOrSchema[_]] = None,
                        `type`: Option[JsonType] = None,
-                       properties: Option[Map[String, JsonSchema[_]]] = None,
-                       patternProperties: Option[Map[String, JsonSchema[_]]] = None,
-                       items: Option[SchemaOrSchemaArray[_]] = None,
-                       allOf: Option[Seq[JsonSchema[_]]] = None,
-                       anyOf: Option[Seq[JsonSchema[_]]] = None,
+                       //properties: Option[Map[String, JsonSchema[_]]] = None,
+                       //patternProperties: Option[Map[String, JsonSchema[_]]] = None,
+                       //items: Option[SchemaOrSchemaArray[_]] = None,
+                       //allOf: Option[Seq[JsonSchema[_]]] = None,
+                       //anyOf: Option[Seq[JsonSchema[_]]] = None,
                        default: Option[T] = None
                      )
 
