@@ -2,7 +2,6 @@ name := "swakka"
 
 version := "1.0"
 
-//scalaVersion := "2.11.8"
 scalaVersion := "2.12.1"
 //scalaOrganization in ThisBuild := "org.typelevel"
 
@@ -19,9 +18,9 @@ val sprayJsonShapeless = Seq(
 )
 
 val scalatest = Seq(
-  "org.scalactic" %% "scalactic" % "3.0.1",
+  "org.scalactic" %% "scalactic" % "3.0.1" % "test",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-  "org.mockito" % "mockito-all" % "1.10.19" % "test"
+  "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % "test"
 )
 
 //val autoschema = Seq(

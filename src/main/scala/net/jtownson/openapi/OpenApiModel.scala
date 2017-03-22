@@ -1,7 +1,5 @@
 package net.jtownson.openapi
 
-import scala.reflect.runtime.universe._
-
 object OpenApiModel {
 
   sealed trait SwaggerVersion
@@ -54,8 +52,7 @@ object OpenApiModel {
 
   case class BodyParameter(
                             name: String,
-                            required: Boolean,
-                            schema: Type
+                            required: Boolean
                           )
 
   case class JsonReference(ref: String) extends Parameter
