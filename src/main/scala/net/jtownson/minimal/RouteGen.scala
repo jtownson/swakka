@@ -1,26 +1,8 @@
 package net.jtownson.minimal
 
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.server._
-
-// Model supporting a single endpoint with query params.
-// Good enough to verify principles in the code.
-object MinimalOpenApiModel {
-
-  sealed trait Parameter
-
-  case class QueryParameter(name: Symbol)
-
-  case class Operation(parameters: Seq[Parameter] = Nil,
-                       endpointImplementation: Map[Symbol, String] => ToResponseMarshallable)
-
-  case class PathItem(method: HttpMethod, operation: Operation)
-
-  case class OpenApiModel(path: String, pathItem: PathItem)
-
-}
 
 object RouteGen {
 
@@ -31,9 +13,11 @@ object RouteGen {
   import QueryStringHandling._
 
 
-  def openApiRoute(model: OpenApiModel): Route = {
+  def openApiRoute[T](model: OpenApiModel[T]): Route =
+    openApiRoute(model.pathItem.method, model.path, model.pathItem.operation)
 
-    val (method, modelPath, operation) = (model.pathItem.method, model.path, model.pathItem.operation)
+
+  private def openApiRoute[T](method: HttpMethod, modelPath: String, operation: Operation[T]) = {
 
     requestMethod(method) { (requestMethod: HttpMethod) =>
 
@@ -42,7 +26,7 @@ object RouteGen {
         queryParameters(operation) { (parameterMap: Map[Symbol, String]) =>
 
           complete(operation.endpointImplementation(
-            parameterMap + ('path -> path) + ('method -> method.toString()))) // TODO
+            parameterMap + ('path -> path) + ('method -> requestMethod.toString()))) // TODO
         }
       }
     }
@@ -50,11 +34,12 @@ object RouteGen {
 
 
   object MethodHandling {
-    val httpMethod = Map(GET -> get)
 
     def requestMethod(httpMethod: HttpMethod): Directive1[HttpMethod] = {
       method(httpMethod) & extractMethod
     }
+
+    private val httpMethod = Map(GET -> get)
   }
 
 
@@ -86,7 +71,7 @@ object RouteGen {
 
   object QueryStringHandling {
 
-    def queryParameters(o: Operation): Directive1[Map[Symbol, String]] =
+    def queryParameters[T](o: Operation[T]): Directive1[Map[Symbol, String]] =
       o.parameters.flatMap(onlyQueryParams).foldLeft(pNil)(appendParameter)
 
     private val pNil: Directive1[Map[Symbol, String]] =

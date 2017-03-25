@@ -1,3 +1,5 @@
+import sbt.Keys.scalaVersion
+
 name := "swakka"
 
 version := "1.0"
@@ -23,8 +25,12 @@ val scalatest = Seq(
   "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % "test"
 )
 
+val scalaReflection = Seq(
+  "org.scala-lang" % "scala-reflect" % "2.12.1"
+)
+
 //val autoschema = Seq(
 //  "com.sauldhernandez" %% "autoschema" % "1.0.3"
 //)
 
-libraryDependencies := akka ++ scalatest ++ /*autoschema ++ */ sprayJsonShapeless
+libraryDependencies := akka ++ scalatest ++ scalaReflection /*autoschema ++ */ /*sprayJsonShapeless*/
