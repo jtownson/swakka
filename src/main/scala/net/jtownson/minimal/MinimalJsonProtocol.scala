@@ -10,8 +10,8 @@ class MinimalJsonProtocol[T](implicit ev: SchemaWriter[T]) extends DefaultJsonPr
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
 
-  val parameterWriter: JsonWriter[Parameter] = {
-    case qp: QueryParameter =>
+  val parameterWriter: JsonWriter[Parameter[_]] = {
+    case qp: QueryParameter[_] =>
       JsObject(
         "name" -> JsString(qp.name),
         "in" -> JsString("query"),
@@ -21,22 +21,21 @@ class MinimalJsonProtocol[T](implicit ev: SchemaWriter[T]) extends DefaultJsonPr
       )
   }
 
-  implicit val parameterFormat: JsonFormat[Parameter] = lift(parameterWriter)
+  implicit val parameterFormat: JsonFormat[Parameter[_]] = lift(parameterWriter)
 
-  def operationWriter: JsonWriter[Operation[T]] = (operation: Operation[T]) =>
+  def operationWriter: JsonWriter[Operation[_, T]] = (operation: Operation[_, T]) =>
     operation.parameters match {
       case Nil => JsObject(
         "responses" -> responseValueWriter.write(operation.response)
       )
       case _ => JsObject(
-        "parameters" -> seqFormat[Parameter].write(operation.parameters),
+        "parameters" -> seqFormat[Parameter[_]].write(operation.parameters),
         "responses" -> responseValueWriter.write(operation.response)
       )
     }
 
-  implicit val operationFormat: JsonFormat[Operation[T]] = lift(operationWriter)
+  implicit val operationFormat: JsonFormat[Operation[_, T]] = lift(operationWriter)
 
-  import MinimalJsonSchemaJsonProtocol._
   private val jsonSchemaJsonWriter = new MinimalJsonSchemaJsonProtocol[T].jsonSchemaJsonWriter
 
   val responseValueWriter: JsonWriter[ResponseValue[T]] = (responseValue: ResponseValue[T]) =>
@@ -48,20 +47,20 @@ class MinimalJsonProtocol[T](implicit ev: SchemaWriter[T]) extends DefaultJsonPr
 
   implicit def responseValueFormat: JsonFormat[ResponseValue[T]] = lift(responseValueWriter)
 
-  implicit val queryParameterWriter: RootJsonFormat[QueryParameter] = jsonFormat1(QueryParameter) // TODO
+  implicit val queryParameterWriter: RootJsonFormat[QueryParameter[_]] = jsonFormat1(QueryParameter[String]) // TODO
 
-  val pathItemWriter: JsonWriter[PathItem[T]] = (pathItem: PathItem[T]) =>
+  val pathItemWriter: JsonWriter[PathItem[_, T]] = (pathItem: PathItem[_, T]) =>
     JsObject(
       asString(pathItem.method) -> operationWriter.write(pathItem.operation)
     )
 
-  implicit val pathItemFormat: JsonFormat[PathItem[T]] = lift(pathItemWriter)
+  implicit val pathItemFormat: JsonFormat[PathItem[_, T]] = lift(pathItemWriter)
 
 
-  val openApiModelWriter: RootJsonWriter[OpenApiModel[T]] = (openApiModel: OpenApiModel[T]) =>
+  val openApiModelWriter: RootJsonWriter[OpenApiModel[_, T]] = (openApiModel: OpenApiModel[_, T]) =>
     JsObject(
       openApiModel.path -> pathItemWriter.write(openApiModel.pathItem)
     )
 
-  implicit val openApiModelFormat: RootJsonFormat[OpenApiModel[T]] = lift(openApiModelWriter)
+  implicit val openApiModelFormat: RootJsonFormat[OpenApiModel[_, T]] = lift(openApiModelWriter)
 }

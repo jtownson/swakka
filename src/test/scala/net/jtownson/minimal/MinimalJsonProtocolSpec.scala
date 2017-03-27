@@ -1,6 +1,7 @@
 package net.jtownson.minimal
 
 import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.model.HttpRequest
 import net.jtownson.minimal.MinimalOpenApiModel._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -11,11 +12,11 @@ class MinimalJsonProtocolSpec extends FlatSpec {
 
   import MinimalJsonSchemaJsonProtocol._
 
-  private val endpointImpl = (_: Map[Symbol, String]) => ???
+  private val endpointImpl = (_: HttpRequest) => ???
 
   private implicit val openApiModelFormat = new MinimalJsonProtocol[String].openApiModelWriter
 
-  private val ruokModel: OpenApiModel[String] = OpenApiModel(
+  private val ruokModel: OpenApiModel[String, String] = OpenApiModel(
     "/ruok", PathItem(
       GET, Operation(Nil,
         ResponseValue(200), endpointImpl)))
@@ -34,7 +35,7 @@ class MinimalJsonProtocolSpec extends FlatSpec {
     )
   )
 
-  private val jsonModels = Table[String, OpenApiModel[String], JsObject](
+  private val jsonModels = Table[String, OpenApiModel[String, String], JsObject](
     ("testcase name", "model", "expected swagger"),
     ("index page", ruokModel, ruokSwaggerJson)
   )

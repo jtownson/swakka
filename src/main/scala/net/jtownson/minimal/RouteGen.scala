@@ -1,60 +1,61 @@
 package net.jtownson.minimal
 
 import akka.http.scaladsl.model.HttpMethod
-import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.server.Directives._
+
 import akka.http.scaladsl.server._
+import net.jtownson.minimal.MinimalOpenApiModel.QueryParameter
+
+trait QueryParamConverter[T] {
+  def convert(qp: QueryParameter[T]): Directive0
+}
+
+object QueryParamConversions {
+
+  implicit val stringConverter: QueryParamConverter[String] =
+    (qp: QueryParameter[String]) => parameter(qp.name).tmap(_ => ())
+
+  implicit val intConverter: QueryParamConverter[Int] =
+    (qp: QueryParameter[Int]) => parameter(qp.name.as[Int]).tmap(_ => ())
+}
 
 object RouteGen {
 
   import MinimalOpenApiModel._
-  import akka.http.scaladsl.server.Directives._
-  import MethodHandling._
   import PathHandling._
   import QueryStringHandling._
+  import akka.http.scaladsl.server.Directives._
 
-
-  def openApiRoute[T](model: OpenApiModel[T]): Route =
+  def openApiRoute[I: QueryParamConverter, T](model: OpenApiModel[I, T]): Route =
     openApiRoute(model.pathItem.method, model.path, model.pathItem.operation)
 
+  private def openApiRoute[I : QueryParamConverter, T](httpMethod: HttpMethod, modelPath: String, operation: Operation[I, T]) = {
 
-  private def openApiRoute[T](method: HttpMethod, modelPath: String, operation: Operation[T]) = {
+    method(httpMethod) {
 
-    requestMethod(method) { (requestMethod: HttpMethod) =>
+      akkaPath(modelPath) {
 
-      requestPath(modelPath) { (path: String) =>
+        val queryParams = queryParameters(operation)
 
-        queryParameters(operation) { (parameterMap: Map[Symbol, String]) =>
+        queryParams {
 
-          complete(operation.endpointImplementation(
-            parameterMap + ('path -> path) + ('method -> requestMethod.toString()))) // TODO
+          extractRequest { request =>
+
+            complete(operation.endpointImplementation(request))
+          }
         }
       }
     }
   }
 
-
-  object MethodHandling {
-
-    def requestMethod(httpMethod: HttpMethod): Directive1[HttpMethod] = {
-      method(httpMethod) & extractMethod
-    }
-
-    private val httpMethod = Map(GET -> get)
-  }
-
-
   object PathHandling {
 
-    def requestPath(modelPath: String): Directive1[String] = {
-      akkaPath(modelPath) & extractMatchedPath.map(uriPath => uriPath.toString)
-    }
-
-    private val notBlank = (s: String) => ! s.trim.isEmpty
+    private val notBlank = (s: String) => !s.trim.isEmpty
 
     private def splitPath(requestPath: String): List[String] =
       requestPath.split("/").filter(notBlank).toList
 
-    private def akkaPath(modelPath: String): Directive[Unit] = {
+    def akkaPath(modelPath: String): Directive[Unit] = {
 
       def loop(paths: List[String]): PathMatcher[Unit] = paths match {
         case Nil => PathMatchers.Neutral
@@ -68,29 +69,20 @@ object RouteGen {
     }
   }
 
-
   object QueryStringHandling {
 
-    def queryParameters[T](o: Operation[T]): Directive1[Map[Symbol, String]] =
+    def queryParameters[I : QueryParamConverter, _](o: Operation[I, _]): Directive0 = {
       o.parameters.flatMap(onlyQueryParams).foldLeft(pNil)(appendParameter)
+    }
 
-    private val pNil: Directive1[Map[Symbol, String]] =
-      pass.tmap(_ => Map[Symbol, String]())
+    private val pNil: Directive0 = pass
 
-    private val mapAppend: ((Map[Symbol, String], Map[Symbol, String])) => Map[Symbol, String] =
-      tl => tl._1 ++ tl._2
+    private def appendParameter[I](paramsAcc: Directive0, param: QueryParameter[I])(implicit ev: QueryParamConverter[I]): Directive0 = {
+      (paramsAcc & ev.convert(param)).tmap(_ => ())
+    }
 
-    private val appendParameter: (Directive1[Map[Symbol, String]], QueryParameter) => Directive1[Map[Symbol, String]] =
-      (qps, qp) => {
-
-        val p: Directive1[String] = parameter(qp.name)
-        val pl1: Directive1[Map[Symbol, String]] = p.map[Map[Symbol, String]](s => Map(qp.name -> s))
-
-        (pl1 & qps).tmap(mapAppend)
-      }
-
-    private val onlyQueryParams: Parameter => Seq[QueryParameter] = {
-      case q: QueryParameter => List(q)
+    private def onlyQueryParams[I]: Parameter[I] => Seq[QueryParameter[I]] = {
+      case q: QueryParameter[I] => List(q)
       case _ => Nil
     }
   }
