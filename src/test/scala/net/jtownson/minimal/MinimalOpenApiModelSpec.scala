@@ -49,12 +49,12 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
     }
   }
 
-  "query params" should "be typeable as Int" in {
+  val itemWithIntParam: PathItem[Int, String] = PathItem(
+    GET, Operation(List(QueryParameter[Int]('q)), ResponseValue(200), f))
+
+  "int params that are NOT ints" should "be rejected" in {
 
     val request = get("/app?q=x")
-
-    val itemWithIntParam: PathItem[Int, String] = PathItem(
-      GET, Operation(List(QueryParameter[Int]('q)), ResponseValue(200), f))
 
     val route = openApiRoute(OpenApiModel("/app", itemWithIntParam))
 
@@ -62,6 +62,20 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
       inside (rejection) { case MalformedQueryParamRejection(parameterName, _, _) =>
         parameterName shouldBe "q"
       }
+    }
+  }
+
+  "int params that are ints" should "be passed through" in {
+
+    val request = get("/app?q=10")
+
+    f expects request returning "x"
+
+    val route = openApiRoute(OpenApiModel("/app", itemWithIntParam))
+
+    request ~> route ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe "x"
     }
   }
 
