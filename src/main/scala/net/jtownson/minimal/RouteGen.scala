@@ -2,6 +2,7 @@ package net.jtownson.minimal
 
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.server._
+import shapeless.HList
 
 
 object RouteGen {
@@ -11,10 +12,10 @@ object RouteGen {
   import PathHandling._
   import akka.http.scaladsl.server.Directives._
 
-  def openApiRoute[I: ConvertibleToDirective0, T](model: OpenApiModel[I, T]): Route =
+  def openApiRoute[Params <: HList : ConvertibleToDirective0, T](model: OpenApiModel[Params, T]): Route =
     openApiRoute(model.pathItem.method, model.path, model.pathItem.operation)
 
-  private def openApiRoute[I: ConvertibleToDirective0, T](httpMethod: HttpMethod, modelPath: String, operation: Operation[I, T]) = {
+  private def openApiRoute[Params <: HList : ConvertibleToDirective0, T](httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, T]) = {
 
     method(httpMethod) {
 

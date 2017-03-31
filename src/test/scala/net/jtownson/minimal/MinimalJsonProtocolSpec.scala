@@ -12,11 +12,12 @@ import spray.json.{JsObject, JsString}
 class MinimalJsonProtocolSpec extends FlatSpec {
 
   import ConvertibleToDirective0._
+  import ParametersJsonProtocol._
   import MinimalJsonSchemaJsonProtocol._
 
   private val endpointImpl = (_: HttpRequest) => ???
 
-  private implicit val openApiModelFormat = new MinimalJsonProtocol[String].openApiModelWriter
+  private implicit val openApiModelFormat = new MinimalJsonProtocol[HNil, String].openApiModelWriter
 
   private val ruokModel = OpenApiModel("/ruok", PathItem[HNil, String](
       GET, Operation(HNil, ResponseValue(200), endpointImpl)))

@@ -15,12 +15,12 @@ object MinimalOpenApiModel {
   // could do this as a Tuple, Tn or a Seq. Tuple is probably good here.
   case class ResponseValue[T](responseCode: Int)
 
-  case class Operation[Params: ConvertibleToDirective0, T](parameters: Params = HNil,
+  case class Operation[Params <: HList : ConvertibleToDirective0, T](parameters: Params = HNil,
                                                            response: ResponseValue[T],
                                                            endpointImplementation: HttpRequest => ToResponseMarshallable)
 
-  case class PathItem[Params: ConvertibleToDirective0, T](method: HttpMethod, operation: Operation[Params, T])
+  case class PathItem[Params <: HList : ConvertibleToDirective0, T](method: HttpMethod, operation: Operation[Params, T])
 
-  case class OpenApiModel[Params: ConvertibleToDirective0, T](path: String, pathItem: PathItem[Params, T])
+  case class OpenApiModel[Params <: HList : ConvertibleToDirective0, T](path: String, pathItem: PathItem[Params, T])
 }
 
