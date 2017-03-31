@@ -2,10 +2,8 @@ package net.jtownson.minimal
 
 import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.minimal.MinimalOpenApiModel._
-import shapeless.{HList, HNil, ::}
+import shapeless.HList
 import spray.json.{DefaultJsonProtocol, JsObject, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
-import shapeless._
-import shapeless.nat._
 
 class MinimalJsonProtocol[Params <: HList, T](implicit ev1: JsonWriter[Params], ev2: SchemaWriter[T])
   extends DefaultJsonProtocol {
@@ -17,7 +15,7 @@ class MinimalJsonProtocol[Params <: HList, T](implicit ev1: JsonWriter[Params], 
   val operationWriter: JsonWriter[Operation[Params, T]] = (operation: Operation[Params, T]) => {
     val parameters: HList = operation.parameters
 
-    if (parameters.length == 0)
+    if (parameters.productArity == 0)
       JsObject(
         "responses" -> responseValueWriter.write(operation.response))
     else
