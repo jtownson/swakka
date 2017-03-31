@@ -6,20 +6,20 @@ import net.jtownson.minimal.MinimalOpenApiModel._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
+import shapeless.HNil
 import spray.json.{JsObject, JsString}
 
 class MinimalJsonProtocolSpec extends FlatSpec {
 
+  import ConvertibleToDirective0._
   import MinimalJsonSchemaJsonProtocol._
 
   private val endpointImpl = (_: HttpRequest) => ???
 
   private implicit val openApiModelFormat = new MinimalJsonProtocol[String].openApiModelWriter
 
-  private val ruokModel: OpenApiModel[String, String] = OpenApiModel(
-    "/ruok", PathItem(
-      GET, Operation(Nil,
-        ResponseValue(200), endpointImpl)))
+  private val ruokModel = OpenApiModel("/ruok", PathItem[HNil, String](
+      GET, Operation(HNil, ResponseValue(200), endpointImpl)))
 
   val ruokSwaggerJson = JsObject(
     "/ruok" -> JsObject(
@@ -35,7 +35,7 @@ class MinimalJsonProtocolSpec extends FlatSpec {
     )
   )
 
-  private val jsonModels = Table[String, OpenApiModel[String, String], JsObject](
+  private val jsonModels = Table(
     ("testcase name", "model", "expected swagger"),
     ("index page", ruokModel, ruokSwaggerJson)
   )

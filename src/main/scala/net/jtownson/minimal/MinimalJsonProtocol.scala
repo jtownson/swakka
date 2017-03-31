@@ -10,7 +10,8 @@ class MinimalJsonProtocol[T](implicit ev: SchemaWriter[T]) extends DefaultJsonPr
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
 
-  val parameterWriter: JsonWriter[Parameter[_]] = {
+
+  val parameterWriter: JsonWriter[QueryParameter[_]] = {
     case qp: QueryParameter[_] =>
       JsObject(
         "name" -> JsString(qp.name),
@@ -21,7 +22,7 @@ class MinimalJsonProtocol[T](implicit ev: SchemaWriter[T]) extends DefaultJsonPr
       )
   }
 
-  implicit val parameterFormat: JsonFormat[Parameter[_]] = lift(parameterWriter)
+  implicit val parameterFormat: JsonFormat[QueryParameter[_]] = lift(parameterWriter)
 
   def operationWriter: JsonWriter[Operation[_, T]] = (operation: Operation[_, T]) =>
     operation.parameters match {
@@ -29,7 +30,7 @@ class MinimalJsonProtocol[T](implicit ev: SchemaWriter[T]) extends DefaultJsonPr
         "responses" -> responseValueWriter.write(operation.response)
       )
       case _ => JsObject(
-        "parameters" -> seqFormat[Parameter[_]].write(operation.parameters),
+//        "parameters" -> seqFormat[QueryParameter[_]].write(operation.parameters), // TODO
         "responses" -> responseValueWriter.write(operation.response)
       )
     }

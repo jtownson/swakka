@@ -33,4 +33,4 @@ val scalaReflection = Seq(
 //  "com.sauldhernandez" %% "autoschema" % "1.0.3"
 //)
 
-libraryDependencies := akka ++ scalatest ++ scalaReflection /*autoschema ++ */ /*sprayJsonShapeless*/
+libraryDependencies := akka ++ scalatest ++ scalaReflection /*autoschema ++ */ ++ sprayJsonShapeless
