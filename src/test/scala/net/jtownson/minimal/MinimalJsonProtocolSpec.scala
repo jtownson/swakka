@@ -5,45 +5,65 @@ import akka.http.scaladsl.model.HttpRequest
 import net.jtownson.minimal.MinimalOpenApiModel._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import org.scalatest.prop.TableDrivenPropertyChecks._
-import shapeless.HNil
+import shapeless.{::, HNil}
 import spray.json.{JsObject, JsString}
 
 class MinimalJsonProtocolSpec extends FlatSpec {
 
   import ConvertibleToDirective0._
-  import ParametersJsonProtocol._
   import MinimalJsonSchemaJsonProtocol._
+  import ParametersJsonProtocol._
 
   private val endpointImpl = (_: HttpRequest) => ???
 
-  private implicit val openApiModelFormat = new MinimalJsonProtocol[HNil, String].openApiModelWriter
+  "JsonProtocol" should "write a parameterless model" in {
 
-  private val ruokModel = OpenApiModel("/ruok", PathItem[HNil, String](
+    val apiModel = OpenApiModel("/ruok", PathItem[HNil, String](
       GET, Operation(HNil, ResponseValue(200), endpointImpl)))
 
-  val ruokSwaggerJson = JsObject(
-    "/ruok" -> JsObject(
-      "get" -> JsObject(
-        "responses" -> JsObject(
-          "200" -> JsObject(
-            "schema" -> JsObject(
-              "type" -> JsString("string")
+    val expectedSwagger = JsObject(
+      "/ruok" -> JsObject(
+        "get" -> JsObject(
+          "responses" -> JsObject(
+            "200" -> JsObject(
+              "schema" -> JsObject(
+                "type" -> JsString("string")
+              )
             )
           )
         )
       )
     )
-  )
 
-  private val jsonModels = Table(
-    ("testcase name", "model", "expected swagger"),
-    ("index page", ruokModel, ruokSwaggerJson)
-  )
+    val openApiModelFormat = new MinimalJsonProtocol[HNil, String].openApiModelWriter
 
-  forAll(jsonModels) { (testcaseName, apiModel, expectedSwagger) =>
-    testcaseName should "convert to swagger json" in {
-      openApiModelFormat.write(apiModel) shouldBe expectedSwagger
-    }
+    openApiModelFormat.write(apiModel) shouldBe expectedSwagger
+  }
+
+  it should "write a model with a parameter" in {
+
+
+  type Params = QueryParameter[String] :: HNil
+
+  val apiModel = OpenApiModel(
+    "/ruok", PathItem[Params, String](GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue(200), endpointImpl)))
+
+    val expectedSwagger = JsObject(
+      "/ruok" -> JsObject(
+        "get" -> JsObject(
+          "responses" -> JsObject(
+            "200" -> JsObject(
+              "schema" -> JsObject(
+                "type" -> JsString("string")
+              )
+            )
+          )
+        )
+      )
+    )
+
+    val openApiModelFormat = new MinimalJsonProtocol[Params, String].openApiModelWriter
+
+    openApiModelFormat.write(apiModel) shouldBe expectedSwagger
   }
 }
