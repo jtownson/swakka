@@ -11,9 +11,13 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
   "ParametersJsonProtocol" should "serialize an array of query params" in {
 
-    type Params = QueryParameter[Int] :: QueryParameter[String] :: QueryParameter[Int] :: HNil
+    type Params =
+      QueryParameter[Int] :: QueryParameter[String] ::
+        QueryParameter[Int] :: QueryParameter[String] :: HNil
 
-    val params = QueryParameter[Int]('r) :: QueryParameter[String]('s) :: QueryParameter[Int]('t) :: HNil
+    val params =
+      QueryParameter[Int]('r) :: QueryParameter[String]('s) ::
+        QueryParameter[Int]('t) :: QueryParameter[String]('u) :: HNil
 
     val expectedJson = JsArray(
       JsObject(
@@ -36,8 +40,15 @@ class ParametersJsonProtocolSpec extends FlatSpec {
         "description" -> JsString(""),
         "required" -> JsBoolean(false),
         "type" -> JsString("integer")
-      )
-    )
+      ),
+      JsObject(
+        "name" -> JsString("u"),
+        "in" -> JsString("query"),
+        "description" -> JsString(""),
+        "required" -> JsBoolean(false),
+        "type" -> JsString("string")
+      ))
+
 
     params.toJson shouldBe expectedJson
   }

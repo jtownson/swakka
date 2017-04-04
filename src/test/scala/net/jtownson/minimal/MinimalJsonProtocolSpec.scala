@@ -6,7 +6,7 @@ import net.jtownson.minimal.MinimalOpenApiModel._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}
-import spray.json.{JsObject, JsString}
+import spray.json.{JsArray, JsFalse, JsObject, JsString}
 
 class MinimalJsonProtocolSpec extends FlatSpec {
 
@@ -42,15 +42,23 @@ class MinimalJsonProtocolSpec extends FlatSpec {
 
   it should "write a model with a parameter" in {
 
+    type Params = QueryParameter[String] :: HNil
 
-  type Params = QueryParameter[String] :: HNil
-
-  val apiModel = OpenApiModel(
-    "/ruok", PathItem[Params, String](GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue(200), endpointImpl)))
+    val apiModel = OpenApiModel(
+      "/ruok", PathItem[Params, String](GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue(200), endpointImpl)))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
         "get" -> JsObject(
+          "parameters" ->
+            JsArray(
+              JsObject(
+                "name" -> JsString("q"),
+                "in" -> JsString("query"),
+                "description" -> JsString(""),
+                "required" -> JsFalse,
+                "type" -> JsString("string")
+              )),
           "responses" -> JsObject(
             "200" -> JsObject(
               "schema" -> JsObject(
