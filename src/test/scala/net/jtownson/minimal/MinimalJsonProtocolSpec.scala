@@ -1,5 +1,6 @@
 package net.jtownson.minimal
 
+import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.model.HttpRequest
 import net.jtownson.minimal.MinimalOpenApiModel._
@@ -13,13 +14,16 @@ class MinimalJsonProtocolSpec extends FlatSpec {
   import ConvertibleToDirective0._
   import MinimalJsonSchemaJsonProtocol._
   import ParametersJsonProtocol._
+  import ResponsesJsonProtocol._
 
-  private val endpointImpl = (_: HttpRequest) => ???
+  private val endpointImpl: HttpRequest => ToResponseMarshallable = (_: HttpRequest) => ???
 
   "JsonProtocol" should "write a parameterless model" in {
 
-    val apiModel = OpenApiModel("/ruok", PathItem[HNil, String](
-      GET, Operation(HNil, ResponseValue(200), endpointImpl)))
+    type Responses = ResponseValue[String] :: HNil
+
+    val apiModel = OpenApiModel[HNil, Responses]("/ruok", PathItem[HNil, Responses](
+      GET, Operation(HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -35,7 +39,7 @@ class MinimalJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    val openApiModelFormat = new MinimalJsonProtocol[HNil, String].openApiModelWriter
+    val openApiModelFormat = new MinimalJsonProtocol[HNil, Responses].openApiModelWriter
 
     openApiModelFormat.write(apiModel) shouldBe expectedSwagger
   }
@@ -43,9 +47,10 @@ class MinimalJsonProtocolSpec extends FlatSpec {
   it should "write a model with a parameter" in {
 
     type Params = QueryParameter[String] :: HNil
+    type Responses = ResponseValue[String] :: HNil
 
-    val apiModel = OpenApiModel(
-      "/ruok", PathItem[Params, String](GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue(200), endpointImpl)))
+    val apiModel: OpenApiModel[Params, Responses] = OpenApiModel(
+      "/ruok", PathItem(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -70,8 +75,9 @@ class MinimalJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    val openApiModelFormat = new MinimalJsonProtocol[Params, String].openApiModelWriter
+    val openApiModelFormat = new MinimalJsonProtocol[Params, Responses].openApiModelWriter
 
     openApiModelFormat.write(apiModel) shouldBe expectedSwagger
   }
+
 }

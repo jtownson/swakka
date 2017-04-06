@@ -3,32 +3,27 @@ package net.jtownson.minimal
 import net.jtownson.minimal.MinimalOpenApiModel.QueryParameter
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsBoolean, JsObject, JsString, JsValue, JsonFormat, JsonWriter}
-
+import ParameterJsonFormat._
 
 object ParametersJsonProtocol extends DefaultJsonProtocol {
 
-  val strParamWriter: JsonWriter[QueryParameter[String]] =
-    qp => swaggerParam(qp.name, "query", "", false, JsString("string"))
 
-  implicit val strParamFormat: JsonFormat[QueryParameter[String]] = lift(strParamWriter)
+  implicit val strParamFormat: ParameterJsonFormat[QueryParameter[String]] =
+    (qp: QueryParameter[String]) => swaggerParam(qp.name, "query", "", false, JsString("string"))
 
-  val intParamWriter: JsonWriter[QueryParameter[Int]] =
-    qp => swaggerParam(qp.name, "query", "", false, JsString("integer"))
+  implicit val intParamFormat: ParameterJsonFormat[QueryParameter[Int]] =
+    (qp: QueryParameter[Int]) => swaggerParam(qp.name, "query", "", false, JsString("integer"))
 
-
-  implicit val intParamFormat: JsonFormat[QueryParameter[Int]] = lift(intParamWriter)
-
-  val hNilParamWriter: JsonWriter[HNil] =
+  val hNilParamWriter: ParameterJsonFormat[HNil] =
     _ => JsArray()
 
-  implicit val hNilParamFormat: JsonFormat[HNil] = lift(hNilParamWriter)
+  implicit val hNilParamFormat: ParameterJsonFormat[HNil] =
+    _ => JsArray()
 
-  def hConsParamWriter[H, T <: HList](implicit head: JsonFormat[H], tail: JsonFormat[T]): JsonWriter[H :: T] =
-    (l: H :: T) => {
-      FlattenJsArray.flatten(JsArray(head.write(l.head), tail.write(l.tail)))
-    }
-
-  implicit def hConsParamFormat[H, T <: HList](implicit head: JsonFormat[H], tail: JsonFormat[T]): JsonFormat[H :: T] = lift(hConsParamWriter[H, T])
+  implicit def hConsParamFormat[H, T <: HList](implicit head: ParameterJsonFormat[H], tail: ParameterJsonFormat[T]): ParameterJsonFormat[H :: T] =
+    func2Format((l: H :: T) => {
+      Flattener.flattenToArray(JsArray(head.write(l.head), tail.write(l.tail)))
+    })
 
   private def swaggerParam(name: Symbol, in: String, description: String, required: Boolean, `type`: JsValue): JsValue =
     JsObject(

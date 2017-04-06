@@ -12,10 +12,10 @@ object RouteGen {
   import PathHandling._
   import akka.http.scaladsl.server.Directives._
 
-  def openApiRoute[Params <: HList : ConvertibleToDirective0, T](model: OpenApiModel[Params, T]): Route =
+  def openApiRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](model: OpenApiModel[Params, Responses]): Route =
     openApiRoute(model.pathItem.method, model.path, model.pathItem.operation)
 
-  private def openApiRoute[Params <: HList : ConvertibleToDirective0, T](httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, T]) = {
+  private def openApiRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses]) = {
 
     method(httpMethod) {
 

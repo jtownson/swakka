@@ -20,7 +20,7 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
 
   val f = mockFunction[HttpRequest, ToResponseMarshallable]
 
-  private val defaultItem = PathItem[HNil, String](GET, Operation(HNil, ResponseValue(200), f))
+  private val defaultItem = PathItem[HNil, ResponseValue[String] :: HNil](GET, Operation(HNil, ResponseValue[String](200) :: HNil, f))
 
   val zeroParamModels = Table(
     ("testcase name", "request", "model", "response"),
@@ -46,8 +46,8 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
 
   type OneStringParam = QueryParameter[String] :: HNil
 
-  private val itemWithQueryParam = PathItem[OneStringParam, String](
-    GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue(200), f))
+  private val itemWithQueryParam = PathItem[OneStringParam, ResponseValue[String] :: HNil](
+    GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, f))
 
   val oneStrParamModels = Table(
     ("testcase name", "request", "model", "response"),
@@ -70,8 +70,8 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
 
   type OneIntParam = QueryParameter[Int] :: HNil
 
-  val itemWithIntParam = PathItem[OneIntParam, String](
-    GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue(200), f))
+  val itemWithIntParam = PathItem[OneIntParam, ResponseValue[String] :: HNil](
+    GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f))
 
   "int params that are NOT ints" should "be rejected" in {
 

@@ -1,12 +1,12 @@
 package net.jtownson.minimal
 
-import net.jtownson.minimal.FlattenJsArray.flatten
+import net.jtownson.minimal.Flattener.{flattenToArray, flattenToObject}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json.{JsArray, JsObject, JsString}
 import org.scalatest.prop.TableDrivenPropertyChecks._
 
-class FlattenJsArraySpec extends FlatSpec {
+class FlattenerSpec extends FlatSpec {
 
   val ai = JsArray(
     JsObject(
@@ -61,9 +61,57 @@ class FlattenJsArraySpec extends FlatSpec {
   )
 
   forAll(samples) { (name, input, expectedOutput) =>
-    "flatten" should s"work for case $name" in {
-      flatten(input) shouldBe expectedOutput
+    "flattenToArray" should s"work for case $name" in {
+      flattenToArray(input) shouldBe expectedOutput
     }
   }
 
+  val nested = JsArray(
+    JsObject(
+      "200" -> JsObject(
+        "schema" -> JsObject(
+          "type" -> JsString("string")
+        )
+      )
+    ),
+    JsArray(
+      JsObject(
+        "404" -> JsObject(
+          "schema" -> JsObject(
+            "type" -> JsString("string")
+          )
+        )
+      ),
+      JsObject(
+        "500" -> JsObject(
+          "schema" -> JsObject(
+            "type" -> JsString("string")
+          )
+        )
+      )
+    )
+  )
+
+  val flattened = JsObject(
+    "200" -> JsObject(
+      "schema" -> JsObject(
+        "type" -> JsString("string")
+      )
+    ),
+    "404" -> JsObject(
+      "schema" -> JsObject(
+        "type" -> JsString("string")
+      )
+    ),
+    "500" -> JsObject(
+      "schema" -> JsObject(
+        "type" -> JsString("string")
+      )
+    )
+  )
+
+
+  "flattenToObject" should "work" in {
+    flattenToObject(nested) shouldBe flattened
+  }
 }

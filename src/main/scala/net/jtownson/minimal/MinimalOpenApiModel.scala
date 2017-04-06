@@ -10,17 +10,21 @@ object MinimalOpenApiModel {
 
   case class QueryParameter[T](name: Symbol)
 
-  // in the real swagger model an operation can have multiple
-  // response types (one type for a 200, another for a 500, etc).
-  // could do this as a Tuple, Tn or a Seq. Tuple is probably good here.
+  case class DefaultResponse[T]()
   case class ResponseValue[T](responseCode: Int)
 
-  case class Operation[Params <: HList : ConvertibleToDirective0, T](parameters: Params = HNil,
-                                                           response: ResponseValue[T],
-                                                           endpointImplementation: HttpRequest => ToResponseMarshallable)
+  case class Operation[Params <: HList : ConvertibleToDirective0, Responses <: HList](
+    parameters: Params = HNil,
+    responses: Responses = HNil,
+    endpointImplementation: HttpRequest => ToResponseMarshallable)
 
-  case class PathItem[Params <: HList : ConvertibleToDirective0, T](method: HttpMethod, operation: Operation[Params, T])
+  case class PathItem[Params <: HList : ConvertibleToDirective0, Responses <: HList](
+    method: HttpMethod,
+    operation: Operation[Params, Responses])
 
-  case class OpenApiModel[Params <: HList : ConvertibleToDirective0, T](path: String, pathItem: PathItem[Params, T])
+  case class OpenApiModel[Params <: HList : ConvertibleToDirective0, Responses <: HList](
+    path: String,
+    pathItem: PathItem[Params, Responses])
+
 }
 
