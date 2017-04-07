@@ -1,35 +1,35 @@
 package net.jtownson.swakka
 
 import spray.json._
-import net.jtownson.swakka.MinimalJsonSchemaJsonProtocol._
+import net.jtownson.swakka.JsonSchemaJsonProtocol._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json.{JsObject, JsString}
 import SchemaWriter._
 
-class MinimalJsonSchemaJsonProtocolSpec extends FlatSpec {
+class JsonSchemaJsonProtocolSpec extends FlatSpec {
 
   "Protocol" should "describe Unit" in {
-    MinimalJsonSchema[Unit]().toJson shouldBe JsObject()
+    JsonSchema[Unit]().toJson shouldBe JsObject()
   }
 
   it should "describe a String" in {
-    MinimalJsonSchema[String]().toJson shouldBe JsObject("type" -> JsString("string"))
+    JsonSchema[String]().toJson shouldBe JsObject("type" -> JsString("string"))
   }
 
   it should "describe an Int" in {
-    MinimalJsonSchema[Int]().toJson shouldBe JsObject("type" -> JsString("number"))
+    JsonSchema[Int]().toJson shouldBe JsObject("type" -> JsString("number"))
   }
 
   it should "describe an Double" in {
-    MinimalJsonSchema[Double]().toJson shouldBe JsObject("type" -> JsString("number"))
+    JsonSchema[Double]().toJson shouldBe JsObject("type" -> JsString("number"))
   }
 
   case class A()
   implicit val aWriter = schemaWriter(A)
 
   it should "describe an empty case class" in {
-    MinimalJsonSchema[A]().toJson shouldBe JsObject(
+    JsonSchema[A]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
       "properties" -> JsObject())
   }
@@ -38,7 +38,7 @@ class MinimalJsonSchemaJsonProtocolSpec extends FlatSpec {
   implicit val bWriter = schemaWriter(B)
 
   it should "describe a single field case class" in {
-    MinimalJsonSchema[B]().toJson shouldBe JsObject(
+    JsonSchema[B]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
       "properties" -> JsObject(
         "i" -> JsObject(
@@ -51,7 +51,7 @@ class MinimalJsonSchemaJsonProtocolSpec extends FlatSpec {
 
   it should "describe a nested case class" in {
 
-    MinimalJsonSchema[C]().toJson shouldBe JsObject(
+    JsonSchema[C]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
       "properties" -> JsObject(
         "a" -> JsObject(
@@ -65,7 +65,7 @@ class MinimalJsonSchemaJsonProtocolSpec extends FlatSpec {
   implicit val dWriter = schemaWriter(D)
 
   it should "describe a two field case class" in {
-    MinimalJsonSchema[D]().toJson shouldBe JsObject(
+    JsonSchema[D]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
       "properties" -> JsObject(
         "id" -> JsObject(

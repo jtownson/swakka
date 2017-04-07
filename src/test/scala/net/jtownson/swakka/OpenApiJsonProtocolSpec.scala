@@ -12,7 +12,6 @@ import spray.json.{JsArray, JsFalse, JsObject, JsString}
 class OpenApiJsonProtocolSpec extends FlatSpec {
 
   import ConvertibleToDirective0._
-  import MinimalJsonSchemaJsonProtocol._
   import ParametersJsonProtocol._
   import ResponsesJsonProtocol._
 

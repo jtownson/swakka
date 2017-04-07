@@ -9,7 +9,7 @@ import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsValue}
 trait ResponsesJsonProtocol extends DefaultJsonProtocol {
 
   implicit val strResponseFormat: ResponseJsonFormat[ResponseValue[String]] =
-    (rv: ResponseValue[String]) => swaggerResponse(rv.responseCode, MinimalJsonSchema[String]())
+    (rv: ResponseValue[String]) => swaggerResponse(rv.responseCode, JsonSchema[String]())
 
 
   implicit val hNilResponseFormat: ResponseJsonFormat[HNil] =
@@ -35,9 +35,9 @@ trait ResponsesJsonProtocol extends DefaultJsonProtocol {
 
 
   private def caseClassFormat[T <: Product : TypeTag : SchemaWriter]: ResponseJsonFormat[ResponseValue[T]] =
-    func2Format((rv: ResponseValue[T]) => swaggerResponse(rv.responseCode, MinimalJsonSchema[T]()))
+    func2Format((rv: ResponseValue[T]) => swaggerResponse(rv.responseCode, JsonSchema[T]()))
 
-  private def swaggerResponse[T](status: Int, schema: MinimalJsonSchema[T])
+  private def swaggerResponse[T](status: Int, schema: JsonSchema[T])
                                 (implicit sw: SchemaWriter[T]): JsValue =
     JsObject(
       String.valueOf(status) -> JsObject(
