@@ -1,15 +1,15 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.model.HttpRequest
-import net.jtownson.minimal.MinimalOpenApiModel._
+import net.jtownson.swakka.OpenApiModel._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}
 import spray.json.{JsArray, JsFalse, JsObject, JsString}
 
-class MinimalJsonProtocolSpec extends FlatSpec {
+class OpenApiJsonProtocolSpec extends FlatSpec {
 
   import ConvertibleToDirective0._
   import MinimalJsonSchemaJsonProtocol._
@@ -22,7 +22,7 @@ class MinimalJsonProtocolSpec extends FlatSpec {
 
     type Responses = ResponseValue[String] :: HNil
 
-    val apiModel = OpenApiModel[HNil, Responses]("/ruok", PathItem[HNil, Responses](
+    val apiModel = OpenApi[HNil, Responses]("/ruok", PathItem[HNil, Responses](
       GET, Operation(HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(
@@ -39,7 +39,7 @@ class MinimalJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    val openApiModelFormat = new MinimalJsonProtocol[HNil, Responses].openApiModelWriter
+    val openApiModelFormat = new OpenApiJsonProtocol[HNil, Responses].openApiModelWriter
 
     openApiModelFormat.write(apiModel) shouldBe expectedSwagger
   }
@@ -49,7 +49,7 @@ class MinimalJsonProtocolSpec extends FlatSpec {
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String] :: HNil
 
-    val apiModel: OpenApiModel[Params, Responses] = OpenApiModel(
+    val apiModel: OpenApi[Params, Responses] = OpenApi(
       "/ruok", PathItem(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(
@@ -75,7 +75,7 @@ class MinimalJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    val openApiModelFormat = new MinimalJsonProtocol[Params, Responses].openApiModelWriter
+    val openApiModelFormat = new OpenApiJsonProtocol[Params, Responses].openApiModelWriter
 
     openApiModelFormat.write(apiModel) shouldBe expectedSwagger
   }

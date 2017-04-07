@@ -1,8 +1,8 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
-import net.jtownson.minimal.MinimalOpenApiModel.ResponseValue
-import net.jtownson.minimal.ResponsesJsonProtocol._
-import net.jtownson.minimal.SchemaWriter._
+import net.jtownson.swakka.OpenApiModel.ResponseValue
+import net.jtownson.swakka.ResponsesJsonProtocol._
+import net.jtownson.swakka.SchemaWriter._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}

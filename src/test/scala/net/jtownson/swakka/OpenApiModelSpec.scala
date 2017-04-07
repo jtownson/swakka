@@ -1,4 +1,4 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
@@ -6,9 +6,9 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.MalformedQueryParamRejection
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
-import net.jtownson.minimal.ConvertibleToDirective0._
-import net.jtownson.minimal.MinimalOpenApiModel._
-import net.jtownson.minimal.RouteGen._
+import net.jtownson.swakka.ConvertibleToDirective0._
+import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.RouteGen._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Inside._
@@ -16,7 +16,7 @@ import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import shapeless.{HNil, ::}
 
-class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
+class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
   val f = mockFunction[HttpRequest, ToResponseMarshallable]
 
@@ -24,10 +24,10 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
 
   val zeroParamModels = Table(
     ("testcase name", "request", "model", "response"),
-    ("index page", get("/"), OpenApiModel("/", defaultItem), "YES"),
-    ("simple path", get("/ruok"), OpenApiModel("/ruok", defaultItem), "YES"),
-    ("missing base path", get("/ruok"), OpenApiModel("ruok", defaultItem), "YES"),
-    ("complex path", get("/ruok/json"), OpenApiModel("ruok/json", defaultItem), "YES")
+    ("index page", get("/"), OpenApi("/", defaultItem), "YES"),
+    ("simple path", get("/ruok"), OpenApi("/ruok", defaultItem), "YES"),
+    ("missing base path", get("/ruok"), OpenApi("ruok", defaultItem), "YES"),
+    ("complex path", get("/ruok/json"), OpenApi("ruok/json", defaultItem), "YES")
   )
 
   forAll(zeroParamModels) { (testcaseName, request, apiModel, response) =>
@@ -51,7 +51,7 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
 
   val oneStrParamModels = Table(
     ("testcase name", "request", "model", "response"),
-    ("echo query", get("/app?q=x"), OpenApiModel("/app", itemWithQueryParam), "x")
+    ("echo query", get("/app?q=x"), OpenApi("/app", itemWithQueryParam), "x")
   )
 
   forAll(oneStrParamModels) { (testcaseName, request, apiModel, response) =>
@@ -77,7 +77,7 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
 
     val request = get("/app?q=x")
 
-    val route = openApiRoute(OpenApiModel("/app", itemWithIntParam))
+    val route = openApiRoute(OpenApi("/app", itemWithIntParam))
 
     request ~> route ~> check {
       inside (rejection) { case MalformedQueryParamRejection(parameterName, _, _) =>
@@ -92,7 +92,7 @@ class MinimalOpenApiModelSpec extends FlatSpec with MockFactory with RouteTest w
 
     f expects request returning "x"
 
-    val route = openApiRoute(OpenApiModel("/app", itemWithIntParam))
+    val route = openApiRoute(OpenApi("/app", itemWithIntParam))
 
     request ~> route ~> check {
       status shouldBe OK

@@ -1,11 +1,12 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
 import akka.http.scaladsl.model.HttpMethod
-import net.jtownson.minimal.MinimalOpenApiModel._
+import net.jtownson.swakka.OpenApiModel._
 import shapeless.HList
 import spray.json.{DefaultJsonProtocol, JsObject, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
 
-class MinimalJsonProtocol[Params <: HList, Responses <: HList](
+// A JsonProtocol supporting the OpenApiModel
+class OpenApiJsonProtocol[Params <: HList, Responses <: HList](
 
   implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses])
 
@@ -39,10 +40,10 @@ class MinimalJsonProtocol[Params <: HList, Responses <: HList](
   implicit val pathItemFormat: JsonFormat[PathItem[Params, Responses]] = lift(pathItemWriter)
 
 
-  val openApiModelWriter: RootJsonWriter[OpenApiModel[Params, Responses]] = (openApiModel: OpenApiModel[Params, Responses]) =>
+  val openApiModelWriter: RootJsonWriter[OpenApi[Params, Responses]] = (openApiModel: OpenApi[Params, Responses]) =>
     JsObject(
       openApiModel.path -> pathItemWriter.write(openApiModel.pathItem)
     )
 
-  implicit val openApiModelFormat: RootJsonFormat[OpenApiModel[Params, Responses]] = lift(openApiModelWriter)
+  implicit val openApiModelFormat: RootJsonFormat[OpenApi[Params, Responses]] = lift(openApiModelWriter)
 }

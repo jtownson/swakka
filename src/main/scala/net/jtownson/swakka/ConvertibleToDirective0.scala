@@ -1,8 +1,8 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
 import akka.http.scaladsl.server.Directive0
 import akka.http.scaladsl.server.Directives._
-import net.jtownson.minimal.MinimalOpenApiModel.QueryParameter
+import net.jtownson.swakka.OpenApiModel.QueryParameter
 import shapeless.HList
 
 trait ConvertibleToDirective0[T] {

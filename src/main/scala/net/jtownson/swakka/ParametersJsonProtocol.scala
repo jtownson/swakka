@@ -1,6 +1,6 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
-import net.jtownson.minimal.MinimalOpenApiModel.QueryParameter
+import net.jtownson.swakka.OpenApiModel.QueryParameter
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsBoolean, JsObject, JsString, JsValue, JsonFormat, JsonWriter}
 import ParameterJsonFormat._

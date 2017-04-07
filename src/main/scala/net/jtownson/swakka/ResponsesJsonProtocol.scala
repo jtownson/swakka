@@ -1,8 +1,8 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
-import net.jtownson.minimal.Flattener.flattenToObject
-import net.jtownson.minimal.MinimalOpenApiModel.ResponseValue
-import net.jtownson.minimal.ResponseJsonFormat._
+import net.jtownson.swakka.Flattener.flattenToObject
+import net.jtownson.swakka.OpenApiModel.ResponseValue
+import net.jtownson.swakka.ResponseJsonFormat._
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsValue}
 

@@ -1,6 +1,6 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
-import net.jtownson.minimal.Flattener.{flattenToArray, flattenToObject}
+import net.jtownson.swakka.Flattener.{flattenToArray, flattenToObject}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json.{JsArray, JsObject, JsString}

@@ -1,9 +1,9 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
-import net.jtownson.minimal.FieldnameExtractor.fieldNames
-import net.jtownson.minimal.MinimalOpenApiModel.ResponseValue
+import net.jtownson.swakka.FieldnameExtractor.fieldNames
+import net.jtownson.swakka.OpenApiModel.ResponseValue
 import spray.json.{JsObject, JsString, JsValue}
-import net.jtownson.minimal.MinimalJsonSchemaJsonProtocol._
+import net.jtownson.swakka.MinimalJsonSchemaJsonProtocol._
 
 
 trait SchemaWriter[T] {

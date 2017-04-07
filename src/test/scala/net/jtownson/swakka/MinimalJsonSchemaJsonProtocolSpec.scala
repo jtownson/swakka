@@ -1,7 +1,7 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
 import spray.json._
-import net.jtownson.minimal.MinimalJsonSchemaJsonProtocol._
+import net.jtownson.swakka.MinimalJsonSchemaJsonProtocol._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json.{JsObject, JsString}

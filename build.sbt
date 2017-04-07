@@ -6,6 +6,7 @@ version := "1.0"
 
 scalaVersion := "2.12.1"
 //scalaOrganization in ThisBuild := "org.typelevel"
+scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 
 val akka = Seq(
   "com.typesafe.akka" %% "akka-http-core" % "10.0.5",
@@ -29,8 +30,4 @@ val scalaReflection = Seq(
   "org.scala-lang" % "scala-reflect" % "2.12.1"
 )
 
-//val autoschema = Seq(
-//  "com.sauldhernandez" %% "autoschema" % "1.0.3"
-//)
-
-libraryDependencies := akka ++ scalatest ++ scalaReflection /*autoschema ++ */ ++ sprayJsonShapeless
+libraryDependencies := akka ++ scalatest ++ scalaReflection ++ sprayJsonShapeless

@@ -1,4 +1,4 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
 import scala.reflect.runtime.universe._
 

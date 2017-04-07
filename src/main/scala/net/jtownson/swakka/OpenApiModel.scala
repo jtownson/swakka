@@ -1,4 +1,4 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.{HttpMethod, HttpRequest}
@@ -6,7 +6,7 @@ import shapeless.{HList, HNil}
 
 // Model supporting a single endpoint with query params.
 // Good enough to verify principles in the code.
-object MinimalOpenApiModel {
+object OpenApiModel {
 
   case class QueryParameter[T](name: Symbol)
 
@@ -22,7 +22,7 @@ object MinimalOpenApiModel {
     method: HttpMethod,
     operation: Operation[Params, Responses])
 
-  case class OpenApiModel[Params <: HList : ConvertibleToDirective0, Responses <: HList](
+  case class OpenApi[Params <: HList : ConvertibleToDirective0, Responses <: HList](
     path: String,
     pathItem: PathItem[Params, Responses])
 

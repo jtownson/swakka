@@ -1,7 +1,7 @@
-package net.jtownson.minimal
+package net.jtownson.swakka
 
-import net.jtownson.minimal.MinimalOpenApiModel.QueryParameter
-import net.jtownson.minimal.ParametersJsonProtocol._
+import net.jtownson.swakka.OpenApiModel.QueryParameter
+import net.jtownson.swakka.ParametersJsonProtocol._
 import org.scalatest.Matchers._
 import org.scalatest._
 import shapeless.{::, HNil}
