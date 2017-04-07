@@ -10,8 +10,8 @@ object OpenApiModel {
 
   case class QueryParameter[T](name: Symbol)
   case class PathParameter[T](name: Symbol)
+  case class BodyParameter[T](name: Symbol)
 
-  case class DefaultResponse[T]()
   case class ResponseValue[T](responseCode: Int)
 
   case class Operation[Params <: HList : ConvertibleToDirective0, Responses <: HList](

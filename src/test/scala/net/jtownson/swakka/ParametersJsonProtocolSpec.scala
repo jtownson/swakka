@@ -1,7 +1,8 @@
 package net.jtownson.swakka
 
-import net.jtownson.swakka.OpenApiModel.{PathParameter, QueryParameter}
+import net.jtownson.swakka.OpenApiModel.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.ParametersJsonProtocol._
+import net.jtownson.swakka.SchemaWriter._
 import org.scalatest.Matchers._
 import org.scalatest._
 import shapeless.{::, HNil}
@@ -56,7 +57,10 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
   it should "serialize a path parameter" in {
 
-    val expectdJson = JsArray(
+    type Params = PathParameter[String] :: HNil
+    val params = PathParameter[String]('petId) :: HNil
+
+    val expectedJson = JsArray(
       JsObject(
         "name" -> JsString("petId"),
         "in" -> JsString("path"),
@@ -66,10 +70,34 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    type Params = PathParameter[String] :: HNil
-    val params = PathParameter[String]('petId) :: HNil
+    params.toJson shouldBe expectedJson
+  }
 
-    params.toJson shouldBe expectdJson
+  case class Pet(petName: String)
+  implicit val petSchemaWriter = schemaWriter(Pet)
 
+  it should "serialize a body param" in {
+
+    type Params = BodyParameter[Pet] :: HNil
+    val params = BodyParameter[Pet]('pet) :: HNil
+
+    val expectedJson = JsArray(
+      JsObject(
+        "name" -> JsString("pet"),
+        "in" -> JsString("body"),
+        "description" -> JsString(""),
+        "required" -> JsFalse,
+        "schema" -> JsObject(
+          "type" -> JsString("object"),
+          "properties" -> JsObject(
+            "petName" -> JsObject(
+              "type" -> JsString("string")
+            )
+          )
+        )
+      )
+    )
+
+    params.toJson shouldBe expectedJson
   }
 }
