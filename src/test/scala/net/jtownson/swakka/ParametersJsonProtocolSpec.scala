@@ -1,6 +1,6 @@
 package net.jtownson.swakka
 
-import net.jtownson.swakka.OpenApiModel.QueryParameter
+import net.jtownson.swakka.OpenApiModel.{PathParameter, QueryParameter}
 import net.jtownson.swakka.ParametersJsonProtocol._
 import org.scalatest.Matchers._
 import org.scalatest._
@@ -51,5 +51,25 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
 
     params.toJson shouldBe expectedJson
+  }
+
+
+  it should "serialize a path parameter" in {
+
+    val expectdJson = JsArray(
+      JsObject(
+        "name" -> JsString("petId"),
+        "in" -> JsString("path"),
+        "description" -> JsString(""),
+        "required" -> JsFalse,
+        "type" -> JsString("string")
+      )
+    )
+
+    type Params = PathParameter[String] :: HNil
+    val params = PathParameter[String]('petId) :: HNil
+
+    params.toJson shouldBe expectdJson
+
   }
 }

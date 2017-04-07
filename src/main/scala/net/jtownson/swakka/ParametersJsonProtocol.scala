@@ -1,6 +1,6 @@
 package net.jtownson.swakka
 
-import net.jtownson.swakka.OpenApiModel.QueryParameter
+import net.jtownson.swakka.OpenApiModel.{PathParameter, QueryParameter}
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsBoolean, JsObject, JsString, JsValue, JsonFormat, JsonWriter}
 import ParameterJsonFormat._
@@ -13,6 +13,9 @@ object ParametersJsonProtocol extends DefaultJsonProtocol {
 
   implicit val intParamFormat: ParameterJsonFormat[QueryParameter[Int]] =
     (qp: QueryParameter[Int]) => swaggerParam(qp.name, "query", "", false, JsString("integer"))
+
+  implicit val strPathParamFormat: ParameterJsonFormat[PathParameter[String]] =
+    (pp: PathParameter[String]) => swaggerParam(pp.name, "path", "", false, JsString("string"))
 
   val hNilParamWriter: ParameterJsonFormat[HNil] =
     _ => JsArray()
