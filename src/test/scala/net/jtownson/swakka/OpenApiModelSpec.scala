@@ -1,8 +1,9 @@
 package net.jtownson.swakka
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.MalformedQueryParamRejection
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
@@ -14,7 +15,9 @@ import org.scalatest.FlatSpec
 import org.scalatest.Inside._
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
-import shapeless.{HNil, ::}
+import shapeless.{::, HNil}
+import spray.json._
+import spray.json.DefaultJsonProtocol._
 
 class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
@@ -86,7 +89,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
     }
   }
 
-  "int params that are ints" should "be passed through" in {
+  "int params that are ints" should "be passed" in {
 
     val request = get("/app?q=10")
 
@@ -100,8 +103,37 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
     }
   }
 
+  case class Pet(petName: String)
+  implicit val petFormat = jsonFormat1(Pet)
+
+  "body params" should "be marshallable" in {
+
+    type Params = BodyParameter[Pet] :: HNil
+    type Responses = ResponseValue[String] :: HNil
+
+    val itemWithBodyParam = PathItem[Params, Responses](
+      HttpMethods.POST, Operation(BodyParameter[Pet]('pet) :: HNil, ResponseValue[String](200) :: HNil, f))
+
+    val request = HttpRequest(HttpMethods.POST,
+      uri = "http://example.com/app",
+      entity = HttpEntity(ContentTypes.`application/json`, Pet("rover").toJson.prettyPrint))
+
+    f expects request returning "x"
+
+    val route = openApiRoute(OpenApi("/app", itemWithBodyParam))
+
+    request ~> route ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe "x"
+    }
+  }
+
   private def get(path: String): HttpRequest = {
     Get(s"http://example.com$path")
+  }
+
+  private def post(path: String): HttpRequest = {
+    Post(s"http://example.com$path")
   }
 
   override def failTest(msg: String): Nothing = throw new AssertionError(msg)

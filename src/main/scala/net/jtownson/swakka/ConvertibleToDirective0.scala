@@ -2,7 +2,8 @@ package net.jtownson.swakka
 
 import akka.http.scaladsl.server.Directive0
 import akka.http.scaladsl.server.Directives._
-import net.jtownson.swakka.OpenApiModel.QueryParameter
+import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
+import net.jtownson.swakka.OpenApiModel.{BodyParameter, QueryParameter}
 import shapeless.HList
 
 trait ConvertibleToDirective0[T] {
@@ -25,6 +26,12 @@ object ConvertibleToDirective0 {
 
   implicit val intQueryConverter: ConvertibleToDirective0[QueryParameter[Int]] =
     instance(qp => parameter(qp.name.as[Int]).tmap(_ => ()))
+
+  implicit val bodyParamConverterStr: ConvertibleToDirective0[BodyParameter[String]] =
+    instance(_ => entity(as[String]).tmap(_ => ()))
+
+  implicit def bodyParamConverter[T: FromRequestUnmarshaller]: ConvertibleToDirective0[BodyParameter[T]] =
+    instance(_ => entity(as[T]).tmap(_ => ()))
 
   implicit val hNilConverter: ConvertibleToDirective0[HNil] = _ => pass
 
