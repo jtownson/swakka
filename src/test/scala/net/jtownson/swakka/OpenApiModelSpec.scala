@@ -5,7 +5,7 @@ import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.OK
-import akka.http.scaladsl.server.MalformedQueryParamRejection
+import akka.http.scaladsl.server.{MalformedQueryParamRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.ConvertibleToDirective0._
 import net.jtownson.swakka.OpenApiModel._
@@ -83,7 +83,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
     val route = openApiRoute(OpenApi("/app", itemWithIntParam))
 
     request ~> route ~> check {
-      inside (rejection) { case MalformedQueryParamRejection(parameterName, _, _) =>
+      inside(rejection) { case MalformedQueryParamRejection(parameterName, _, _) =>
         parameterName shouldBe "q"
       }
     }
@@ -103,10 +103,11 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
     }
   }
 
-  case class Pet(petName: String)
+  case class Pet(name: String)
+
   implicit val petFormat = jsonFormat1(Pet)
 
-  "body params" should "be marshallable" in {
+  "body params of correct type" should "be marshallable" in {
 
     type Params = BodyParameter[Pet] :: HNil
     type Responses = ResponseValue[String] :: HNil
@@ -114,26 +115,52 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
     val itemWithBodyParam = PathItem[Params, Responses](
       HttpMethods.POST, Operation(BodyParameter[Pet]('pet) :: HNil, ResponseValue[String](200) :: HNil, f))
 
+    val pet = Pet("tiddles")
+
     val request = HttpRequest(HttpMethods.POST,
       uri = "http://example.com/app",
-      entity = HttpEntity(ContentTypes.`application/json`, Pet("rover").toJson.prettyPrint))
+      entity = HttpEntity(ContentTypes.`application/json`, pet.toJson.prettyPrint))
 
-    f expects request returning "x"
+    f expects request returning pet
 
     val route = openApiRoute(OpenApi("/app", itemWithBodyParam))
 
     request ~> route ~> check {
       status shouldBe OK
-      responseAs[String] shouldBe "x"
+      responseAs[Pet] shouldBe pet
+    }
+  }
+
+  case class WildAnimal(species: String)
+
+  implicit val wildAnimalFormat = jsonFormat1(WildAnimal)
+
+  "body params of wrong type" should "be rejected" in {
+
+    type Params = BodyParameter[Pet] :: HNil
+    type Responses = ResponseValue[String] :: HNil
+
+    val itemWithBodyParam = PathItem[Params, Responses](
+      HttpMethods.POST, Operation(BodyParameter[Pet]('pet) :: HNil, ResponseValue[String](200) :: HNil, f))
+
+    val animal = WildAnimal("lion")
+
+    val request = HttpRequest(HttpMethods.POST,
+      uri = "http://example.com/app",
+      entity = HttpEntity(ContentTypes.`application/json`, animal.toJson.prettyPrint))
+
+    val route = openApiRoute(OpenApi("/app", itemWithBodyParam))
+
+    request ~> route ~> check {
+      inside(rejection) {
+        case MalformedRequestContentRejection(message, _) =>
+          message shouldBe "Object is missing required member 'name'"
+      }
     }
   }
 
   private def get(path: String): HttpRequest = {
     Get(s"http://example.com$path")
-  }
-
-  private def post(path: String): HttpRequest = {
-    Post(s"http://example.com$path")
   }
 
   override def failTest(msg: String): Nothing = throw new AssertionError(msg)
