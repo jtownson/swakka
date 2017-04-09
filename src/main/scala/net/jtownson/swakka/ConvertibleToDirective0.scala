@@ -27,9 +27,6 @@ object ConvertibleToDirective0 {
   implicit val intQueryConverter: ConvertibleToDirective0[QueryParameter[Int]] =
     instance(qp => parameter(qp.name.as[Int]).tmap(_ => ()))
 
-  implicit val bodyParamConverterStr: ConvertibleToDirective0[BodyParameter[String]] =
-    instance(_ => entity(as[String]).tmap(_ => ()))
-
   implicit def bodyParamConverter[T: FromRequestUnmarshaller]: ConvertibleToDirective0[BodyParameter[T]] =
     instance(_ => entity(as[T]).tmap(_ => ()))
 

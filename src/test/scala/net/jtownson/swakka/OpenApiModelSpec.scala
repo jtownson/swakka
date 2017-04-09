@@ -5,6 +5,7 @@ import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.server.directives.MarshallingDirectives
 import akka.http.scaladsl.server.{MalformedQueryParamRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.ConvertibleToDirective0._
@@ -142,10 +143,11 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
   "body params" should "be easy to handle in endpoint impls" in {
 
-    val f: HttpRequest => ToResponseMarshallable = (request: HttpRequest) => {
+    import MarshallingDirectives._
 
-      val r: HttpEntity = request.entity
-    }
+    val f: HttpRequest => ToResponseMarshallable =
+      (request: HttpRequest) => as[Pet].apply(request)
+
     val itemWithBodyParam = PathItem[Params, Responses](
       HttpMethods.POST, Operation(BodyParameter[Pet]('pet) :: HNil, ResponseValue[String](200) :: HNil, f))
 
@@ -155,6 +157,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
     request ~> animalRoute ~> check {
       status shouldBe OK
+      responseAs[Pet] shouldBe Pet("tiddles")
     }
 
   }
