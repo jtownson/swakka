@@ -6,6 +6,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json.{JsObject, JsString}
 import SchemaWriter._
+import io.swagger.annotations.ApiModelProperty
 
 class JsonSchemaJsonProtocolSpec extends FlatSpec {
 
@@ -76,4 +77,26 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
       ))
   }
 
+  case class E(
+                @ApiModelProperty("the id") id: Int,
+                @ApiModelProperty("the value") value: String
+              )
+
+  implicit val eWriter = schemaWriter(E)
+
+  it should "produce annotated docs" in {
+
+    JsonSchema[E]().toJson shouldBe JsObject(
+      "type" -> JsString("object"),
+      "properties" -> JsObject(
+        "id" -> JsObject(
+          "description" -> JsString("the id"),
+          "type" -> JsString("number")),
+        "value" -> JsObject(
+          "description" -> JsString("the value"),
+          "type" -> JsString("string")
+        )
+      ))
+
+  }
 }

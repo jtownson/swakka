@@ -30,4 +30,8 @@ val scalaReflection = Seq(
   "org.scala-lang" % "scala-reflect" % "2.12.1"
 )
 
-libraryDependencies := akka ++ scalatest ++ scalaReflection ++ sprayJsonShapeless
+val swaggerAnnotations = Seq(
+  "io.swagger" % "swagger-annotations" % "1.5.13"
+)
+
+libraryDependencies := akka ++ scalatest ++ scalaReflection ++ sprayJsonShapeless ++ swaggerAnnotations

@@ -1,8 +1,8 @@
 package net.jtownson.swakka
 
 import net.jtownson.swakka.FieldnameExtractor.fieldNames
-import org.scalatest._
 import org.scalatest.Matchers._
+import org.scalatest._
 
 class FieldnameExtractorSpec extends FlatSpec {
 
@@ -15,4 +15,5 @@ class FieldnameExtractorSpec extends FlatSpec {
     fieldNames[B] shouldBe List("id", "a")
     fieldNames[X] shouldBe Nil
   }
+
 }

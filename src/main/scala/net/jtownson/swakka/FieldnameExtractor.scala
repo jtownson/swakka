@@ -16,7 +16,9 @@ object FieldnameExtractor {
       }
       else {
         val constructors = constructorSymbol.asTerm.alternatives
-        constructors.map(_.asMethod).find { _.isPrimaryConstructor }.get
+        constructors.map(_.asMethod).find {
+          _.isPrimaryConstructor
+        }.get
       }
 
     defaultConstructor.paramLists.head.map(symbol => symbol.name.toString)
