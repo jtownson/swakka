@@ -5,7 +5,7 @@ import net.jtownson.swakka.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.OpenApiModel.ResponseValue
 import spray.json.{JsObject, JsString, JsValue}
 import net.jtownson.swakka.JsonSchemaJsonProtocol._
-
+import scala.reflect.runtime.universe.TypeTag
 
 // To avoid ambiguities with json formats used
 // to write request/response case classes, there
@@ -51,35 +51,33 @@ object SchemaWriter {
   implicit def numberWriter[T: Numeric]: SchemaWriter[T] =
     (s: JsonSchema[T]) => numberSchema(s.description)
 
-  import scala.reflect.runtime.universe._
-
-  implicit def schemaWriter[T <: Product : TypeTag : ApiModelDictionary](constructor: () => T): SchemaWriter[T] =
+  implicit def schemaWriter[T <: Product : TypeTag](constructor: () => T): SchemaWriter[T] =
     (s: JsonSchema[T]) => {
       objectSchema(s.description, Nil)
     }
 
-  implicit def schemaWriter[T <: Product : TypeTag : ApiModelDictionary,
-  F1: SchemaWriter : TypeTag : ApiModelDictionary]
+  implicit def schemaWriter[T <: Product : TypeTag,
+  F1: SchemaWriter : TypeTag]
   (constructor: (F1) => T): SchemaWriter[T] =
     (s: JsonSchema[T]) => {
 
       val fields: List[String] = fieldNames[T]
 
-      val tDictionary = apiModelDictionary[T].get
+      val tDictionary = apiModelDictionary[T]
 
       objectSchema(s.description, List(
         fields(0) -> writeSchema[F1](tDictionary.get(fields(0)).map(_.value))))
     }
 
-  implicit def schemaWriter[T <: Product : TypeTag : ApiModelDictionary,
-  F1: SchemaWriter : TypeTag : ApiModelDictionary,
-  F2: SchemaWriter : TypeTag : ApiModelDictionary]
+  implicit def schemaWriter[T <: Product : TypeTag,
+  F1: SchemaWriter,
+  F2: SchemaWriter]
   (constructor: (F1, F2) => T): SchemaWriter[T] =
     (s: JsonSchema[T]) => {
 
       val fields: List[String] = fieldNames[T]
 
-      val tDictionary = apiModelDictionary[T].get
+      val tDictionary = apiModelDictionary[T]
 
       objectSchema(s.description, List(
         fields(0) -> writeSchema[F1](tDictionary.get(fields(0)).map(_.value)),
@@ -87,7 +85,7 @@ object SchemaWriter {
       ))
     }
 
-  implicit def responseValueWriter[T: ApiModelDictionary](implicit ev: SchemaWriter[T]): SchemaWriter[ResponseValue[T]] =
+  implicit def responseValueWriter[T](implicit ev: SchemaWriter[T]): SchemaWriter[ResponseValue[T]] =
     (_: JsonSchema[ResponseValue[T]]) => ev.write(JsonSchema[T]())
 
   private def writeSchema[T: SchemaWriter](description: Option[String]): JsValue = {
