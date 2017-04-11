@@ -5,17 +5,17 @@ import scala.reflect.runtime.universe._
 // Who says scala reduces boilerplate ?!!?
 object AnnotationExtractor {
 
-  def constructorAnnotations[T: TypeTag](annotationClass: Class[_]): Map[String, Seq[(String, String)]] = {
+  def constructorAnnotations[T: TypeTag](annotationClass: Class[_]): Map[String, Set[(String, String)]] = {
     constructorAnnotationsRaw(annotationClass).
       groupBy(_._1).
-      map( (t: (String, Seq[(String, String, String)])) => (t._1, drop1(t._2)))
+      map((t: (String, Set[(String, String, String)])) => (t._1, drop1(t._2)))
   }
 
-  private def drop1(s: Seq[(String, String, String)]): Seq[(String, String)] = {
+  private def drop1(s: Set[(String, String, String)]): Set[(String, String)] = {
     s.map(sss => (sss._2, sss._3))
   }
 
-  private def constructorAnnotationsRaw[T: TypeTag](annotationClass: Class[_]): Seq[(String, String, String)] = {
+  private def constructorAnnotationsRaw[T: TypeTag](annotationClass: Class[_]): Set[(String, String, String)] = {
 
     val tpe = typeOf[T]
 
@@ -23,20 +23,22 @@ object AnnotationExtractor {
 
     val params: Seq[Symbol] = constructor.paramLists.flatten
 
-    val annotatedParams = params.flatMap(param => tuple(param, annotationClass.getName))
+    val annotatedParams: Seq[(String, Annotation)] = params.flatMap(param => tuple(param, annotationClass.getName))
 
-    annotatedParams.flatMap(annotatedParam => {
+    annotatedParams.flatMap(treeIntrospect).toSet
+  }
 
-      val (field, annotation) = annotatedParam
+  private def treeIntrospect[T: TypeTag](annotatedParam: (String, Annotation)): Seq[(String, String, String)] = {
 
-      val annotationValues: Seq[Tree] = annotation.tree.children.tail
+    val (field, annotation) = annotatedParam
 
-      annotationValues.flatMap({
-        case AssignOrNamedArg(Ident(name), Literal(value)) => {
-          Some((field, name.decodedName.toString, value.value.toString))
-        }
-        case _ => None
-      })
+    val annotationValues: Seq[Tree] = annotation.tree.children.tail
+
+    annotationValues.flatMap({
+      case AssignOrNamedArg(Ident(name), Literal(value)) => {
+        Some((field, name.decodedName.toString, value.value.toString))
+      }
+      case _ => None
     })
   }
 

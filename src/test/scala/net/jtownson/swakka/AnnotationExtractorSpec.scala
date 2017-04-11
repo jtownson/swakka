@@ -18,8 +18,8 @@ class AnnotationExtractorSpec extends FlatSpec {
     val annotationClass = classOf[ApiModelProperty]
 
     constructorAnnotations[D](annotationClass) shouldBe Map(
-      "id" -> List(("value", "field 1"), ("notes", "notes 1")),
-      "data" -> List(("value", "field 2"), ("notes", "notes 2"))
+      "id" -> Set(("value", "field 1"), ("notes", "notes 1")),
+      "data" -> Set(("value", "field 2"), ("notes", "notes 2"))
     )
   }
 }
