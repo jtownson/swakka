@@ -4,6 +4,8 @@ import net.jtownson.swakka.OpenApiModel.{BodyParameter, PathParameter, QueryPara
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsBoolean, JsFalse, JsObject, JsString, JsValue}
 import ParameterJsonFormat._
+import net.jtownson.swakka.ApiModelDictionary._
+import scala.reflect.runtime.universe.TypeTag
 
 object ParametersJsonProtocol extends DefaultJsonProtocol {
 
@@ -17,7 +19,10 @@ object ParametersJsonProtocol extends DefaultJsonProtocol {
   implicit val strPathParamFormat: ParameterJsonFormat[PathParameter[String]] =
     (pp: PathParameter[String]) => simpleParam(pp.name, "path", "", false, JsString("string"))
 
-  implicit def bodyParamFormat[T](implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[T]] =
+  implicit def bodyParamFormat[T: TypeTag](implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[T]] = {
+
+    implicit val dict = apiModelDictionary[T]
+
     func2Format((bp: BodyParameter[T]) => JsObject(
       "name" -> JsString(bp.name.name),
       "in" -> JsString("body"),
@@ -25,6 +30,7 @@ object ParametersJsonProtocol extends DefaultJsonProtocol {
       "required" -> JsFalse,
       "schema" -> ev.write(JsonSchema[T]())
     ))
+  }
 
   val hNilParamWriter: ParameterJsonFormat[HNil] =
     _ => JsArray()

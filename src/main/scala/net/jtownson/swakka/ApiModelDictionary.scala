@@ -8,13 +8,13 @@ import net.jtownson.swakka.AnnotationExtractor.constructorAnnotations
 // Produce additional schema documentation entries
 // The resulting map is from the fields of a class
 // to the ApiModelProperty entries for that field.
-trait ApiModelDictionary {
+trait ApiModelDictionary[T] {
   def get: Map[String, ApiModelPropertyEntry]
 }
 
 object ApiModelDictionary {
 
-  implicit def apiModelProperties[T: TypeTag]: ApiModelDictionary = new ApiModelDictionary {
+  implicit def apiModelDictionary[T: TypeTag]: ApiModelDictionary[T] = new ApiModelDictionary[T] {
     override def get: Map[String, ApiModelPropertyEntry] = {
       constructorAnnotations[T](classOf[ApiModelProperty]).map( kv => (kv._1, tuples2Property(kv._2)))
     }
