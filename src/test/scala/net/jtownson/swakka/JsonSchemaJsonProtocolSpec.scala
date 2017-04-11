@@ -7,7 +7,6 @@ import org.scalatest.Matchers._
 import spray.json.{JsObject, JsString}
 import SchemaWriter._
 import io.swagger.annotations.ApiModelProperty
-import net.jtownson.swakka.ApiModelDictionary.apiModelDictionary
 
 class JsonSchemaJsonProtocolSpec extends FlatSpec {
 
