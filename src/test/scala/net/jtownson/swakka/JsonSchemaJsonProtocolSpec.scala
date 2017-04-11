@@ -28,6 +28,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class A()
+
   implicit val aWriter = schemaWriter(A)
 
   it should "describe an empty case class" in {
@@ -37,6 +38,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class B(i: Int)
+
   implicit val bWriter = schemaWriter(B)
 
   it should "describe a single field case class" in {
@@ -49,6 +51,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class C(a: A)
+
   implicit val cWriter = schemaWriter(C)
 
   it should "describe a nested case class" in {
@@ -64,6 +67,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class D(id: Int, value: String)
+
   implicit val dWriter = schemaWriter(D)
 
   it should "describe a two field case class" in {
@@ -98,6 +102,31 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
           "description" -> JsString("the value"),
           "type" -> JsString("string")
         )
+      ))
+  }
+
+  case class F(@ApiModelProperty(value = "the nested e") e: E)
+
+  implicit val fWriter = schemaWriter(F)
+
+  it should "produce annotated docs for nested classes" in {
+
+    JsonSchema[F](Some("the parent F")).toJson shouldBe JsObject(
+      "type" -> JsString("object"),
+      "description" -> JsString("the parent F"),
+      "properties" -> JsObject(
+        "e" -> JsObject(
+          "type" -> JsString("object"),
+          "description" -> JsString("the nested e"),
+          "properties" -> JsObject(
+            "id" -> JsObject(
+              "description" -> JsString("the id"),
+              "type" -> JsString("number")),
+            "value" -> JsObject(
+              "description" -> JsString("the value"),
+              "type" -> JsString("string")
+            )
+          ))
       ))
   }
 }
