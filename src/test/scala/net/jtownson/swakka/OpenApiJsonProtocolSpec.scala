@@ -21,7 +21,7 @@ class OpenApiJsonProtocolSpec extends FlatSpec {
 
     type Responses = ResponseValue[String] :: HNil
 
-    val apiModel = OpenApi[HNil, Responses]("/ruok", PathItem[HNil, Responses](
+    val apiModel = Endpoint[HNil, Responses]("/ruok", PathItem[HNil, Responses](
       GET, Operation(HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(
@@ -48,7 +48,7 @@ class OpenApiJsonProtocolSpec extends FlatSpec {
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String] :: HNil
 
-    val apiModel: OpenApi[Params, Responses] = OpenApi(
+    val apiModel: Endpoint[Params, Responses] = Endpoint(
       "/ruok", PathItem(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(

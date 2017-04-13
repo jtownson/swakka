@@ -32,9 +32,6 @@ object ParametersJsonProtocol extends DefaultJsonProtocol {
     ))
   }
 
-  val hNilParamWriter: ParameterJsonFormat[HNil] =
-    _ => JsArray()
-
   implicit val hNilParamFormat: ParameterJsonFormat[HNil] =
     _ => JsArray()
 

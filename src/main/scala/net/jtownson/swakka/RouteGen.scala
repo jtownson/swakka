@@ -2,20 +2,34 @@ package net.jtownson.swakka
 
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.server._
-import shapeless.HList
+import shapeless.{:: => hcons, HList, HNil}
+import ConvertibleToDirective0._
+import OpenApiModel._
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.directives.RouteDirectives
+import net.jtownson.swakka.RouteGen.PathHandling._
 
+trait RouteGen[T] {
+  def toRoute(t: T): Route
+}
 
 object RouteGen {
 
-  import ConvertibleToDirective0._
-  import OpenApiModel._
-  import PathHandling._
-  import akka.http.scaladsl.server.Directives._
+  implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
+    (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  def openApiRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](model: OpenApi[Params, Responses]): Route =
-    openApiRoute(model.pathItem.method, model.path, model.pathItem.operation)
+  implicit def endpointRouteGen[Params <: HList : ConvertibleToDirective0, Responses <: HList]: RouteGen[Endpoint[Params, Responses]] =
+    (e: Endpoint[Params, Responses]) => endpointRoute(e)
 
-  private def openApiRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses]) = {
+  implicit val hNilRouteGen: RouteGen[HNil] =
+    _ => RouteDirectives.reject
+
+  def openApiRoute[Endpoints <: HList](api: OpenApi[Endpoints])(implicit ev: RouteGen[Endpoints]): Route = ev.toRoute(api.endpoints)
+
+  def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](endpoint: Endpoint[Params, Responses]): Route =
+    endpointRoute(endpoint.pathItem.method, endpoint.path, endpoint.pathItem.operation)
+
+  private def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses]) = {
 
     method(httpMethod) {
 
@@ -36,7 +50,6 @@ object RouteGen {
 
 
   object PathHandling {
-
     private val notBlank = (s: String) => !s.trim.isEmpty
 
     private def splitPath(requestPath: String): List[String] =

@@ -28,10 +28,10 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
   val zeroParamModels = Table(
     ("testcase name", "request", "model", "response"),
-    ("index page", get("/"), OpenApi("/", defaultItem), "YES"),
-    ("simple path", get("/ruok"), OpenApi("/ruok", defaultItem), "YES"),
-    ("missing base path", get("/ruok"), OpenApi("ruok", defaultItem), "YES"),
-    ("complex path", get("/ruok/json"), OpenApi("ruok/json", defaultItem), "YES")
+    ("index page", get("/"), Endpoint("/", defaultItem), "YES"),
+    ("simple path", get("/ruok"), Endpoint("/ruok", defaultItem), "YES"),
+    ("missing base path", get("/ruok"), Endpoint("ruok", defaultItem), "YES"),
+    ("complex path", get("/ruok/json"), Endpoint("ruok/json", defaultItem), "YES")
   )
 
   forAll(zeroParamModels) { (testcaseName, request, apiModel, response) =>
@@ -39,7 +39,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
       f expects request returning response
 
-      val route = openApiRoute(apiModel)
+      val route = RouteGen.endpointRoute(apiModel)
 
       request ~> route ~> check {
         status shouldBe OK
@@ -55,7 +55,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
   val oneStrParamModels = Table(
     ("testcase name", "request", "model", "response"),
-    ("echo query", get("/app?q=x"), OpenApi("/app", itemWithQueryParam), "x")
+    ("echo query", get("/app?q=x"), Endpoint("/app", itemWithQueryParam), "x")
   )
 
   forAll(oneStrParamModels) { (testcaseName, request, apiModel, response) =>
@@ -63,7 +63,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
       f expects request returning response
 
-      val route = openApiRoute(apiModel)
+      val route = RouteGen.endpointRoute(apiModel)
 
       request ~> route ~> check {
         status shouldBe OK
@@ -81,7 +81,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
     val request = get("/app?q=x")
 
-    val route = openApiRoute(OpenApi("/app", itemWithIntParam))
+    val route = RouteGen.endpointRoute(Endpoint("/app", itemWithIntParam))
 
     request ~> route ~> check {
       inside(rejection) { case MalformedQueryParamRejection(parameterName, _, _) =>
@@ -96,7 +96,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
     f expects request returning "x"
 
-    val route = openApiRoute(OpenApi("/app", itemWithIntParam))
+    val route = RouteGen.endpointRoute(Endpoint("/app", itemWithIntParam))
 
     request ~> route ~> check {
       status shouldBe OK
@@ -114,7 +114,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
   val itemWithBodyParam = PathItem[Params, Responses](
     HttpMethods.POST, Operation(BodyParameter[Pet]('pet) :: HNil, ResponseValue[String](200) :: HNil, f))
 
-  val animalRoute = openApiRoute(OpenApi("/app", itemWithBodyParam))
+  val animalRoute = RouteGen.endpointRoute(Endpoint("/app", itemWithBodyParam))
 
   "body params of correct type" should "be marshallable" in {
 
@@ -151,7 +151,7 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
     val itemWithBodyParam = PathItem[Params, Responses](
       HttpMethods.POST, Operation(BodyParameter[Pet]('pet) :: HNil, ResponseValue[String](200) :: HNil, f))
 
-    val animalRoute = openApiRoute(OpenApi("/app", itemWithBodyParam))
+    val animalRoute = RouteGen.endpointRoute(Endpoint("/app", itemWithBodyParam))
 
     val request = post("/app", Pet("tiddles"))
 
@@ -160,6 +160,41 @@ class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with Tes
       responseAs[Pet] shouldBe Pet("tiddles")
     }
 
+  }
+
+  "multiple endpoints" should "work" in {
+
+    val f1 = mockFunction[HttpRequest, ToResponseMarshallable]
+    val f2 = mockFunction[HttpRequest, ToResponseMarshallable]
+
+    val endpoint1: Endpoint[OneIntParam, ::[ResponseValue[String], HNil]] = Endpoint(
+      "/app/e1", PathItem[OneIntParam, ResponseValue[String] :: HNil](
+      GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f1)))
+
+    val endpoint2 = Endpoint(
+      "/app/e2", PathItem[OneStringParam, ResponseValue[String] :: HNil](
+      GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, f2)))
+
+
+    val api = OpenApi(endpoint1 :: endpoint2 :: HNil)
+
+    val route = RouteGen.openApiRoute(api)
+
+    val e1Request = get("/app/e1?q=10")
+    val e2Request = get("/app/e2?q=str")
+
+    f1 expects e1Request returning "e1-response"
+    f2 expects e2Request returning "e2-response"
+
+    e1Request ~> route ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe "e1-response"
+    }
+
+    e2Request ~> route ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe "e2-response"
+    }
   }
 
   private def get(path: String): HttpRequest = {

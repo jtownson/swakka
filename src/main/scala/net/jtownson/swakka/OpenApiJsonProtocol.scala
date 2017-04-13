@@ -40,10 +40,10 @@ class OpenApiJsonProtocol[Params <: HList, Responses <: HList](
   implicit val pathItemFormat: JsonFormat[PathItem[Params, Responses]] = lift(pathItemWriter)
 
 
-  val openApiModelWriter: RootJsonWriter[OpenApi[Params, Responses]] = (openApiModel: OpenApi[Params, Responses]) =>
+  val openApiModelWriter: RootJsonWriter[Endpoint[Params, Responses]] = (openApiModel: Endpoint[Params, Responses]) =>
     JsObject(
       openApiModel.path -> pathItemWriter.write(openApiModel.pathItem)
     )
 
-  implicit val openApiModelFormat: RootJsonFormat[OpenApi[Params, Responses]] = lift(openApiModelWriter)
+  implicit val openApiModelFormat: RootJsonFormat[Endpoint[Params, Responses]] = lift(openApiModelWriter)
 }
