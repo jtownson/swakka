@@ -20,7 +20,7 @@ import shapeless.{::, HNil}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 
-class OpenApiModelSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
+class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
   val f = mockFunction[HttpRequest, ToResponseMarshallable]
 
