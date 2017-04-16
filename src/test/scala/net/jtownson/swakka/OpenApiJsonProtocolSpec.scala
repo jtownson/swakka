@@ -8,20 +8,22 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}
 import spray.json.{JsArray, JsFalse, JsObject, JsString}
+import spray.json._
 
 class OpenApiJsonProtocolSpec extends FlatSpec {
 
   import ConvertibleToDirective0._
   import ParametersJsonProtocol._
   import ResponsesJsonProtocol._
+  import OpenApiJsonProtocol._
 
   private val endpointImpl: HttpRequest => ToResponseMarshallable = (_: HttpRequest) => ???
 
-  "JsonProtocol" should "write a parameterless model" in {
+  "JsonProtocol" should "write a parameterless endpoint" in {
 
     type Responses = ResponseValue[String] :: HNil
 
-    val apiModel = Endpoint[HNil, Responses]("/ruok", PathItem[HNil, Responses](
+    val endpoint = Endpoint[HNil, Responses]("/ruok", PathItem[HNil, Responses](
       GET, Operation(HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(
@@ -38,17 +40,16 @@ class OpenApiJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    val openApiModelFormat = new OpenApiJsonProtocol[HNil, Responses].openApiModelWriter
-
-    openApiModelFormat.write(apiModel) shouldBe expectedSwagger
+    endpoint.toJson shouldBe expectedSwagger
   }
 
-  it should "write a model with a parameter" in {
+  it should "write an endpoint with a parameter" in {
 
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String] :: HNil
+    type Endpoints = Endpoint[Params, Responses] :: HNil
 
-    val apiModel: Endpoint[Params, Responses] = Endpoint(
+    val endpoint: Endpoint[Params, Responses] = Endpoint(
       "/ruok", PathItem(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(
@@ -74,9 +75,84 @@ class OpenApiJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    val openApiModelFormat = new OpenApiJsonProtocol[Params, Responses].openApiModelWriter
-
-    openApiModelFormat.write(apiModel) shouldBe expectedSwagger
+    endpoint.toJson shouldBe expectedSwagger
   }
 
+  type OneIntParam = QueryParameter[Int] :: HNil
+  type OneStrParam = QueryParameter[String] :: HNil
+  type StringResponse = ResponseValue[String] :: HNil
+  type Endpoints = Endpoint[OneIntParam, StringResponse] :: Endpoint[OneStrParam, StringResponse] :: HNil
+
+  it should "write a simple swagger definition" in {
+    val api: OpenApi[Endpoints] =
+      OpenApi(
+        Endpoint[OneIntParam, StringResponse](
+          path = "/app/e1",
+          PathItem(
+            method = GET,
+            operation = Operation(
+              parameters = QueryParameter[Int]('q) :: HNil,
+              responses = ResponseValue[String](200) :: HNil,
+              endpointImplementation = endpointImpl
+            )
+          )
+        ) ::
+          Endpoint[OneStrParam, StringResponse](
+            path = "/app/e2",
+            PathItem(
+              method = GET,
+              operation = Operation(
+                parameters = QueryParameter[String]('q) :: HNil,
+                responses = ResponseValue[String](200) :: HNil,
+                endpointImplementation = endpointImpl
+              )
+            )
+          ) :: HNil
+      )
+
+    val expectedJson = JsObject(
+      "paths" -> JsObject(
+        "/app/e1" -> JsObject(
+          "get" -> JsObject(
+            "parameters" -> JsArray(
+              JsObject(
+                "name" -> JsString("q"),
+                "in" -> JsString("query"),
+                "description" -> JsString(""),
+                "required" -> JsFalse,
+                "type" -> JsString("integer")
+              )),
+            "responses" -> JsObject(
+              "200" -> JsObject(
+                "schema" -> JsObject(
+                  "type" -> JsString("string")
+                )
+              )
+            )
+          )
+        ),
+        "/app/e2" -> JsObject(
+          "get" -> JsObject(
+            "parameters" -> JsArray(
+              JsObject(
+                "name" -> JsString("q"),
+                "in" -> JsString("query"),
+                "description" -> JsString(""),
+                "required" -> JsFalse,
+                "type" -> JsString("string")
+              )),
+            "responses" -> JsObject(
+              "200" -> JsObject(
+                "schema" -> JsObject(
+                  "type" -> JsString("string")
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+
+    apiFormat[Endpoints].write(api) shouldBe expectedJson
+  }
 }

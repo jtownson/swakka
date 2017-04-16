@@ -11,6 +11,7 @@ import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.ConvertibleToDirective0._
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.RouteGen._
+import net.jtownson.swakka.SwaggerRoute.swaggerRoute
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Inside._

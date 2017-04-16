@@ -9,7 +9,6 @@ import scala.reflect.runtime.universe.TypeTag
 
 object ParametersJsonProtocol extends DefaultJsonProtocol {
 
-
   implicit val strParamFormat: ParameterJsonFormat[QueryParameter[String]] =
     (qp: QueryParameter[String]) => simpleParam(qp.name, "query", "", false, JsString("string"))
 

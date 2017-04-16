@@ -25,6 +25,6 @@ object OpenApiModel {
     path: String,
     pathItem: PathItem[Params, Responses])
 
-  case class OpenApi[Endpoints <: HList](endpoints: Endpoints)
+  case class OpenApi[Endpoints](endpoints: Endpoints)
 }
 
