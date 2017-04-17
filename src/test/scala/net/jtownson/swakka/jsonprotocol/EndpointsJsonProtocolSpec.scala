@@ -123,6 +123,7 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
       )
 
     val expectedJson = JsObject(
+      "swagger" -> JsString("2.0"),
       "paths" -> JsObject(
         "/app/e1" -> JsObject(
           "get" -> JsObject(
@@ -166,5 +167,15 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
     )
 
     apiFormat[Endpoints].write(api) shouldBe expectedJson
+  }
+
+  it should "write an empty swagger definition" in {
+    val api = OpenApi[HNil](HNil)
+    val expectedJson = JsObject(
+      "swagger" -> JsString("2.0"),
+      "paths" -> JsObject()
+    )
+
+    apiFormat[HNil].write(api) shouldBe expectedJson
   }
 }

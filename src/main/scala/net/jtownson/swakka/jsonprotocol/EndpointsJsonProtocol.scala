@@ -5,7 +5,7 @@ import net.jtownson.swakka.jsonprotocol.EndpointJsonFormat.func2Format
 import Flattener.flattenToObject
 import net.jtownson.swakka.OpenApiModel._
 import shapeless.{::, HList, HNil}
-import spray.json.{DefaultJsonProtocol, JsArray, JsNull, JsObject, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
+import spray.json.{DefaultJsonProtocol, JsArray, JsNull, JsObject, JsString, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
 
 
 // A JsonProtocol supporting OpenApi endpoints
@@ -68,7 +68,7 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
     lift(pathItemWriter[Params, Responses])
 
   implicit val hNilFormat: EndpointJsonFormat[HNil] =
-    _ => JsNull
+    _ => JsObject()
 
   implicit def hConsFormat[H, T <: HList]
   (implicit hFmt: EndpointJsonFormat[H], tFmt: EndpointJsonFormat[T]):
@@ -84,10 +84,14 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
 
   def apiWriter[Endpoints](implicit ev: EndpointJsonFormat[Endpoints]): RootJsonWriter[OpenApi[Endpoints]] =
     new RootJsonWriter[OpenApi[Endpoints]] {
-      override def write(api: OpenApi[Endpoints]): JsValue =
+      override def write(api: OpenApi[Endpoints]): JsValue = {
+
+        val paths = ev.write(api.endpoints)
+
         JsObject(
-          "paths" -> ev.write(api.endpoints)
-        )
+            "swagger" -> JsString("2.0"),
+            "paths" -> paths)
+      }
     }
 
   def apiFormat[Endpoints](implicit ev: EndpointJsonFormat[Endpoints]): RootJsonFormat[OpenApi[Endpoints]] =
