@@ -1,11 +1,11 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
+import net.jtownson.swakka.jsonschema.ApiModelDictionary._
 import net.jtownson.swakka.OpenApiModel.{BodyParameter, PathParameter, QueryParameter}
+import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsBoolean, JsFalse, JsObject, JsString, JsValue}
-import ParameterJsonFormat._
-import net.jtownson.swakka.ApiModelDictionary._
-import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
+import ParameterJsonFormat.func2Format
 
 import scala.reflect.runtime.universe.TypeTag
 

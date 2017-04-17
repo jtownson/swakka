@@ -1,13 +1,12 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.misc
 
-import io.swagger.annotations.{ApiModel, ApiModelProperty}
-import net.jtownson.swakka.AnnotationExtractor._
+import io.swagger.annotations.ApiModelProperty
+import net.jtownson.swakka.misc.AnnotationExtractor._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 class AnnotationExtractorSpec extends FlatSpec {
 
-  @ApiModel
   case class D(
                 @ApiModelProperty(value = "field 1", notes = "notes 1") id: Int,
                 @ApiModelProperty(value = "field 2", notes = "notes 2") data: String

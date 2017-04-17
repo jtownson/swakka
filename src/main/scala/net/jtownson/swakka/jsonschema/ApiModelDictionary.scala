@@ -1,9 +1,9 @@
-package net.jtownson.swakka
-
-import scala.reflect.runtime.universe._
+package net.jtownson.swakka.jsonschema
 
 import io.swagger.annotations.ApiModelProperty
-import net.jtownson.swakka.AnnotationExtractor.constructorAnnotations
+import net.jtownson.swakka.misc.AnnotationExtractor.constructorAnnotations
+
+import scala.reflect.runtime.universe._
 
 // Produce additional schema documentation entries
 // The resulting map is from the fields of a class

@@ -1,4 +1,4 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.misc
 
 import scala.reflect.runtime.universe._
 

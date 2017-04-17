@@ -1,7 +1,7 @@
 package net.jtownson.swakka.jsonschema
 
-import net.jtownson.swakka.ApiModelDictionary.apiModelDictionary
-import net.jtownson.swakka.FieldnameExtractor.fieldNames
+import ApiModelDictionary.apiModelDictionary
+import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.OpenApiModel.ResponseValue
 import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
 import spray.json.{JsObject, JsString, JsValue}

@@ -2,6 +2,7 @@ package net.jtownson.swakka
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.{HttpMethod, HttpRequest}
+import net.jtownson.swakka.routegen.ConvertibleToDirective0
 import shapeless.{HList, HNil}
 
 object OpenApiModel {

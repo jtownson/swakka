@@ -3,12 +3,13 @@ package net.jtownson.swakka
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.server._
 import shapeless.{HList, HNil, :: => hcons}
-import ConvertibleToDirective0._
 import OpenApiModel._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
 import net.jtownson.swakka.RouteGen.PathHandling._
+import net.jtownson.swakka.routegen.{ConvertibleToDirective0, SwaggerRoute}
 import spray.json.JsonFormat
+import ConvertibleToDirective0._
 
 trait RouteGen[T] {
   def toRoute(t: T): Route

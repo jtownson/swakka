@@ -1,8 +1,8 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.Flattener.flattenToObject
+import Flattener.flattenToObject
 import net.jtownson.swakka.OpenApiModel.ResponseValue
-import net.jtownson.swakka.ResponseJsonFormat._
+import net.jtownson.swakka.jsonprotocol.ResponseJsonFormat._
 import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsObject, JsValue}

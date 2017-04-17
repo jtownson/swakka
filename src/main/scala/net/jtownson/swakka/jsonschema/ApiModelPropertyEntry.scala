@@ -1,3 +1,3 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonschema
 
 case class ApiModelPropertyEntry(value: String, name: String)

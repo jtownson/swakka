@@ -20,7 +20,7 @@ import net.jtownson.swakka.OpenApiModel._
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
   import OpenApiJsonProtocol._
-  import ConvertibleToDirective0._
+  import net.jtownson.swakka.routegen.ConvertibleToDirective0._
 
   val f = mockFunction[HttpRequest, ToResponseMarshallable]
 

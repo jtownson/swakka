@@ -1,4 +1,4 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
 import spray.json.{JsArray, JsObject, JsValue}
 

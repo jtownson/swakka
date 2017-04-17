@@ -1,6 +1,6 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.misc
 
-import net.jtownson.swakka.FieldnameExtractor.fieldNames
+import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import org.scalatest.Matchers._
 import org.scalatest._
 

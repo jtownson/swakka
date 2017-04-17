@@ -1,10 +1,10 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.Flattener.{flattenToArray, flattenToObject}
+import net.jtownson.swakka.jsonprotocol.Flattener.{flattenToArray, flattenToObject}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import spray.json.{JsArray, JsObject, JsString}
 import org.scalatest.prop.TableDrivenPropertyChecks._
+import spray.json.{JsArray, JsObject, JsString}
 
 class FlattenerSpec extends FlatSpec {
 

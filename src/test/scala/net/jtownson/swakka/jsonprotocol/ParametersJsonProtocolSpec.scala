@@ -1,7 +1,7 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.OpenApiModel.{BodyParameter, PathParameter, QueryParameter}
-import net.jtownson.swakka.ParametersJsonProtocol._
+import net.jtownson.swakka.jsonprotocol.ParametersJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import org.scalatest.Matchers._
 import org.scalatest._

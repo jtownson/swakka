@@ -1,8 +1,8 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
 import akka.http.scaladsl.model.HttpMethod
-import net.jtownson.swakka.EndpointJsonFormat.func2Format
-import net.jtownson.swakka.Flattener.flattenToObject
+import net.jtownson.swakka.jsonprotocol.EndpointJsonFormat.func2Format
+import Flattener.flattenToObject
 import net.jtownson.swakka.OpenApiModel._
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsNull, JsObject, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}

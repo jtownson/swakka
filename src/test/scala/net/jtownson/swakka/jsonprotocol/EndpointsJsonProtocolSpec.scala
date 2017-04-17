@@ -1,19 +1,19 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.model.HttpRequest
 import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.routegen.ConvertibleToDirective0
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}
-import spray.json.{JsArray, JsFalse, JsObject, JsString}
-import spray.json._
+import spray.json.{JsArray, JsFalse, JsObject, JsString, _}
 
 class EndpointsJsonProtocolSpec extends FlatSpec {
 
   import ConvertibleToDirective0._
-  import OpenApiJsonProtocol._
+  import net.jtownson.swakka.OpenApiJsonProtocol._
 
   private val endpointImpl: HttpRequest => ToResponseMarshallable = (_: HttpRequest) => ???
 

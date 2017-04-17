@@ -1,4 +1,4 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route

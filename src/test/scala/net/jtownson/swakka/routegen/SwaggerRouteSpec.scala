@@ -1,4 +1,4 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.OpenApiJsonProtocol
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

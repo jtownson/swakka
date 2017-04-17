@@ -1,7 +1,7 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.OpenApiModel.ResponseValue
-import net.jtownson.swakka.ResponsesJsonProtocol._
+import net.jtownson.swakka.jsonprotocol.ResponsesJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import org.scalatest.FlatSpec
