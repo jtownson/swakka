@@ -10,11 +10,9 @@ import shapeless.{::, HNil}
 import spray.json.{JsArray, JsFalse, JsObject, JsString}
 import spray.json._
 
-class OpenApiJsonProtocolSpec extends FlatSpec {
+class EndpointsJsonProtocolSpec extends FlatSpec {
 
   import ConvertibleToDirective0._
-  import ParametersJsonProtocol._
-  import ResponsesJsonProtocol._
   import OpenApiJsonProtocol._
 
   private val endpointImpl: HttpRequest => ToResponseMarshallable = (_: HttpRequest) => ???

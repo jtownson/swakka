@@ -2,18 +2,26 @@ package net.jtownson.swakka
 
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.server._
-import shapeless.{:: => hcons, HList, HNil}
+import shapeless.{HList, HNil, :: => hcons}
 import ConvertibleToDirective0._
 import OpenApiModel._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
 import net.jtownson.swakka.RouteGen.PathHandling._
+import spray.json.JsonFormat
 
 trait RouteGen[T] {
   def toRoute(t: T): Route
 }
 
 object RouteGen {
+
+  def openApiRoute[Endpoints <: HList](api: OpenApi[Endpoints], includeSwaggerRoute: Boolean = false)
+                                      (implicit ev1: RouteGen[Endpoints], ev2: JsonFormat[OpenApi[Endpoints]]): Route =
+    if (includeSwaggerRoute)
+      ev1.toRoute(api.endpoints) ~ SwaggerRoute.swaggerRoute(api)
+    else
+      ev1.toRoute(api.endpoints)
 
   implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
     (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
@@ -23,8 +31,6 @@ object RouteGen {
 
   implicit val hNilRouteGen: RouteGen[HNil] =
     _ => RouteDirectives.reject
-
-  def openApiRoute[Endpoints <: HList](api: OpenApi[Endpoints])(implicit ev: RouteGen[Endpoints]): Route = ev.toRoute(api.endpoints)
 
   def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](endpoint: Endpoint[Params, Responses]): Route =
     endpointRoute(endpoint.pathItem.method, endpoint.path, endpoint.pathItem.operation)

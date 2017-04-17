@@ -15,8 +15,6 @@ import spray.json._
 class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
   import ConvertibleToDirective0._
-  import ParametersJsonProtocol._
-  import ResponsesJsonProtocol._
   import OpenApiJsonProtocol._
 
   val f = mockFunction[HttpRequest, ToResponseMarshallable]

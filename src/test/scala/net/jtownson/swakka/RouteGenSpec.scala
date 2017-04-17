@@ -8,10 +8,6 @@ import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.server.directives.MarshallingDirectives
 import akka.http.scaladsl.server.{MalformedQueryParamRejection, MalformedRequestContentRejection}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
-import net.jtownson.swakka.ConvertibleToDirective0._
-import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.RouteGen._
-import net.jtownson.swakka.SwaggerRoute.swaggerRoute
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Inside._
@@ -19,9 +15,12 @@ import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
 import shapeless.{::, HNil}
 import spray.json._
-import spray.json.DefaultJsonProtocol._
+import net.jtownson.swakka.OpenApiModel._
 
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
+
+  import OpenApiJsonProtocol._
+  import ConvertibleToDirective0._
 
   val f = mockFunction[HttpRequest, ToResponseMarshallable]
 
@@ -168,17 +167,22 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     val f1 = mockFunction[HttpRequest, ToResponseMarshallable]
     val f2 = mockFunction[HttpRequest, ToResponseMarshallable]
 
+    type Endpoints =
+      Endpoint[OneIntParam, ::[ResponseValue[String], HNil]] ::
+      Endpoint[OneStringParam, ::[ResponseValue[String], HNil]] :: HNil
+
     val endpoint1: Endpoint[OneIntParam, ::[ResponseValue[String], HNil]] = Endpoint(
       "/app/e1", PathItem[OneIntParam, ResponseValue[String] :: HNil](
-      GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f1)))
+        GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f1)))
 
-    val endpoint2 = Endpoint(
+    val endpoint2: Endpoint[OneStringParam, ::[ResponseValue[String], HNil]] = Endpoint(
       "/app/e2", PathItem[OneStringParam, ResponseValue[String] :: HNil](
-      GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, f2)))
+        GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, f2)))
 
 
     val api = OpenApi(endpoint1 :: endpoint2 :: HNil)
 
+    implicit val apiJsonFormat = apiFormat[Endpoints]
     val route = RouteGen.openApiRoute(api)
 
     val e1Request = get("/app/e1?q=10")
@@ -195,6 +199,31 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     e2Request ~> route ~> check {
       status shouldBe OK
       responseAs[String] shouldBe "e2-response"
+    }
+  }
+
+  "the swagger route" should "be enabled with a toggle" in {
+
+    type Params = QueryParameter[Int] :: HNil
+    type Responses = ResponseValue[String] :: HNil
+    type Endpoints = Endpoint[Params, Responses] :: HNil
+
+    val f = mockFunction[HttpRequest, ToResponseMarshallable]
+
+    val api = OpenApi[Endpoints](
+      Endpoint(
+        "/app/e1", PathItem(
+          GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f))) :: HNil)
+
+    implicit val jsonFormat = apiFormat[Endpoints]
+
+    val route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+
+    val swaggerRequest = get("/swagger.json")
+
+    swaggerRequest ~> route ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe api.toJson.prettyPrint
     }
   }
 

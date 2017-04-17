@@ -4,9 +4,9 @@ import net.jtownson.swakka.Flattener.flattenToObject
 import net.jtownson.swakka.OpenApiModel.ResponseValue
 import net.jtownson.swakka.ResponseJsonFormat._
 import shapeless.{::, HList, HNil}
-import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsValue}
+import spray.json.{JsArray, JsObject, JsValue}
 
-trait ResponsesJsonProtocol extends DefaultJsonProtocol {
+trait ResponsesJsonProtocol {
 
   implicit val strResponseFormat: ResponseJsonFormat[ResponseValue[String]] =
     (rv: ResponseValue[String]) => swaggerResponse(rv.responseCode, JsonSchema[String]())

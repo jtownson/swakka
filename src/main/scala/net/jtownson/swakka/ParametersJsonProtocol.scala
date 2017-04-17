@@ -2,12 +2,12 @@ package net.jtownson.swakka
 
 import net.jtownson.swakka.OpenApiModel.{BodyParameter, PathParameter, QueryParameter}
 import shapeless.{::, HList, HNil}
-import spray.json.{DefaultJsonProtocol, JsArray, JsBoolean, JsFalse, JsObject, JsString, JsValue}
+import spray.json.{JsArray, JsBoolean, JsFalse, JsObject, JsString, JsValue}
 import ParameterJsonFormat._
 import net.jtownson.swakka.ApiModelDictionary._
 import scala.reflect.runtime.universe.TypeTag
 
-object ParametersJsonProtocol extends DefaultJsonProtocol {
+trait ParametersJsonProtocol {
 
   implicit val strParamFormat: ParameterJsonFormat[QueryParameter[String]] =
     (qp: QueryParameter[String]) => simpleParam(qp.name, "query", "", false, JsString("string"))
@@ -48,3 +48,5 @@ object ParametersJsonProtocol extends DefaultJsonProtocol {
       "type" -> `type`
     )
 }
+
+object ParametersJsonProtocol extends ParametersJsonProtocol
