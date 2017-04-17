@@ -16,7 +16,7 @@ trait RouteGen[T] {
 
 object RouteGen {
 
-  def openApiRoute[Endpoints <: HList](api: OpenApi[Endpoints], includeSwaggerRoute: Boolean = false)
+  def openApiRoute[Endpoints](api: OpenApi[Endpoints], includeSwaggerRoute: Boolean = false)
                                       (implicit ev1: RouteGen[Endpoints], ev2: JsonFormat[OpenApi[Endpoints]]): Route =
     if (includeSwaggerRoute)
       ev1.toRoute(api.endpoints) ~ SwaggerRoute.swaggerRoute(api)
@@ -26,16 +26,16 @@ object RouteGen {
   implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
     (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  implicit def endpointRouteGen[Params <: HList : ConvertibleToDirective0, Responses <: HList]: RouteGen[Endpoint[Params, Responses]] =
+  implicit def endpointRouteGen[Params: ConvertibleToDirective0, Responses]: RouteGen[Endpoint[Params, Responses]] =
     (e: Endpoint[Params, Responses]) => endpointRoute(e)
 
   implicit val hNilRouteGen: RouteGen[HNil] =
     _ => RouteDirectives.reject
 
-  def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](endpoint: Endpoint[Params, Responses]): Route =
+  def endpointRoute[Params: ConvertibleToDirective0, Responses](endpoint: Endpoint[Params, Responses]): Route =
     endpointRoute(endpoint.pathItem.method, endpoint.path, endpoint.pathItem.operation)
 
-  private def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses <: HList](httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses]) = {
+  private def endpointRoute[Params: ConvertibleToDirective0, Responses](httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses]) = {
 
     method(httpMethod) {
 

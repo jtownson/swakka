@@ -24,7 +24,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   val f = mockFunction[HttpRequest, ToResponseMarshallable]
 
-  private val defaultItem = PathItem[HNil, ResponseValue[String] :: HNil](GET, Operation(HNil, ResponseValue[String](200) :: HNil, f))
+  private val defaultItem = PathItem[HNil, ResponseValue[String]](GET, Operation(HNil, ResponseValue[String](200), f))
 
   val zeroParamModels = Table(
     ("testcase name", "request", "model", "response"),

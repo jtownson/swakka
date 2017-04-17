@@ -41,6 +41,20 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
     endpoint.toJson shouldBe expectedSwagger
   }
 
+  it should "write a responseless endpoint as an empty object" in {
+
+    val endpoint = Endpoint[HNil, HNil]("/ruok", PathItem[HNil, HNil](
+      GET, Operation(HNil, HNil, endpointImpl)))
+
+    val expectedSwagger = JsObject(
+      "/ruok" -> JsObject(
+        "get" -> JsObject()
+      )
+    )
+
+    endpoint.toJson shouldBe expectedSwagger
+  }
+
   it should "write an endpoint with a parameter" in {
 
     type Params = QueryParameter[String] :: HNil

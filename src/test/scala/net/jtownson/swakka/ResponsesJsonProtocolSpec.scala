@@ -26,7 +26,7 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
 
   "Responses JsonProtocol" should "write HNil as empty" in {
     val hn: HNil = HNil
-    hn.toJson shouldBe JsArray()
+    hn.toJson shouldBe JsObject()
   }
 
   "Responses JsonProtocol" should "write a complex response" in {

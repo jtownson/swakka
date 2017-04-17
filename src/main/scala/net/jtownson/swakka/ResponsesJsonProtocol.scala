@@ -13,7 +13,7 @@ trait ResponsesJsonProtocol {
 
 
   implicit val hNilResponseFormat: ResponseJsonFormat[HNil] =
-    _ => JsArray()
+    _ => JsObject()
 
 
   implicit def hConsResponseFormat[H, T <: HList](implicit head: ResponseJsonFormat[H], tail: ResponseJsonFormat[T]): ResponseJsonFormat[H :: T] =

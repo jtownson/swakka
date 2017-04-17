@@ -7,29 +7,52 @@ import net.jtownson.swakka.OpenApiModel._
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsNull, JsObject, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
 
-// A JsonProtocol supporting the OpenApiModel
+
+// A JsonProtocol supporting OpenApi endpoints
 trait EndpointsJsonProtocol extends DefaultJsonProtocol {
 
-  def operationWriter[Params <: HList, Responses <: HList]
+  def operationWriter[Params, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[Operation[Params, Responses]] =
     (operation: Operation[Params, Responses]) => {
 
-      val parameters: HList = operation.parameters
+      val parameters: JsValue = ev1.write(operation.parameters)
+      val responses = ev2.write(operation.responses)
 
-      if (parameters.productArity == 0)
-        JsObject(
-          "responses" -> ev2.write(operation.responses))
-      else
-        JsObject(
-          "parameters" -> ev1.write(operation.parameters),
-          "responses" -> ev2.write(operation.responses))
+      val fields: Seq[(String, JsValue)] = List(
+        optionalArrayField("parameters", parameters),
+        optionalObjectField("responses", responses)).
+        flatten
+
+      JsObject(fields: _*)
     }
 
-  implicit def operationFormat[Params <: HList, Responses <: HList]
+  private def optionalArrayField(s: String, j: JsValue): Option[(String, JsValue)] = j match {
+    case (JsArray(elements)) =>
+      optionalField(s, j, elements)
+    case _ =>
+      None
+  }
+
+
+  private def optionalObjectField(s: String, j: JsValue): Option[(String, JsValue)] = j match {
+    case (JsObject(fields)) =>
+      optionalField(s, j, fields)
+    case _ =>
+      None
+  }
+
+  private def optionalField(s: String, j: JsValue, elements: Iterable[_]) = {
+    if (elements.isEmpty)
+      None
+    else
+      Some((s, j))
+  }
+
+  implicit def operationFormat[Params, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Operation[Params, Responses]] =
     lift(operationWriter[Params, Responses])
 
-  def pathItemWriter[Params <: HList, Responses <: HList]
+  def pathItemWriter[Params, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[PathItem[Params, Responses]] =
     (pathItem: PathItem[Params, Responses]) =>
       JsObject(
@@ -40,7 +63,7 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
 
-  implicit def pathItemFormat[Params <: HList, Responses <: HList]
+  implicit def pathItemFormat[Params, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[PathItem[Params, Responses]] =
     lift(pathItemWriter[Params, Responses])
 
@@ -52,7 +75,7 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
   EndpointJsonFormat[H :: T] =
     func2Format((l: H :: T) => flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
 
-  implicit def singleEndpointFormat[Params <: HList, Responses <: HList]
+  implicit def singleEndpointFormat[Params, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
   EndpointJsonFormat[Endpoint[Params, Responses]] =
     func2Format((endpoint: Endpoint[Params, Responses]) => JsObject(
