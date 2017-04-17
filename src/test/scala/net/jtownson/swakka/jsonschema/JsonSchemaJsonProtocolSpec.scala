@@ -1,12 +1,11 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonschema
 
-import spray.json._
-import net.jtownson.swakka.JsonSchemaJsonProtocol._
+import io.swagger.annotations.ApiModelProperty
+import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
+import net.jtownson.swakka.jsonschema.SchemaWriter._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import spray.json.{JsObject, JsString}
-import SchemaWriter._
-import io.swagger.annotations.ApiModelProperty
+import spray.json.{JsObject, JsString, _}
 
 class JsonSchemaJsonProtocolSpec extends FlatSpec {
 

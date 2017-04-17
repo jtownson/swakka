@@ -1,4 +1,4 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonschema
 
 import spray.json.{DefaultJsonProtocol, JsValue, JsonFormat, JsonWriter}
 

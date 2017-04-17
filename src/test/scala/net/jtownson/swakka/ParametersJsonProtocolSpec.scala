@@ -2,7 +2,7 @@ package net.jtownson.swakka
 
 import net.jtownson.swakka.OpenApiModel.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.ParametersJsonProtocol._
-import net.jtownson.swakka.SchemaWriter._
+import net.jtownson.swakka.jsonschema.SchemaWriter._
 import org.scalatest.Matchers._
 import org.scalatest._
 import shapeless.{::, HNil}

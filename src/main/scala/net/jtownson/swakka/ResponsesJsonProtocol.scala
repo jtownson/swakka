@@ -3,6 +3,7 @@ package net.jtownson.swakka
 import net.jtownson.swakka.Flattener.flattenToObject
 import net.jtownson.swakka.OpenApiModel.ResponseValue
 import net.jtownson.swakka.ResponseJsonFormat._
+import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsObject, JsValue}
 

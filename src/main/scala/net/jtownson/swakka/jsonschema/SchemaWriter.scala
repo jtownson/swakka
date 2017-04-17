@@ -1,10 +1,11 @@
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonschema
 
 import net.jtownson.swakka.ApiModelDictionary.apiModelDictionary
 import net.jtownson.swakka.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.OpenApiModel.ResponseValue
+import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
 import spray.json.{JsObject, JsString, JsValue}
-import net.jtownson.swakka.JsonSchemaJsonProtocol._
+
 import scala.reflect.runtime.universe.TypeTag
 
 // To avoid ambiguities with json formats used

@@ -5,6 +5,8 @@ import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsBoolean, JsFalse, JsObject, JsString, JsValue}
 import ParameterJsonFormat._
 import net.jtownson.swakka.ApiModelDictionary._
+import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
+
 import scala.reflect.runtime.universe.TypeTag
 
 trait ParametersJsonProtocol {
