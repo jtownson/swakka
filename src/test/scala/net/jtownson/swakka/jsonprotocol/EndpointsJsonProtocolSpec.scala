@@ -19,10 +19,10 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
 
   "JsonProtocol" should "write a parameterless endpoint" in {
 
-    type Responses = ResponseValue[String] :: HNil
+    type Responses = ResponseValue[String]
 
     val endpoint = Endpoint[HNil, Responses]("/ruok", PathItem[HNil, Responses](
-      GET, Operation(HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
+      GET, Operation(HNil, ResponseValue[String](200), endpointImpl)))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -58,11 +58,11 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
   it should "write an endpoint with a parameter" in {
 
     type Params = QueryParameter[String] :: HNil
-    type Responses = ResponseValue[String] :: HNil
-    type Endpoints = Endpoint[Params, Responses] :: HNil
+    type Responses = ResponseValue[String]
+    type Endpoints = Endpoint[Params, Responses]
 
     val endpoint: Endpoint[Params, Responses] = Endpoint(
-      "/ruok", PathItem(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, endpointImpl)))
+      "/ruok", PathItem(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200), endpointImpl)))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -92,19 +92,19 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
 
   type OneIntParam = QueryParameter[Int] :: HNil
   type OneStrParam = QueryParameter[String] :: HNil
-  type StringResponse = ResponseValue[String] :: HNil
+  type StringResponse = ResponseValue[String]
   type Endpoints = Endpoint[OneIntParam, StringResponse] :: Endpoint[OneStrParam, StringResponse] :: HNil
 
   it should "write a simple swagger definition" in {
     val api: OpenApi[Endpoints] =
-      OpenApi(
+      OpenApi(endpoints =
         Endpoint[OneIntParam, StringResponse](
           path = "/app/e1",
           PathItem(
             method = GET,
             operation = Operation(
               parameters = QueryParameter[Int]('q) :: HNil,
-              responses = ResponseValue[String](200) :: HNil,
+              responses = ResponseValue[String](200),
               endpointImplementation = endpointImpl
             )
           )
@@ -115,7 +115,7 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
               method = GET,
               operation = Operation(
                 parameters = QueryParameter[String]('q) :: HNil,
-                responses = ResponseValue[String](200) :: HNil,
+                responses = ResponseValue[String](200),
                 endpointImplementation = endpointImpl
               )
             )
@@ -124,6 +124,10 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
 
     val expectedJson = JsObject(
       "swagger" -> JsString("2.0"),
+      "info" -> JsObject(
+        "title" -> JsString(""),
+        "version" -> JsString("")
+      ),
       "paths" -> JsObject(
         "/app/e1" -> JsObject(
           "get" -> JsObject(
@@ -170,9 +174,13 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
   }
 
   it should "write an empty swagger definition" in {
-    val api = OpenApi[HNil](HNil)
+    val api = OpenApi[HNil](endpoints = HNil)
     val expectedJson = JsObject(
       "swagger" -> JsString("2.0"),
+      "info" -> JsObject(
+        "title" -> JsString(""),
+        "version" -> JsString("")
+      ),
       "paths" -> JsObject()
     )
 

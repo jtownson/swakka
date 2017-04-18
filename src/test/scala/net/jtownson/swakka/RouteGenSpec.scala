@@ -180,7 +180,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, f2)))
 
 
-    val api = OpenApi(endpoint1 :: endpoint2 :: HNil)
+    val api = OpenApi(endpoints = endpoint1 :: endpoint2 :: HNil)
 
     implicit val apiJsonFormat = apiFormat[Endpoints]
     val route = RouteGen.openApiRoute(api)
@@ -210,7 +210,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val f = mockFunction[HttpRequest, ToResponseMarshallable]
 
-    val api = OpenApi[Endpoints](
+    val api = OpenApi[Endpoints](endpoints =
       Endpoint(
         "/app/e1", PathItem(
           GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f))) :: HNil)

@@ -23,20 +23,20 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   type OneIntParam = QueryParameter[Int] :: HNil
   type OneStrParam = QueryParameter[String] :: HNil
 
-  type StringResponse = ResponseValue[String] :: HNil
+  type StringResponse = ResponseValue[String]
 
   type Endpoints = Endpoint[OneIntParam, StringResponse] :: Endpoint[OneStrParam, StringResponse] :: HNil
 
   "Swagger route" should "return a swagger file" in {
     val api =
-      OpenApi(
+      OpenApi(endpoints =
         Endpoint[OneIntParam, StringResponse](
           path = "/app/e1",
           PathItem(
             method = GET,
             operation = Operation(
               parameters = QueryParameter[Int]('q) :: HNil,
-              responses = ResponseValue[String](200) :: HNil,
+              responses = ResponseValue[String](200),
               endpointImplementation = f
             )
           )
@@ -47,7 +47,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
               method = GET,
               operation = Operation(
                 parameters = QueryParameter[String]('q) :: HNil,
-                responses = ResponseValue[String](200) :: HNil,
+                responses = ResponseValue[String](200),
                 endpointImplementation = f
               )
             )
@@ -67,5 +67,5 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
     }
   }
 
-  override def failTest(msg: String): Nothing = failTest(msg)
+  override def failTest(msg: String): Nothing = throw new AssertionError(msg)
 }

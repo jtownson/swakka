@@ -4,14 +4,15 @@ import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.jsonprotocol.EndpointJsonFormat.func2Format
 import Flattener.flattenToObject
 import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.model.{Contact, Info, Licence}
 import shapeless.{::, HList, HNil}
-import spray.json.{DefaultJsonProtocol, JsArray, JsNull, JsObject, JsString, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
+import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
 
 
 // A JsonProtocol supporting OpenApi endpoints
 trait EndpointsJsonProtocol extends DefaultJsonProtocol {
 
-  def operationWriter[Params, Responses]
+  def operationWriter[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[Operation[Params, Responses]] =
     (operation: Operation[Params, Responses]) => {
 
@@ -48,11 +49,11 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
       Some((s, j))
   }
 
-  implicit def operationFormat[Params, Responses]
+  implicit def operationFormat[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Operation[Params, Responses]] =
     lift(operationWriter[Params, Responses])
 
-  def pathItemWriter[Params, Responses]
+  def pathItemWriter[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[PathItem[Params, Responses]] =
     (pathItem: PathItem[Params, Responses]) =>
       JsObject(
@@ -63,7 +64,7 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
 
-  implicit def pathItemFormat[Params, Responses]
+  implicit def pathItemFormat[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[PathItem[Params, Responses]] =
     lift(pathItemWriter[Params, Responses])
 
@@ -75,12 +76,44 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
   EndpointJsonFormat[H :: T] =
     func2Format((l: H :: T) => flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
 
-  implicit def singleEndpointFormat[Params, Responses]
+  implicit def singleEndpointFormat[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
   EndpointJsonFormat[Endpoint[Params, Responses]] =
     func2Format((endpoint: Endpoint[Params, Responses]) => JsObject(
       endpoint.path -> pathItemWriter.write(endpoint.pathItem)
     ))
+
+  val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
+    val fields: List[(String, JsValue)] = List(
+      contact.name.map("name" -> JsString(_)),
+      contact.url.map("url" -> JsString(_)),
+      contact.email.map("email" -> JsString(_))
+    ).flatten
+
+    JsObject(fields: _*)
+  }
+
+  val licenceWriter: JsonWriter[Licence] = (licence: Licence) => {
+    val fields: List[(String, JsValue)] = List(
+      Some("name" -> JsString(licence.name)),
+      licence.url.map("url" -> JsString(_))).flatten
+
+    JsObject(fields: _*)
+  }
+
+  val infoWriter: JsonWriter[Info] = (info: Info) => {
+
+    val fields: List[(String, JsValue)] = List(
+      Some("title" -> JsString(info.title)),
+      Some("version" -> JsString(info.version)),
+      info.description.map("description" -> JsString(_)),
+      info.termsOfService.map("termsOfService" -> JsString(_)),
+      info.contact.map("contact" -> contactWriter.write(_)),
+      info.licence.map("licence" -> licenceWriter.write(_))).
+      flatten
+
+    JsObject(fields: _*)
+  }
 
   def apiWriter[Endpoints](implicit ev: EndpointJsonFormat[Endpoints]): RootJsonWriter[OpenApi[Endpoints]] =
     new RootJsonWriter[OpenApi[Endpoints]] {
@@ -89,8 +122,9 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
         val paths = ev.write(api.endpoints)
 
         JsObject(
-            "swagger" -> JsString("2.0"),
-            "paths" -> paths)
+          "swagger" -> JsString("2.0"),
+          "info" -> infoWriter.write(api.info),
+          "paths" -> paths)
       }
     }
 
