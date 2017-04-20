@@ -21,7 +21,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     type Endpoints = HNil
 
-    val petstoreApi = OpenApi[Endpoints](apiInfo, HNil)
+    val petstoreApi = OpenApi[Endpoints](
+      info = apiInfo,
+      host = Some("petstore.swagger.io"),
+      endpoints = HNil)
     implicit val jsonFormat = apiFormat[Endpoints]
     val apiRoutes = openApiRoute(petstoreApi, includeSwaggerRoute = true)
 
@@ -34,6 +37,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           "name" -> JsString("MIT")
         )
       ),
+      "host" -> JsString("petstore.swagger.io"),
       "paths" -> JsObject()
     )
 
@@ -43,7 +47,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   }
 
   private def get(path: String): HttpRequest = {
-    Get(s"http://example.com$path")
+    Get(s"http://petstore.swagger.io$path")
   }
 
   override def failTest(msg: String): Nothing = throw new AssertionError(msg)

@@ -4,9 +4,10 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest}
-import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
+import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server.directives.MarshallingDirectives
-import akka.http.scaladsl.server.{MalformedQueryParamRejection, MalformedRequestContentRejection}
+import akka.http.scaladsl.server.{MalformedQueryParamRejection, MalformedRequestContentRejection, Route}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
@@ -169,7 +170,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     type Endpoints =
       Endpoint[OneIntParam, ::[ResponseValue[String], HNil]] ::
-      Endpoint[OneStringParam, ::[ResponseValue[String], HNil]] :: HNil
+        Endpoint[OneStringParam, ::[ResponseValue[String], HNil]] :: HNil
 
     val endpoint1: Endpoint[OneIntParam, ::[ResponseValue[String], HNil]] = Endpoint(
       "/app/e1", PathItem[OneIntParam, ResponseValue[String] :: HNil](
@@ -205,15 +206,15 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   "the swagger route" should "be enabled with a toggle" in {
 
     type Params = QueryParameter[Int] :: HNil
-    type Responses = ResponseValue[String] :: HNil
-    type Endpoints = Endpoint[Params, Responses] :: HNil
+    type Responses = ResponseValue[String]
+    type Endpoints = Endpoint[Params, Responses]
 
     val f = mockFunction[HttpRequest, ToResponseMarshallable]
 
     val api = OpenApi[Endpoints](endpoints =
       Endpoint(
         "/app/e1", PathItem(
-          GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f))) :: HNil)
+          GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200), f))))
 
     implicit val jsonFormat = apiFormat[Endpoints]
 
@@ -227,8 +228,40 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     }
   }
 
+  "host element" should "be included in the route defn" in {
+    type Endpoints = Endpoint[HNil, HNil]
+
+    val f = mockFunction[HttpRequest, ToResponseMarshallable]
+
+    val api = OpenApi[Endpoints](
+      host = Some("foo"),
+      endpoints =
+        Endpoint(
+          "/app", PathItem(
+            GET, Operation(HNil, HNil, f))))
+
+    implicit val jsonFormat = apiFormat[Endpoints]
+
+    val route = RouteGen.openApiRoute(api)
+
+    val request0 = get("bar", "/app")
+    request0 ~> seal(route) ~> check {
+      status shouldBe NotFound
+    }
+
+    val request1 = get("foo", "/app")
+    f expects request1 returning "x"
+    request1 ~> route ~> check {
+      status shouldBe OK
+    }
+  }
+
   private def get(path: String): HttpRequest = {
-    Get(s"http://example.com$path")
+    get("example.com", path)
+  }
+
+  private def get(host: String, path: String): HttpRequest = {
+    Get(s"http://$host$path")
   }
 
   private def post[T: JsonWriter](path: String, t: T): HttpRequest = {

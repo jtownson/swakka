@@ -19,10 +19,22 @@ object RouteGen {
 
   def openApiRoute[Endpoints](api: OpenApi[Endpoints], includeSwaggerRoute: Boolean = false)
                                       (implicit ev1: RouteGen[Endpoints], ev2: JsonFormat[OpenApi[Endpoints]]): Route =
+    api.host match {
+      case Some(hostName) =>
+        host(hostName) {
+          openApiInnerRoute(api, includeSwaggerRoute)
+        }
+      case None =>
+        openApiInnerRoute(api, includeSwaggerRoute)
+    }
+
+  private def openApiInnerRoute[Endpoints](api: OpenApi[Endpoints], includeSwaggerRoute: Boolean)
+                                     (implicit ev1: RouteGen[Endpoints], ev2: JsonFormat[OpenApi[Endpoints]])= {
     if (includeSwaggerRoute)
       ev1.toRoute(api.endpoints) ~ SwaggerRoute.swaggerRoute(api)
     else
       ev1.toRoute(api.endpoints)
+  }
 
   implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
     (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
@@ -36,7 +48,8 @@ object RouteGen {
   def endpointRoute[Params <: HList: ConvertibleToDirective0, Responses](endpoint: Endpoint[Params, Responses]): Route =
     endpointRoute(endpoint.pathItem.method, endpoint.path, endpoint.pathItem.operation)
 
-  private def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses](httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses]) = {
+  private def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses](
+   httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses]) = {
 
     method(httpMethod) {
 

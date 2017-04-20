@@ -28,6 +28,9 @@ object OpenApiModel {
     path: String,
     pathItem: PathItem[Params, Responses])
 
-  case class OpenApi[Endpoints](info: Info = pointlessInfo, endpoints: Endpoints)
+  case class OpenApi[Endpoints](
+   info: Info = pointlessInfo,
+   host: Option[String] = None,
+   endpoints: Endpoints)
 }
 

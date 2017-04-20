@@ -121,10 +121,13 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
 
         val paths = ev.write(api.endpoints)
 
-        JsObject(
-          "swagger" -> JsString("2.0"),
-          "info" -> infoWriter.write(api.info),
-          "paths" -> paths)
+        val fields = List(
+          Some("swagger" -> JsString("2.0")),
+          Some("info" -> infoWriter.write(api.info)),
+          api.host.map("host" -> JsString(_)),
+          Some("paths" -> paths)).flatten
+
+        JsObject(fields: _*)
       }
     }
 
