@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequ
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server.directives.MarshallingDirectives
-import akka.http.scaladsl.server.{MalformedQueryParamRejection, MalformedRequestContentRejection, Route}
+import akka.http.scaladsl.server.{MalformedQueryParamRejection, MalformedRequestContentRejection, Route, SchemeRejection}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
@@ -250,6 +250,37 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     }
 
     val request1 = get("foo", "/app")
+    f expects request1 returning "x"
+    request1 ~> route ~> check {
+      status shouldBe OK
+    }
+  }
+
+  "schemes" should "be included in the route defn" in {
+    type Endpoints = Endpoint[HNil, HNil]
+
+    val f = mockFunction[HttpRequest, ToResponseMarshallable]
+
+    val api = OpenApi[Endpoints](
+      schemes = Some(Seq("http")),
+      endpoints =
+        Endpoint(
+          "/app", PathItem(
+            GET, Operation(HNil, HNil, f)))
+    )
+
+    implicit val jsonFormat = apiFormat[Endpoints]
+
+    val route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+
+    val request0 = Get("https://foo.com/app")
+    request0 ~> route ~> check {
+      inside(rejection) {
+        case SchemeRejection(scheme) => scheme shouldBe "http"
+      }
+    }
+
+    val request1 = Get("http://foo.com/app")
     f expects request1 returning "x"
     request1 ~> route ~> check {
       status shouldBe OK

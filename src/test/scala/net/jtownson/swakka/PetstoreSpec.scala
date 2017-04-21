@@ -9,7 +9,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.HNil
-import spray.json.{JsObject, JsString}
+import spray.json.{JsArray, JsObject, JsString}
 
 class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
@@ -25,6 +25,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       info = apiInfo,
       host = Some("petstore.swagger.io"),
       basePath = Some("/v1"),
+      schemes = Some(Seq("http")),
       endpoints = HNil)
 
     implicit val jsonFormat = apiFormat[Endpoints]
@@ -42,6 +43,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       ),
       "host" -> JsString("petstore.swagger.io"),
       "basePath" -> JsString("/v1"),
+      "schemes" -> JsArray(JsString("http")),
       "paths" -> JsObject()
     )
 

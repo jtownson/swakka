@@ -32,6 +32,7 @@ object OpenApiModel {
    info: Info = pointlessInfo,
    host: Option[String] = None,
    basePath: Option[String] = None,
+   schemes: Option[Seq[String]] = None,
    endpoints: Endpoints)
 }
 

@@ -6,6 +6,7 @@ import shapeless.{HList, HNil, :: => hcons}
 import OpenApiModel._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
+import net.jtownson.swakka.routegen.PathHandling.akkaPath
 import net.jtownson.swakka.routegen._
 import spray.json.JsonFormat
 
@@ -18,11 +19,13 @@ object RouteGen {
   def openApiRoute[Endpoints](api: OpenApi[Endpoints], includeSwaggerRoute: Boolean = false)
                              (implicit ev1: RouteGen[Endpoints], ev2: JsonFormat[OpenApi[Endpoints]]): Route =
     hostDirective(api.host) {
-      basePathDirective(api.basePath) {
-        if (includeSwaggerRoute)
-          ev1.toRoute(api.endpoints) ~ SwaggerRoute.swaggerRoute(api)
-        else
-          ev1.toRoute(api.endpoints)
+      schemesDirective(api.schemes) {
+        basePathDirective(api.basePath) {
+          if (includeSwaggerRoute)
+            ev1.toRoute(api.endpoints) ~ SwaggerRoute.swaggerRoute(api)
+          else
+            ev1.toRoute(api.endpoints)
+        }
       }
     }
 
@@ -45,7 +48,7 @@ object RouteGen {
 
     method(httpMethod) {
 
-      PathHandling.akkaPath(modelPath) {
+      akkaPath(modelPath) {
 
         ev.convertToDirective0(operation.parameters) {
 

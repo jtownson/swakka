@@ -1,9 +1,9 @@
 package net.jtownson.swakka.jsonprotocol
 
 import akka.http.scaladsl.model.HttpMethod
-import net.jtownson.swakka.jsonprotocol.EndpointJsonFormat.func2Format
-import Flattener.flattenToObject
 import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.jsonprotocol.EndpointJsonFormat.func2Format
+import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.model.{Contact, Info, Licence}
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
@@ -126,6 +126,7 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
           Some("info" -> infoWriter.write(api.info)),
           api.host.map("host" -> JsString(_)),
           api.basePath.map("basePath" -> JsString(_)),
+          api.schemes.map(schemes => "schemes" -> JsArray(schemes.map(scheme => JsString(scheme.toString)): _*)),
           Some("paths" -> paths)).flatten
 
         JsObject(fields: _*)
