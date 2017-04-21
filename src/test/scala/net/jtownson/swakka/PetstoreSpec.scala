@@ -24,8 +24,11 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     val petstoreApi = OpenApi[Endpoints](
       info = apiInfo,
       host = Some("petstore.swagger.io"),
+      basePath = Some("/v1"),
       endpoints = HNil)
+
     implicit val jsonFormat = apiFormat[Endpoints]
+
     val apiRoutes = openApiRoute(petstoreApi, includeSwaggerRoute = true)
 
     val expectedJson = JsObject(
@@ -38,10 +41,11 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         )
       ),
       "host" -> JsString("petstore.swagger.io"),
+      "basePath" -> JsString("/v1"),
       "paths" -> JsObject()
     )
 
-    get("/swagger.json") ~> apiRoutes ~> check {
+    Get("http://petstore.swagger.io/v1/swagger.json") ~> apiRoutes ~> check {
       responseAs[String] shouldBe expectedJson.prettyPrint
     }
   }

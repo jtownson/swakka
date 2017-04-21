@@ -125,6 +125,7 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
           Some("swagger" -> JsString("2.0")),
           Some("info" -> infoWriter.write(api.info)),
           api.host.map("host" -> JsString(_)),
+          api.basePath.map("basePath" -> JsString(_)),
           Some("paths" -> paths)).flatten
 
         JsObject(fields: _*)

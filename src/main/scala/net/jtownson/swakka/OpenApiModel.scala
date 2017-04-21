@@ -31,6 +31,7 @@ object OpenApiModel {
   case class OpenApi[Endpoints](
    info: Info = pointlessInfo,
    host: Option[String] = None,
+   basePath: Option[String] = None,
    endpoints: Endpoints)
 }
 
