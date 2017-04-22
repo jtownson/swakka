@@ -33,6 +33,8 @@ object OpenApiModel {
    host: Option[String] = None,
    basePath: Option[String] = None,
    schemes: Option[Seq[String]] = None,
+   consumes: Option[Seq[String]] = None,
+   produces: Option[Seq[String]] = None,
    endpoints: Endpoints)
 }
 

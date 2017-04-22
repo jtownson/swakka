@@ -64,6 +64,10 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
 
+  private def asJsArray(key: String, entries: Option[Seq[_]]): Option[(String, JsValue)] = {
+    entries.map(s => key -> JsArray(s.map(ss => JsString(ss.toString)): _*))
+  }
+
   implicit def pathItemFormat[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[PathItem[Params, Responses]] =
     lift(pathItemWriter[Params, Responses])
@@ -126,7 +130,9 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
           Some("info" -> infoWriter.write(api.info)),
           api.host.map("host" -> JsString(_)),
           api.basePath.map("basePath" -> JsString(_)),
-          api.schemes.map(schemes => "schemes" -> JsArray(schemes.map(scheme => JsString(scheme.toString)): _*)),
+          asJsArray("schemes", api.schemes),
+          asJsArray("consumes", api.consumes),
+          asJsArray("produces", api.produces),
           Some("paths" -> paths)).flatten
 
         JsObject(fields: _*)

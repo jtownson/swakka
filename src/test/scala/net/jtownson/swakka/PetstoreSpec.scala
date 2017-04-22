@@ -26,6 +26,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       host = Some("petstore.swagger.io"),
       basePath = Some("/v1"),
       schemes = Some(Seq("http")),
+      consumes = Some(Seq("application/json")),
+      produces = Some(Seq("application/json")),
       endpoints = HNil)
 
     implicit val jsonFormat = apiFormat[Endpoints]
@@ -44,6 +46,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       "host" -> JsString("petstore.swagger.io"),
       "basePath" -> JsString("/v1"),
       "schemes" -> JsArray(JsString("http")),
+      "consumes" -> JsArray(JsString("application/json")),
+      "produces" -> JsArray(JsString("application/json")),
       "paths" -> JsObject()
     )
 
