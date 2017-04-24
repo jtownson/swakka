@@ -10,7 +10,7 @@ import org.scalatest.Matchers._
 import shapeless.{::, HNil}
 import spray.json.{JsArray, JsFalse, JsObject, JsString, _}
 
-class EndpointsJsonProtocolSpec extends FlatSpec {
+class PathsJsonProtocolSpec extends FlatSpec {
 
   import ConvertibleToDirective0._
   import net.jtownson.swakka.OpenApiJsonProtocol._
@@ -21,7 +21,7 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
 
     type Responses = ResponseValue[String]
 
-    val endpoint = Endpoint[HNil, Responses]("/ruok", PathItem[HNil, Responses](
+    val endpoint = PathItem[HNil, Responses]("/ruok", Endpoint[HNil, Responses](
       GET, Operation(HNil, ResponseValue[String](200), endpointImpl)))
 
     val expectedSwagger = JsObject(
@@ -43,7 +43,7 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
 
   it should "write a responseless endpoint as an empty object" in {
 
-    val endpoint = Endpoint[HNil, HNil]("/ruok", PathItem[HNil, HNil](
+    val endpoint = PathItem[HNil, HNil]("/ruok", Endpoint[HNil, HNil](
       GET, Operation(HNil, HNil, endpointImpl)))
 
     val expectedSwagger = JsObject(
@@ -59,10 +59,10 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
 
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String]
-    type Endpoints = Endpoint[Params, Responses]
+    type Paths = PathItem[Params, Responses]
 
-    val endpoint: Endpoint[Params, Responses] = Endpoint(
-      "/ruok", PathItem(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200), endpointImpl)))
+    val endpoint: PathItem[Params, Responses] = PathItem(
+      "/ruok", Endpoint(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200), endpointImpl)))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -93,14 +93,14 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
   type OneIntParam = QueryParameter[Int] :: HNil
   type OneStrParam = QueryParameter[String] :: HNil
   type StringResponse = ResponseValue[String]
-  type Endpoints = Endpoint[OneIntParam, StringResponse] :: Endpoint[OneStrParam, StringResponse] :: HNil
+  type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
 
   it should "write a simple swagger definition" in {
-    val api: OpenApi[Endpoints] =
-      OpenApi(endpoints =
-        Endpoint[OneIntParam, StringResponse](
+    val api: OpenApi[Paths] =
+      OpenApi(paths =
+        PathItem[OneIntParam, StringResponse](
           path = "/app/e1",
-          PathItem(
+          Endpoint(
             method = GET,
             operation = Operation(
               parameters = QueryParameter[Int]('q) :: HNil,
@@ -109,9 +109,9 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
             )
           )
         ) ::
-          Endpoint[OneStrParam, StringResponse](
+          PathItem[OneStrParam, StringResponse](
             path = "/app/e2",
-            PathItem(
+            Endpoint(
               method = GET,
               operation = Operation(
                 parameters = QueryParameter[String]('q) :: HNil,
@@ -170,11 +170,11 @@ class EndpointsJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    apiFormat[Endpoints].write(api) shouldBe expectedJson
+    apiFormat[Paths].write(api) shouldBe expectedJson
   }
 
   it should "write an empty swagger definition" in {
-    val api = OpenApi[HNil](endpoints = HNil)
+    val api = OpenApi[HNil](paths = HNil)
     val expectedJson = JsObject(
       "swagger" -> JsString("2.0"),
       "info" -> JsObject(

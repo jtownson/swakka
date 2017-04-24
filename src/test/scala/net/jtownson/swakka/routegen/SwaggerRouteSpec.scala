@@ -25,14 +25,14 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
   type StringResponse = ResponseValue[String]
 
-  type Endpoints = Endpoint[OneIntParam, StringResponse] :: Endpoint[OneStrParam, StringResponse] :: HNil
+  type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
 
   "Swagger route" should "return a swagger file" in {
     val api =
-      OpenApi(endpoints =
-        Endpoint[OneIntParam, StringResponse](
+      OpenApi(paths =
+        PathItem[OneIntParam, StringResponse](
           path = "/app/e1",
-          PathItem(
+          Endpoint(
             method = GET,
             operation = Operation(
               parameters = QueryParameter[Int]('q) :: HNil,
@@ -41,9 +41,9 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
             )
           )
         ) ::
-          Endpoint[OneStrParam, StringResponse](
+          PathItem[OneStrParam, StringResponse](
             path = "/app/e2",
-            PathItem(
+            Endpoint(
               method = GET,
               operation = Operation(
                 parameters = QueryParameter[String]('q) :: HNil,
@@ -55,7 +55,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
         HNil
       )
 
-    implicit val jsonProtocol = apiFormat[Endpoints]
+    implicit val jsonProtocol = apiFormat[Paths]
 
     val route = SwaggerRoute.swaggerRoute(api)
 

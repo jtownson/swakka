@@ -9,8 +9,8 @@ import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
 
 
-// A JsonProtocol supporting OpenApi endpoints
-trait EndpointsJsonProtocol extends DefaultJsonProtocol {
+// A JsonProtocol supporting OpenApi paths
+trait PathsJsonProtocol extends DefaultJsonProtocol {
 
   def operationWriter[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[Operation[Params, Responses]] =
@@ -53,11 +53,11 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Operation[Params, Responses]] =
     lift(operationWriter[Params, Responses])
 
-  def pathItemWriter[Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[PathItem[Params, Responses]] =
-    (pathItem: PathItem[Params, Responses]) =>
+  def endpointWriter[Params <: HList, Responses]
+  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[Endpoint[Params, Responses]] =
+    (endpoint: Endpoint[Params, Responses]) =>
       JsObject(
-        asString(pathItem.method) -> operationWriter[Params, Responses].write(pathItem.operation)
+        asString(endpoint.method) -> operationWriter[Params, Responses].write(endpoint.operation)
       )
 
   private def asString(method: HttpMethod): String = method match {
@@ -68,9 +68,9 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
     entries.map(s => key -> JsArray(s.map(ss => JsString(ss.toString)): _*))
   }
 
-  implicit def pathItemFormat[Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[PathItem[Params, Responses]] =
-    lift(pathItemWriter[Params, Responses])
+  implicit def endpointFormat[Params <: HList, Responses]
+  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Endpoint[Params, Responses]] =
+    lift(endpointWriter[Params, Responses])
 
   implicit val hNilFormat: EndpointJsonFormat[HNil] =
     _ => JsObject()
@@ -82,9 +82,9 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
 
   implicit def singleEndpointFormat[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
-  EndpointJsonFormat[Endpoint[Params, Responses]] =
-    func2Format((endpoint: Endpoint[Params, Responses]) => JsObject(
-      endpoint.path -> pathItemWriter.write(endpoint.pathItem)
+  EndpointJsonFormat[PathItem[Params, Responses]] =
+    func2Format((endpoint: PathItem[Params, Responses]) => JsObject(
+      endpoint.path -> endpointWriter.write(endpoint.endpoint)
     ))
 
   val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
@@ -119,11 +119,11 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
     JsObject(fields: _*)
   }
 
-  def apiWriter[Endpoints](implicit ev: EndpointJsonFormat[Endpoints]): RootJsonWriter[OpenApi[Endpoints]] =
-    new RootJsonWriter[OpenApi[Endpoints]] {
-      override def write(api: OpenApi[Endpoints]): JsValue = {
+  def apiWriter[Paths](implicit ev: EndpointJsonFormat[Paths]): RootJsonWriter[OpenApi[Paths]] =
+    new RootJsonWriter[OpenApi[Paths]] {
+      override def write(api: OpenApi[Paths]): JsValue = {
 
-        val paths = ev.write(api.endpoints)
+        val paths = ev.write(api.paths)
 
         val fields = List(
           Some("swagger" -> JsString("2.0")),
@@ -139,8 +139,8 @@ trait EndpointsJsonProtocol extends DefaultJsonProtocol {
       }
     }
 
-  def apiFormat[Endpoints](implicit ev: EndpointJsonFormat[Endpoints]): RootJsonFormat[OpenApi[Endpoints]] =
-    lift(apiWriter[Endpoints])
+  def apiFormat[Paths](implicit ev: EndpointJsonFormat[Paths]): RootJsonFormat[OpenApi[Paths]] =
+    lift(apiWriter[Paths])
 }
 
-object EndpointsJsonProtocol extends EndpointsJsonProtocol
+object PathsJsonProtocol extends PathsJsonProtocol

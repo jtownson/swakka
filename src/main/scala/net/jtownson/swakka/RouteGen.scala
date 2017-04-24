@@ -16,15 +16,15 @@ trait RouteGen[T] {
 
 object RouteGen {
 
-  def openApiRoute[Endpoints](api: OpenApi[Endpoints], includeSwaggerRoute: Boolean = false)
-                             (implicit ev1: RouteGen[Endpoints], ev2: JsonFormat[OpenApi[Endpoints]]): Route =
+  def openApiRoute[Paths](api: OpenApi[Paths], includeSwaggerRoute: Boolean = false)
+                             (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths]]): Route =
     hostDirective(api.host) {
       schemesDirective(api.schemes) {
         basePathDirective(api.basePath) {
           if (includeSwaggerRoute)
-            ev1.toRoute(api.endpoints) ~ SwaggerRoute.swaggerRoute(api)
+            ev1.toRoute(api.paths) ~ SwaggerRoute.swaggerRoute(api)
           else
-            ev1.toRoute(api.endpoints)
+            ev1.toRoute(api.paths)
         }
       }
     }
@@ -33,14 +33,14 @@ object RouteGen {
   implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
     (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  implicit def endpointRouteGen[Params <: HList : ConvertibleToDirective0, Responses]: RouteGen[Endpoint[Params, Responses]] =
-    (e: Endpoint[Params, Responses]) => endpointRoute(e)
+  implicit def endpointRouteGen[Params <: HList : ConvertibleToDirective0, Responses]: RouteGen[PathItem[Params, Responses]] =
+    (e: PathItem[Params, Responses]) => endpointRoute(e)
 
   implicit val hNilRouteGen: RouteGen[HNil] =
     _ => RouteDirectives.reject
 
-  def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses](endpoint: Endpoint[Params, Responses]): Route =
-    endpointRoute(endpoint.pathItem.method, endpoint.path, endpoint.pathItem.operation)
+  def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses](endpoint: PathItem[Params, Responses]): Route =
+    endpointRoute(endpoint.endpoint.method, endpoint.path, endpoint.endpoint.operation)
 
   private def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses]
   (httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses])

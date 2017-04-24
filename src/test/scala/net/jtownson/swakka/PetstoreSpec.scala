@@ -1,17 +1,21 @@
 package net.jtownson.swakka
 
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.model.{HttpMethods, HttpRequest}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
-import net.jtownson.swakka.OpenApiModel.OpenApi
+import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.model.{Info, Licence}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import shapeless.HNil
+import shapeless.{::, HNil}
 import spray.json.{JsArray, JsObject, JsString}
 
 class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
+
+  case class Pet(id: Int, name: String, tag:  Option[String] = None)
+  type Pets = Seq[Pet]
 
   val apiInfo = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(Licence(name = "MIT")))
 
@@ -19,18 +23,23 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "Swakka" should "support the petstore example" in {
 
-    type Endpoints = HNil
+    type ListPetsParams = HNil
+    type ListPetsResponses = HNil
 
-    val petstoreApi = OpenApi[Endpoints](
+    type Paths = PathItem[ListPetsParams, ListPetsResponses]
+
+    val petstoreApi = OpenApi[Paths](
       info = apiInfo,
       host = Some("petstore.swagger.io"),
       basePath = Some("/v1"),
       schemes = Some(Seq("http")),
       consumes = Some(Seq("application/json")),
       produces = Some(Seq("application/json")),
-      endpoints = HNil)
+      paths = PathItem(
+        "/pets",
+        Endpoint(GET, Operation(HNil, HNil, _ => ???))))
 
-    implicit val jsonFormat = apiFormat[Endpoints]
+    implicit val jsonFormat = apiFormat[Paths]
 
     val apiRoutes = openApiRoute(petstoreApi, includeSwaggerRoute = true)
 
@@ -48,7 +57,13 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       "schemes" -> JsArray(JsString("http")),
       "consumes" -> JsArray(JsString("application/json")),
       "produces" -> JsArray(JsString("application/json")),
-      "paths" -> JsObject()
+      "paths" -> JsObject(
+        "/pets" -> JsObject(
+          "get" -> JsObject(
+
+          )
+        )
+      )
     )
 
     Get("http://petstore.swagger.io/v1/swagger.json") ~> apiRoutes ~> check {
