@@ -19,9 +19,15 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
       val parameters: JsValue = ev1.write(operation.parameters)
       val responses = ev2.write(operation.responses)
 
+      val tags: Option[JsArray] = operation.tags.
+        map(tags => tags.map(JsString(_))).
+        map(_.toList).
+        map(JsArray(_: _*))
+
       val fields: Seq[(String, JsValue)] = List(
         operation.summary.map("summary" -> JsString(_)),
         operation.operationId.map("operationId" -> JsString(_)),
+        tags.map("tags" -> _),
         optionalArrayField("parameters", parameters),
         optionalObjectField("responses", responses)).
         flatten

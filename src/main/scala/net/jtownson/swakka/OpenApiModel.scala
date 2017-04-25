@@ -18,6 +18,7 @@ object OpenApiModel {
   case class Operation[Params <: HList : ConvertibleToDirective0, Responses](
     summary: Option[String] = None,
     operationId: Option[String] = None,
+    tags: Option[Seq[String]] = None,
     parameters: Params = HNil,
     responses: Responses = HNil,
     endpointImplementation: HttpRequest => ToResponseMarshallable)

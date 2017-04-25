@@ -41,6 +41,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         operation = Operation(
           summary = Some("List all pets"),
           operationId = Some("listPets"),
+          tags = Some(Seq("pets")),
           parameters = HNil,
           responses = HNil,
           endpointImplementation = _ => ???)))
@@ -65,7 +66,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         "/pets" -> JsObject(
           "get" -> JsObject(
             "summary" -> JsString("List all pets"),
-            "operationId" -> JsString("listPets")
+            "operationId" -> JsString("listPets"),
+            "tags" -> JsArray(JsString("pets"))
           )
         )
       )
