@@ -6,7 +6,7 @@ import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.func2Format
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.model.{Contact, Info, Licence}
 import shapeless.{::, HList, HNil}
-import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
+import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonWriter, RootJsonFormat, RootJsonWriter}
 
 
 // A JsonProtocol supporting OpenApi paths
@@ -17,6 +17,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): Seq[(String, JsValue)] =
     List(
       pathItem.summary.map("summary" -> JsString(_)),
+      pathItem.operationId.map("operationId" -> JsString(_)),
       optionalArrayField("parameters", ev1.write(pathItem.operation.parameters)),
       optionalObjectField("responses", ev2.write(pathItem.operation.responses))).flatten
 

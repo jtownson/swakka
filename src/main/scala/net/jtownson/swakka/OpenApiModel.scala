@@ -24,6 +24,7 @@ object OpenApiModel {
    path: String,
    method: HttpMethod,
    summary: Option[String] = None,
+   operationId: Option[String] = None,
    operation: Operation[Params, Responses])
 
   case class OpenApi[Paths](

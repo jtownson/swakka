@@ -39,7 +39,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         path = "/pets",
         method = GET,
         summary = Some("List all pets"),
-        Operation(HNil, HNil, _ => ???)))
+        operationId = Some("listPets"),
+        operation = Operation(HNil, HNil, _ => ???)))
 
     implicit val jsonFormat = apiFormat[Paths]
 
@@ -62,7 +63,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       "paths" -> JsObject(
         "/pets" -> JsObject(
           "get" -> JsObject(
-            "summary" -> JsString("List all pets")
+            "summary" -> JsString("List all pets"),
+            "operationId" -> JsString("listPets")
           )
         )
       )
