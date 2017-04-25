@@ -2,7 +2,7 @@ package net.jtownson.swakka.jsonprotocol
 
 import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.jsonprotocol.EndpointJsonFormat.func2Format
+import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.func2Format
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.model.{Contact, Info, Licence}
 import shapeless.{::, HList, HNil}
@@ -53,13 +53,6 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Operation[Params, Responses]] =
     lift(operationWriter[Params, Responses])
 
-  def endpointWriter[Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[Endpoint[Params, Responses]] =
-    (endpoint: Endpoint[Params, Responses]) =>
-      JsObject(
-        asString(endpoint.method) -> operationWriter[Params, Responses].write(endpoint.operation)
-      )
-
   private def asString(method: HttpMethod): String = method match {
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
@@ -68,23 +61,21 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     entries.map(s => key -> JsArray(s.map(ss => JsString(ss.toString)): _*))
   }
 
-  implicit def endpointFormat[Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Endpoint[Params, Responses]] =
-    lift(endpointWriter[Params, Responses])
-
-  implicit val hNilFormat: EndpointJsonFormat[HNil] =
+  implicit val hNilFormat: PathsJsonFormat[HNil] =
     _ => JsObject()
 
   implicit def hConsFormat[H, T <: HList]
-  (implicit hFmt: EndpointJsonFormat[H], tFmt: EndpointJsonFormat[T]):
-  EndpointJsonFormat[H :: T] =
+  (implicit hFmt: PathsJsonFormat[H], tFmt: PathsJsonFormat[T]):
+  PathsJsonFormat[H :: T] =
     func2Format((l: H :: T) => flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
 
-  implicit def singleEndpointFormat[Params <: HList, Responses]
+  implicit def singlePathItemFormat[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
-  EndpointJsonFormat[PathItem[Params, Responses]] =
-    func2Format((endpoint: PathItem[Params, Responses]) => JsObject(
-      endpoint.path -> endpointWriter.write(endpoint.endpoint)
+  PathsJsonFormat[PathItem[Params, Responses]] =
+    func2Format((pathItem: PathItem[Params, Responses]) => JsObject(
+      pathItem.path -> JsObject(
+        asString(pathItem.method) -> operationWriter[Params, Responses].write(pathItem.operation)
+      )
     ))
 
   val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
@@ -119,7 +110,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     JsObject(fields: _*)
   }
 
-  def apiWriter[Paths](implicit ev: EndpointJsonFormat[Paths]): RootJsonWriter[OpenApi[Paths]] =
+  def apiWriter[Paths](implicit ev: PathsJsonFormat[Paths]): RootJsonWriter[OpenApi[Paths]] =
     new RootJsonWriter[OpenApi[Paths]] {
       override def write(api: OpenApi[Paths]): JsValue = {
 
@@ -139,7 +130,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
       }
     }
 
-  def apiFormat[Paths](implicit ev: EndpointJsonFormat[Paths]): RootJsonFormat[OpenApi[Paths]] =
+  def apiFormat[Paths](implicit ev: PathsJsonFormat[Paths]): RootJsonFormat[OpenApi[Paths]] =
     lift(apiWriter[Paths])
 }
 

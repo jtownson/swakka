@@ -17,12 +17,11 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   private val endpointImpl: HttpRequest => ToResponseMarshallable = (_: HttpRequest) => ???
 
-  "JsonProtocol" should "write a parameterless endpoint" in {
+  "JsonProtocol" should "write a parameterless pathitem" in {
 
     type Responses = ResponseValue[String]
 
-    val endpoint = PathItem[HNil, Responses]("/ruok", Endpoint[HNil, Responses](
-      GET, Operation(HNil, ResponseValue[String](200), endpointImpl)))
+    val pathItem = PathItem[HNil, Responses]("/ruok", GET, Operation(HNil, ResponseValue[String](200), endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -38,13 +37,12 @@ class PathsJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    endpoint.toJson shouldBe expectedSwagger
+    pathItem.toJson shouldBe expectedSwagger
   }
 
-  it should "write a responseless endpoint as an empty object" in {
+  it should "write a responseless pathItem as an empty object" in {
 
-    val endpoint = PathItem[HNil, HNil]("/ruok", Endpoint[HNil, HNil](
-      GET, Operation(HNil, HNil, endpointImpl)))
+    val pathItem = PathItem[HNil, HNil]("/ruok", GET, Operation(HNil, HNil, endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -52,17 +50,17 @@ class PathsJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    endpoint.toJson shouldBe expectedSwagger
+    pathItem.toJson shouldBe expectedSwagger
   }
 
-  it should "write an endpoint with a parameter" in {
+  it should "write an pathItem with a parameter" in {
 
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String]
     type Paths = PathItem[Params, Responses]
 
-    val endpoint: PathItem[Params, Responses] = PathItem(
-      "/ruok", Endpoint(GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200), endpointImpl)))
+    val pathItem: PathItem[Params, Responses] = PathItem(
+      "/ruok", GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200), endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -87,7 +85,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    endpoint.toJson shouldBe expectedSwagger
+    pathItem.toJson shouldBe expectedSwagger
   }
 
   type OneIntParam = QueryParameter[Int] :: HNil
@@ -100,26 +98,24 @@ class PathsJsonProtocolSpec extends FlatSpec {
       OpenApi(paths =
         PathItem[OneIntParam, StringResponse](
           path = "/app/e1",
-          Endpoint(
+          method = GET,
+          operation = Operation(
+            parameters = QueryParameter[Int]('q) :: HNil,
+            responses = ResponseValue[String](200),
+            endpointImplementation = endpointImpl
+          )
+        )
+          ::
+          PathItem[OneStrParam, StringResponse](
+            path = "/app/e2",
             method = GET,
             operation = Operation(
-              parameters = QueryParameter[Int]('q) :: HNil,
+              parameters = QueryParameter[String]('q) :: HNil,
               responses = ResponseValue[String](200),
               endpointImplementation = endpointImpl
             )
           )
-        ) ::
-          PathItem[OneStrParam, StringResponse](
-            path = "/app/e2",
-            Endpoint(
-              method = GET,
-              operation = Operation(
-                parameters = QueryParameter[String]('q) :: HNil,
-                responses = ResponseValue[String](200),
-                endpointImplementation = endpointImpl
-              )
-            )
-          ) :: HNil
+          :: HNil
       )
 
     val expectedJson = JsObject(

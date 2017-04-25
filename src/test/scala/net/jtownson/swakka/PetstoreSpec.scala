@@ -37,7 +37,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       produces = Some(Seq("application/json")),
       paths = PathItem(
         "/pets",
-        Endpoint(GET, Operation(HNil, HNil, _ => ???))))
+        GET,
+        Operation(HNil, HNil, _ => ???)))
 
     implicit val jsonFormat = apiFormat[Paths]
 

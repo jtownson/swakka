@@ -33,16 +33,16 @@ object RouteGen {
   implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
     (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  implicit def endpointRouteGen[Params <: HList : ConvertibleToDirective0, Responses]: RouteGen[PathItem[Params, Responses]] =
-    (e: PathItem[Params, Responses]) => endpointRoute(e)
+  implicit def pathItemRouteGen[Params <: HList : ConvertibleToDirective0, Responses]: RouteGen[PathItem[Params, Responses]] =
+    (pathItem: PathItem[Params, Responses]) => pathItemRoute(pathItem)
 
   implicit val hNilRouteGen: RouteGen[HNil] =
     _ => RouteDirectives.reject
 
-  def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses](endpoint: PathItem[Params, Responses]): Route =
-    endpointRoute(endpoint.endpoint.method, endpoint.path, endpoint.endpoint.operation)
+  def pathItemRoute[Params <: HList : ConvertibleToDirective0, Responses](pathItem: PathItem[Params, Responses]): Route =
+    pathItemRoute(pathItem.method, pathItem.path, pathItem.operation)
 
-  private def endpointRoute[Params <: HList : ConvertibleToDirective0, Responses]
+  private def pathItemRoute[Params <: HList : ConvertibleToDirective0, Responses]
   (httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses])
   (implicit ev: ConvertibleToDirective0[Params]) = {
 
@@ -60,5 +60,4 @@ object RouteGen {
       }
     }
   }
-
 }

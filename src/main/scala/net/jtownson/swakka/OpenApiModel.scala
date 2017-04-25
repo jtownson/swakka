@@ -20,13 +20,10 @@ object OpenApiModel {
     responses: Responses = HNil,
     endpointImplementation: HttpRequest => ToResponseMarshallable)
 
-  case class Endpoint[Params <: HList : ConvertibleToDirective0, Responses](
-    method: HttpMethod,
-    operation: Operation[Params, Responses])
-
   case class PathItem[Params <: HList : ConvertibleToDirective0, Responses](
    path: String,
-   endpoint: Endpoint[Params, Responses])
+   method: HttpMethod,
+   operation: Operation[Params, Responses])
 
   case class OpenApi[Paths](
    info: Info = pointlessInfo,

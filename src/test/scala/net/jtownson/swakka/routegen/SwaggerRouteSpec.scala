@@ -32,26 +32,22 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
       OpenApi(paths =
         PathItem[OneIntParam, StringResponse](
           path = "/app/e1",
-          Endpoint(
-            method = GET,
-            operation = Operation(
-              parameters = QueryParameter[Int]('q) :: HNil,
-              responses = ResponseValue[String](200),
-              endpointImplementation = f
-            )
+          method = GET,
+          operation = Operation(
+            parameters = QueryParameter[Int]('q) :: HNil,
+            responses = ResponseValue[String](200),
+            endpointImplementation = f
           )
         ) ::
-          PathItem[OneStrParam, StringResponse](
-            path = "/app/e2",
-            Endpoint(
-              method = GET,
-              operation = Operation(
-                parameters = QueryParameter[String]('q) :: HNil,
-                responses = ResponseValue[String](200),
-                endpointImplementation = f
-              )
-            )
-          ) ::
+        PathItem[OneStrParam, StringResponse](
+          path = "/app/e2",
+          method = GET,
+          operation = Operation(
+            parameters = QueryParameter[String]('q) :: HNil,
+            responses = ResponseValue[String](200),
+            endpointImplementation = f
+          )
+        ) ::
         HNil
       )
 
