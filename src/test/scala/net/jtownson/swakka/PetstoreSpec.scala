@@ -9,12 +9,13 @@ import net.jtownson.swakka.model.{Info, Licence}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import shapeless.HNil
-import spray.json.{JsArray, JsObject, JsString}
+import shapeless.{::, HNil}
+import spray.json.{JsArray, JsBoolean, JsObject, JsString}
 
 class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
-  case class Pet(id: Int, name: String, tag:  Option[String] = None)
+  case class Pet(id: Int, name: String, tag: Option[String] = None)
+
   type Pets = Seq[Pet]
 
   val apiInfo = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(Licence(name = "MIT")))
@@ -23,7 +24,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "Swakka" should "support the petstore example" in {
 
-    type ListPetsParams = HNil
+    type ListPetsParams = QueryParameter[Int] :: HNil
     type ListPetsResponses = HNil
 
     type Paths = PathItem[ListPetsParams, ListPetsResponses]
@@ -42,7 +43,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           summary = Some("List all pets"),
           operationId = Some("listPets"),
           tags = Some(Seq("pets")),
-          parameters = HNil,
+          parameters = QueryParameter[Int](
+            'limit,
+            Some("How many items to return at one time (max 100)"),
+            required = true) :: HNil,
           responses = HNil,
           endpointImplementation = _ => ???)))
 
@@ -67,12 +71,32 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           "get" -> JsObject(
             "summary" -> JsString("List all pets"),
             "operationId" -> JsString("listPets"),
-            "tags" -> JsArray(JsString("pets"))
+            "tags" -> JsArray(JsString("pets")),
+            "parameters" -> JsArray(
+              JsObject(
+                "name" -> JsString("limit"),
+                "in" -> JsString("query"),
+                "description" -> JsString("How many items to return at one time (max 100)"),
+                "required" -> JsBoolean(true),
+                "type" -> JsString("integer")
+              )
+            )
           )
         )
       )
     )
-
+    /*
+            "parameters": [
+              {
+                "name": "limit",
+                "in": "query",
+                "description": "How many items to return at one time (max 100)",
+                "required": false,
+                "type": "integer",
+                "format": "int32"
+              }
+            ],
+     */
     Get("http://petstore.swagger.io/v1/swagger.json") ~> apiRoutes ~> check {
       responseAs[String] shouldBe expectedJson.prettyPrint
     }

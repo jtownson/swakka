@@ -24,28 +24,24 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       JsObject(
         "name" -> JsString("r"),
         "in" -> JsString("query"),
-        "description" -> JsString(""),
         "required" -> JsBoolean(false),
         "type" -> JsString("integer")
       ),
       JsObject(
         "name" -> JsString("s"),
         "in" -> JsString("query"),
-        "description" -> JsString(""),
         "required" -> JsBoolean(false),
         "type" -> JsString("string")
       ),
       JsObject(
         "name" -> JsString("t"),
         "in" -> JsString("query"),
-        "description" -> JsString(""),
         "required" -> JsBoolean(false),
         "type" -> JsString("integer")
       ),
       JsObject(
         "name" -> JsString("u"),
         "in" -> JsString("query"),
-        "description" -> JsString(""),
         "required" -> JsBoolean(false),
         "type" -> JsString("string")
       ))
@@ -64,7 +60,6 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       JsObject(
         "name" -> JsString("petId"),
         "in" -> JsString("path"),
-        "description" -> JsString(""),
         "required" -> JsFalse,
         "type" -> JsString("string")
       )
