@@ -12,20 +12,14 @@ import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, Js
 // A JsonProtocol supporting OpenApi paths
 trait PathsJsonProtocol extends DefaultJsonProtocol {
 
-  def operationWriter[Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[Operation[Params, Responses]] =
-    (operation: Operation[Params, Responses]) => {
+  private def operationFields[Params <: HList, Responses]
+  (pathItem: PathItem[Params, Responses])
+  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): Seq[(String, JsValue)] =
+    List(
+      pathItem.summary.map("summary" -> JsString(_)),
+      optionalArrayField("parameters", ev1.write(pathItem.operation.parameters)),
+      optionalObjectField("responses", ev2.write(pathItem.operation.responses))).flatten
 
-      val parameters: JsValue = ev1.write(operation.parameters)
-      val responses = ev2.write(operation.responses)
-
-      val fields: Seq[(String, JsValue)] = List(
-        optionalArrayField("parameters", parameters),
-        optionalObjectField("responses", responses)).
-        flatten
-
-      JsObject(fields: _*)
-    }
 
   private def optionalArrayField(s: String, j: JsValue): Option[(String, JsValue)] = j match {
     case (JsArray(elements)) =>
@@ -49,10 +43,6 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
       Some((s, j))
   }
 
-  implicit def operationFormat[Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Operation[Params, Responses]] =
-    lift(operationWriter[Params, Responses])
-
   private def asString(method: HttpMethod): String = method match {
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
@@ -69,14 +59,19 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
   PathsJsonFormat[H :: T] =
     func2Format((l: H :: T) => flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
 
+
   implicit def singlePathItemFormat[Params <: HList, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
   PathsJsonFormat[PathItem[Params, Responses]] =
-    func2Format((pathItem: PathItem[Params, Responses]) => JsObject(
-      pathItem.path -> JsObject(
-        asString(pathItem.method) -> operationWriter[Params, Responses].write(pathItem.operation)
-      )
-    ))
+    func2Format(
+      (pathItem: PathItem[Params, Responses]) => {
+
+        val fields: Seq[(String, JsValue)] = operationFields(pathItem)
+
+        JsObject(pathItem.path -> JsObject(asString(pathItem.method) -> JsObject(fields: _*)))
+      }
+    )
+
 
   val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
     val fields: List[(String, JsValue)] = List(

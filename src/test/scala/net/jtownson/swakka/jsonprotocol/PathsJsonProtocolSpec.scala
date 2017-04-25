@@ -21,7 +21,10 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
     type Responses = ResponseValue[String]
 
-    val pathItem = PathItem[HNil, Responses]("/ruok", GET, Operation(HNil, ResponseValue[String](200), endpointImpl))
+    val pathItem = PathItem(
+      path = "/ruok",
+      method = GET,
+      operation = Operation[HNil, ResponseValue[String]](HNil, ResponseValue[String](200), endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -42,7 +45,10 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   it should "write a responseless pathItem as an empty object" in {
 
-    val pathItem = PathItem[HNil, HNil]("/ruok", GET, Operation(HNil, HNil, endpointImpl))
+    val pathItem = PathItem(
+      path = "/ruok",
+      method = GET,
+      operation = Operation[HNil, HNil](HNil, HNil, endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -60,7 +66,9 @@ class PathsJsonProtocolSpec extends FlatSpec {
     type Paths = PathItem[Params, Responses]
 
     val pathItem: PathItem[Params, Responses] = PathItem(
-      "/ruok", GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200), endpointImpl))
+      path = "/ruok",
+      method = GET,
+      operation = Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200), endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(

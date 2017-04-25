@@ -28,10 +28,10 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   val zeroParamModels = Table(
     ("testcase name", "request", "model", "response"),
-    ("index page", get("/"), PathItem("/", GET, defaultOp), "YES"),
-    ("simple path", get("/ruok"), PathItem("/ruok", GET, defaultOp), "YES"),
-    ("missing base path", get("/ruok"), PathItem("ruok", GET, defaultOp), "YES"),
-    ("complex path", get("/ruok/json"), PathItem("ruok/json", GET, defaultOp), "YES")
+    ("index page", get("/"), PathItem(path = "/", method = GET, operation = defaultOp), "YES"),
+    ("simple path", get("/ruok"), PathItem(path = "/ruok", method = GET, operation = defaultOp), "YES"),
+    ("missing base path", get("/ruok"), PathItem(path = "ruok", method = GET, operation = defaultOp), "YES"),
+    ("complex path", get("/ruok/json"), PathItem(path = "ruok/json", method = GET, operation = defaultOp), "YES")
   )
 
   forAll(zeroParamModels) { (testcaseName, request, apiModel, response) =>
@@ -54,7 +54,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   val oneStrParamModels = Table(
     ("testcase name", "request", "model", "response"),
-    ("echo query", get("/app?q=x"), PathItem("/app", GET, opWithQueryParam), "x")
+    ("echo query", get("/app?q=x"), PathItem(path ="/app", method = GET, operation = opWithQueryParam), "x")
   )
 
   forAll(oneStrParamModels) { (testcaseName, request, apiModel, response) =>
@@ -79,7 +79,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val request = get("/app?q=x")
 
-    val route = RouteGen.pathItemRoute(PathItem("/app", GET, opWithIntParam))
+    val route = RouteGen.pathItemRoute(PathItem(path ="/app", method = GET, operation = opWithIntParam))
 
     request ~> route ~> check {
       inside(rejection) { case MalformedQueryParamRejection(parameterName, _, _) =>
@@ -94,7 +94,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     f expects request returning "x"
 
-    val route = RouteGen.pathItemRoute(PathItem("/app", GET, opWithIntParam))
+    val route = RouteGen.pathItemRoute(PathItem(path ="/app", method = GET, operation = opWithIntParam))
 
     request ~> route ~> check {
       status shouldBe OK
@@ -114,7 +114,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   "body params of correct type" should "be marshallable" in {
 
     val request = post("/app", Pet("tiddles"))
-    val animalRoute = RouteGen.pathItemRoute(PathItem("/app", POST, opWithBodyParam))
+    val animalRoute = RouteGen.pathItemRoute(PathItem(path ="/app", method = POST, operation = opWithBodyParam))
     f expects request returning "x"
 
     request ~> animalRoute ~> check {
@@ -128,7 +128,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "body params of wrong type" should "be rejected" in {
 
-    val animalRoute = RouteGen.pathItemRoute(PathItem("/app", POST, opWithBodyParam))
+    val animalRoute = RouteGen.pathItemRoute(PathItem(path ="/app", method = POST, operation = opWithBodyParam))
 
     post("/app", WildAnimal("lion")) ~> animalRoute ~> check {
       inside(rejection) {
@@ -141,7 +141,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   "body params" should "be easy to handle in endpoint impls" in {
 
     val tiddles = Pet("tiddles")
-    val animalRoute = RouteGen.pathItemRoute(PathItem("/app", POST, opWithBodyParam))
+    val animalRoute = RouteGen.pathItemRoute(PathItem(path ="/app", method = POST, operation = opWithBodyParam))
 
     val request = post("/app", tiddles)
     f expects request returning tiddles
@@ -160,11 +160,11 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       PathItem[OneIntParam, ::[ResponseValue[String], HNil]] ::
         PathItem[OneStringParam, ::[ResponseValue[String], HNil]] :: HNil
 
-    val path1: PathItem[OneIntParam, ::[ResponseValue[String], HNil]] = PathItem(
-      "/app/e1", GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f1))
+    val path1: PathItem[OneIntParam, ::[ResponseValue[String], HNil]] = PathItem(path =
+      "/app/e1", method = GET, operation = Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200) :: HNil, f1))
 
-    val path2: PathItem[OneStringParam, ::[ResponseValue[String], HNil]] = PathItem(
-      "/app/e2", GET, Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, f2))
+    val path2: PathItem[OneStringParam, ::[ResponseValue[String], HNil]] = PathItem(path =
+      "/app/e2", method = GET, operation = Operation(QueryParameter[String]('q) :: HNil, ResponseValue[String](200) :: HNil, f2))
 
 
     val api = OpenApi(paths = path1 :: path2 :: HNil)
@@ -198,8 +198,8 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     val f = mockFunction[HttpRequest, ToResponseMarshallable]
 
     val api = OpenApi[Paths](paths =
-      PathItem(
-        "/app/e1", GET, Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200), f)))
+      PathItem(path =
+        "/app/e1", method = GET, operation = Operation(QueryParameter[Int]('q) :: HNil, ResponseValue[String](200), f)))
 
     implicit val jsonFormat = apiFormat[Paths]
 
@@ -221,8 +221,8 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     val api = OpenApi[Paths](
       host = Some("foo"),
       paths =
-        PathItem(
-          "/app", GET, Operation(HNil, HNil, f)))
+        PathItem(path =
+          "/app", method = GET, operation = Operation(HNil, HNil, f)))
 
     implicit val jsonFormat = apiFormat[Paths]
 
@@ -248,8 +248,8 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     val api = OpenApi[Paths](
       schemes = Some(Seq("http")),
       paths =
-        PathItem(
-          "/app", GET, Operation(HNil, HNil, f))
+        PathItem(path =
+          "/app", method = GET, operation = Operation(HNil, HNil, f))
     )
 
     implicit val jsonFormat = apiFormat[Paths]

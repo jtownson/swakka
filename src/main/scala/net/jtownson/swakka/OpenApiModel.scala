@@ -23,6 +23,7 @@ object OpenApiModel {
   case class PathItem[Params <: HList : ConvertibleToDirective0, Responses](
    path: String,
    method: HttpMethod,
+   summary: Option[String] = None,
    operation: Operation[Params, Responses])
 
   case class OpenApi[Paths](
