@@ -12,13 +12,13 @@ import scala.reflect.runtime.universe.TypeTag
 trait ParametersJsonProtocol {
 
   implicit val strParamFormat: ParameterJsonFormat[QueryParameter[String]] =
-    (qp: QueryParameter[String]) => simpleParam(qp.name, "query", qp.description, qp.required, JsString("string"))
+    (qp: QueryParameter[String]) => simpleParam(qp.name, "query", qp.description, qp.required, JsString("string"), None)
 
   implicit val intParamFormat: ParameterJsonFormat[QueryParameter[Int]] =
-    (qp: QueryParameter[Int]) => simpleParam(qp.name, "query", qp.description, qp.required, JsString("integer"))
+    (qp: QueryParameter[Int]) => simpleParam(qp.name, "query", qp.description, qp.required, JsString("integer"), Some("int32"))
 
   implicit val strPathParamFormat: ParameterJsonFormat[PathParameter[String]] =
-    (pp: PathParameter[String]) => simpleParam(pp.name, "path", pp.description, false, JsString("string"))
+    (pp: PathParameter[String]) => simpleParam(pp.name, "path", pp.description, false, JsString("string"), None)
 
   implicit def bodyParamFormat[T: TypeTag](implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[T]] = {
 
@@ -41,13 +41,14 @@ trait ParametersJsonProtocol {
       Flattener.flattenToArray(JsArray(head.write(l.head), tail.write(l.tail)))
     })
 
-  private def simpleParam(name: Symbol, in: String, description: Option[String], required: Boolean, `type`: JsValue): JsValue =
+  private def simpleParam(name: Symbol, in: String, description: Option[String], required: Boolean, `type`: JsValue, format: Option[String]): JsValue =
     JsObject(List(
       Some("name" -> JsString(name.name)),
       Some("in" -> JsString(in)),
       description.map("description" -> JsString(_)),
       Some("required" -> JsBoolean(required)),
-      Some("type" -> `type`)).flatten: _*
+      Some("type" -> `type`),
+      format.map("format" -> JsString(_))).flatten: _*
     )
 
 }

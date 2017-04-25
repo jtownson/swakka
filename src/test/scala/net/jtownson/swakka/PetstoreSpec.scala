@@ -78,7 +78,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 "in" -> JsString("query"),
                 "description" -> JsString("How many items to return at one time (max 100)"),
                 "required" -> JsBoolean(true),
-                "type" -> JsString("integer")
+                "type" -> JsString("integer"),
+                "format" -> JsString("int32")
               )
             )
           )
