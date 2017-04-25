@@ -51,8 +51,6 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
         HNil
       )
 
-    implicit val jsonProtocol = apiFormat[Paths]
-
     val route = SwaggerRoute.swaggerRoute(api)
 
     val request = Get(s"http://example.com/swagger.json")

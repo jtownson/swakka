@@ -1,7 +1,7 @@
 package net.jtownson.swakka
 
 import akka.http.scaladsl.model.HttpMethods.GET
-import akka.http.scaladsl.model.{HttpMethods, HttpRequest}
+import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.RouteGen.openApiRoute
@@ -9,7 +9,7 @@ import net.jtownson.swakka.model.{Info, Licence}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import shapeless.{::, HNil}
+import shapeless.HNil
 import spray.json.{JsArray, JsObject, JsString}
 
 class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
@@ -38,11 +38,12 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       paths = PathItem(
         path = "/pets",
         method = GET,
-        summary = Some("List all pets"),
-        operationId = Some("listPets"),
-        operation = Operation(HNil, HNil, _ => ???)))
-
-    implicit val jsonFormat = apiFormat[Paths]
+        operation = Operation(
+          summary = Some("List all pets"),
+          operationId = Some("listPets"),
+          parameters = HNil,
+          responses = HNil,
+          endpointImplementation = _ => ???)))
 
     val apiRoutes = openApiRoute(petstoreApi, includeSwaggerRoute = true)
 

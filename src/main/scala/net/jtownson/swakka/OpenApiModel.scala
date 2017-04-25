@@ -16,24 +16,24 @@ object OpenApiModel {
   case class ResponseValue[T](responseCode: Int)
 
   case class Operation[Params <: HList : ConvertibleToDirective0, Responses](
+    summary: Option[String] = None,
+    operationId: Option[String] = None,
     parameters: Params = HNil,
     responses: Responses = HNil,
     endpointImplementation: HttpRequest => ToResponseMarshallable)
 
   case class PathItem[Params <: HList : ConvertibleToDirective0, Responses](
-   path: String,
-   method: HttpMethod,
-   summary: Option[String] = None,
-   operationId: Option[String] = None,
-   operation: Operation[Params, Responses])
+    path: String,
+    method: HttpMethod,
+    operation: Operation[Params, Responses])
 
   case class OpenApi[Paths](
-   info: Info = pointlessInfo,
-   host: Option[String] = None,
-   basePath: Option[String] = None,
-   schemes: Option[Seq[String]] = None,
-   consumes: Option[Seq[String]] = None,
-   produces: Option[Seq[String]] = None,
-   paths: Paths)
+    info: Info = pointlessInfo,
+    host: Option[String] = None,
+    basePath: Option[String] = None,
+    schemes: Option[Seq[String]] = None,
+    consumes: Option[Seq[String]] = None,
+    produces: Option[Seq[String]] = None,
+    paths: Paths)
 }
 

@@ -6,21 +6,28 @@ import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.func2Format
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.model.{Contact, Info, Licence}
 import shapeless.{::, HList, HNil}
-import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonWriter, RootJsonFormat, RootJsonWriter}
+import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
 
 
 // A JsonProtocol supporting OpenApi paths
 trait PathsJsonProtocol extends DefaultJsonProtocol {
 
-  private def operationFields[Params <: HList, Responses]
-  (pathItem: PathItem[Params, Responses])
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): Seq[(String, JsValue)] =
-    List(
-      pathItem.summary.map("summary" -> JsString(_)),
-      pathItem.operationId.map("operationId" -> JsString(_)),
-      optionalArrayField("parameters", ev1.write(pathItem.operation.parameters)),
-      optionalObjectField("responses", ev2.write(pathItem.operation.responses))).flatten
+  private def operationWriter[Params <: HList, Responses]
+  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[Operation[Params, Responses]] =
+    (operation: Operation[Params, Responses]) => {
 
+      val parameters: JsValue = ev1.write(operation.parameters)
+      val responses = ev2.write(operation.responses)
+
+      val fields: Seq[(String, JsValue)] = List(
+        operation.summary.map("summary" -> JsString(_)),
+        operation.operationId.map("operationId" -> JsString(_)),
+        optionalArrayField("parameters", parameters),
+        optionalObjectField("responses", responses)).
+        flatten
+
+      JsObject(fields: _*)
+    }
 
   private def optionalArrayField(s: String, j: JsValue): Option[(String, JsValue)] = j match {
     case (JsArray(elements)) =>
@@ -44,6 +51,10 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
       Some((s, j))
   }
 
+  private def operationFormat[Params <: HList, Responses]
+  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Operation[Params, Responses]] =
+    lift(operationWriter[Params, Responses])
+
   private def asString(method: HttpMethod): String = method match {
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
@@ -52,29 +63,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     entries.map(s => key -> JsArray(s.map(ss => JsString(ss.toString)): _*))
   }
 
-  implicit val hNilFormat: PathsJsonFormat[HNil] =
-    _ => JsObject()
-
-  implicit def hConsFormat[H, T <: HList]
-  (implicit hFmt: PathsJsonFormat[H], tFmt: PathsJsonFormat[T]):
-  PathsJsonFormat[H :: T] =
-    func2Format((l: H :: T) => flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
-
-
-  implicit def singlePathItemFormat[Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
-  PathsJsonFormat[PathItem[Params, Responses]] =
-    func2Format(
-      (pathItem: PathItem[Params, Responses]) => {
-
-        val fields: Seq[(String, JsValue)] = operationFields(pathItem)
-
-        JsObject(pathItem.path -> JsObject(asString(pathItem.method) -> JsObject(fields: _*)))
-      }
-    )
-
-
-  val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
+  private val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
     val fields: List[(String, JsValue)] = List(
       contact.name.map("name" -> JsString(_)),
       contact.url.map("url" -> JsString(_)),
@@ -84,7 +73,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     JsObject(fields: _*)
   }
 
-  val licenceWriter: JsonWriter[Licence] = (licence: Licence) => {
+  private val licenceWriter: JsonWriter[Licence] = (licence: Licence) => {
     val fields: List[(String, JsValue)] = List(
       Some("name" -> JsString(licence.name)),
       licence.url.map("url" -> JsString(_))).flatten
@@ -92,7 +81,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     JsObject(fields: _*)
   }
 
-  val infoWriter: JsonWriter[Info] = (info: Info) => {
+  private val infoWriter: JsonWriter[Info] = (info: Info) => {
 
     val fields: List[(String, JsValue)] = List(
       Some("title" -> JsString(info.title)),
@@ -106,7 +95,27 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     JsObject(fields: _*)
   }
 
-  def apiWriter[Paths](implicit ev: PathsJsonFormat[Paths]): RootJsonWriter[OpenApi[Paths]] =
+
+  implicit val hNilFormat: PathsJsonFormat[HNil] =
+    _ => JsObject()
+
+  implicit def hConsFormat[H, T <: HList]
+  (implicit hFmt: PathsJsonFormat[H], tFmt: PathsJsonFormat[T]):
+  PathsJsonFormat[H :: T] =
+    func2Format((l: H :: T) => flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
+
+
+  implicit def singlePathItemFormat[Params <: HList, Responses]
+  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
+  PathsJsonFormat[PathItem[Params, Responses]] =
+    func2Format((pathItem: PathItem[Params, Responses]) => JsObject(
+      pathItem.path -> JsObject(
+        asString(pathItem.method) -> operationWriter[Params, Responses].write(pathItem.operation)
+      )
+    ))
+
+
+  implicit def apiWriter[Paths](implicit ev: PathsJsonFormat[Paths]): RootJsonWriter[OpenApi[Paths]] =
     new RootJsonWriter[OpenApi[Paths]] {
       override def write(api: OpenApi[Paths]): JsValue = {
 
@@ -126,7 +135,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
       }
     }
 
-  def apiFormat[Paths](implicit ev: PathsJsonFormat[Paths]): RootJsonFormat[OpenApi[Paths]] =
+  implicit def apiFormat[Paths](implicit ev: PathsJsonFormat[Paths]): RootJsonFormat[OpenApi[Paths]] =
     lift(apiWriter[Paths])
 }
 
