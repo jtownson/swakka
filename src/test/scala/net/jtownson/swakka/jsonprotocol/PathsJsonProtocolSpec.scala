@@ -142,7 +142,8 @@ class PathsJsonProtocolSpec extends FlatSpec {
                 "name" -> JsString("q"),
                 "in" -> JsString("query"),
                 "required" -> JsFalse,
-                "type" -> JsString("integer")
+                "type" -> JsString("integer"),
+                "format" -> JsString("int32")
               )),
             "responses" -> JsObject(
               "200" -> JsObject(

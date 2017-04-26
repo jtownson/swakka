@@ -11,12 +11,21 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}
 import spray.json.{JsArray, JsBoolean, JsObject, JsString}
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import spray.json._
+import akka.http.scaladsl.marshalling.ToResponseMarshallable
+import net.jtownson.swakka.jsonschema.SchemaWriter
+import net.jtownson.swakka.jsonschema.SchemaWriter._
 
 class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
   case class Pet(id: Int, name: String, tag: Option[String] = None)
 
   type Pets = Seq[Pet]
+
+//  implicit val petJsonFormat = jsonFormat3(Pet)
+//  implicit val petSchemaWriter = schemaWriter(Pet)
+
 
   val apiInfo = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(Licence(name = "MIT")))
 
@@ -25,7 +34,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   "Swakka" should "support the petstore example" in {
 
     type ListPetsParams = QueryParameter[Int] :: HNil
-    type ListPetsResponses = HNil
+    type ListPetsResponses = HNil //ResponseValue[Pets]
 
     type Paths = PathItem[ListPetsParams, ListPetsResponses]
 
@@ -43,11 +52,13 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           summary = Some("List all pets"),
           operationId = Some("listPets"),
           tags = Some(Seq("pets")),
-          parameters = QueryParameter[Int](
-            'limit,
-            Some("How many items to return at one time (max 100)"),
-            required = true) :: HNil,
-          responses = HNil,
+          parameters =
+            QueryParameter[Int](
+              name = 'limit,
+              description = Some("How many items to return at one time (max 100)"),
+              required = true) ::
+            HNil,
+          responses = HNil, //ResponseValue[Pets](200),
           endpointImplementation = _ => ???)))
 
     val apiRoutes = openApiRoute(petstoreApi, includeSwaggerRoute = true)
@@ -86,18 +97,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         )
       )
     )
-    /*
-            "parameters": [
-              {
-                "name": "limit",
-                "in": "query",
-                "description": "How many items to return at one time (max 100)",
-                "required": false,
-                "type": "integer",
-                "format": "int32"
-              }
-            ],
-     */
+
     Get("http://petstore.swagger.io/v1/swagger.json") ~> apiRoutes ~> check {
       responseAs[String] shouldBe expectedJson.prettyPrint
     }

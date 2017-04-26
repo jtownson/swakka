@@ -25,7 +25,8 @@ class ParametersJsonProtocolSpec extends FlatSpec {
         "name" -> JsString("r"),
         "in" -> JsString("query"),
         "required" -> JsBoolean(false),
-        "type" -> JsString("integer")
+        "type" -> JsString("integer"),
+        "format" -> JsString("int32")
       ),
       JsObject(
         "name" -> JsString("s"),
@@ -37,7 +38,8 @@ class ParametersJsonProtocolSpec extends FlatSpec {
         "name" -> JsString("t"),
         "in" -> JsString("query"),
         "required" -> JsBoolean(false),
-        "type" -> JsString("integer")
+        "type" -> JsString("integer"),
+        "format" -> JsString("int32")
       ),
       JsObject(
         "name" -> JsString("u"),

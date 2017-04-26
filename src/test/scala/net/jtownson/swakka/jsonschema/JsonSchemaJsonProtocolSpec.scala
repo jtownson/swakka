@@ -127,4 +127,34 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
           ))
       ))
   }
+
+  case class G(o: Option[String])
+  implicit val gWriter = schemaWriter(G)
+
+  it should "produce a schema for options" in {
+    JsonSchema[G]().toJson shouldBe JsObject(
+      "type" -> JsString("object"),
+      "properties" -> JsObject(
+        "o" -> JsObject(
+          "type" -> JsString("string"))
+        )
+      )
+  }
+
+  case class H(s: Seq[String])
+  implicit val hWriter = schemaWriter(H)
+
+  it should "produce a schema for Seq" in {
+    JsonSchema[H]().toJson shouldBe JsObject(
+      "type" -> JsString("object"),
+      "properties" -> JsObject(
+        "s" -> JsObject(
+          "type" -> JsString("array"),
+          "items" -> JsObject(
+            "type" -> JsString("string")
+          )
+        )
+      )
+    )
+  }
 }

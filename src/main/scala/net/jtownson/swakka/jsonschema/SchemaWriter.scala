@@ -4,7 +4,7 @@ import ApiModelDictionary.apiModelDictionary
 import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.OpenApiModel.ResponseValue
 import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
-import spray.json.{JsObject, JsString, JsValue}
+import spray.json.{JsNull, JsObject, JsString, JsValue}
 
 import scala.reflect.runtime.universe.TypeTag
 
@@ -40,6 +40,13 @@ object SchemaWriter {
       Some("properties" -> JsObject(fieldSchemas: _*))
     )
 
+  private def arraySchema(description: Option[String], itemSchema: JsValue) =
+    jsObject(
+      Some("type", JsString("array")),
+      description.map("description" -> JsString(_)),
+      Some("items" -> itemSchema)
+    )
+
   private def jsObject(fields: Option[(String, JsValue)]*): JsObject =
     JsObject(fields.flatten: _*)
 
@@ -52,10 +59,14 @@ object SchemaWriter {
   implicit def numberWriter[T: Numeric]: SchemaWriter[T] =
     (s: JsonSchema[T]) => numberSchema(s.description)
 
+  implicit def optionWriter[T](implicit ev: SchemaWriter[T]): SchemaWriter[Option[T]] =
+    (s: JsonSchema[Option[T]]) => ev.write(JsonSchema[T](s.description))
+
+  implicit def seqWriter[T](implicit ev: SchemaWriter[T]): SchemaWriter[Seq[T]] =
+    (s: JsonSchema[Seq[T]]) => arraySchema(s.description, ev.write(JsonSchema[T]()))
+
   implicit def schemaWriter[T <: Product : TypeTag](constructor: () => T): SchemaWriter[T] =
-    (s: JsonSchema[T]) => {
-      objectSchema(s.description, Nil)
-    }
+    (s: JsonSchema[T]) => objectSchema(s.description, Nil)
 
   implicit def schemaWriter[T <: Product : TypeTag,
   F1: SchemaWriter : TypeTag]
@@ -83,6 +94,24 @@ object SchemaWriter {
       objectSchema(s.description, List(
         fields(0) -> writeSchema[F1](tDictionary.get(fields(0)).map(_.value)),
         fields(1) -> writeSchema[F2](tDictionary.get(fields(1)).map(_.value))
+      ))
+    }
+
+  implicit def schemaWriter[T <: Product : TypeTag,
+  F1: SchemaWriter,
+  F2: SchemaWriter,
+  F3: SchemaWriter]
+  (constructor: (F1, F2, F3) => T): SchemaWriter[T] =
+    (s: JsonSchema[T]) => {
+
+      val fields: List[String] = fieldNames[T]
+
+      val tDictionary = apiModelDictionary[T]
+
+      objectSchema(s.description, List(
+        fields(0) -> writeSchema[F1](tDictionary.get(fields(0)).map(_.value)),
+        fields(1) -> writeSchema[F2](tDictionary.get(fields(1)).map(_.value)),
+        fields(2) -> writeSchema[F3](tDictionary.get(fields(2)).map(_.value))
       ))
     }
 
