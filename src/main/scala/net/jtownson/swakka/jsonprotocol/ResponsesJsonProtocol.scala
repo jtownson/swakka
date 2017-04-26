@@ -9,10 +9,6 @@ import spray.json.{JsArray, JsObject, JsValue}
 
 trait ResponsesJsonProtocol {
 
-  implicit val strResponseFormat: ResponseJsonFormat[ResponseValue[String]] =
-    (rv: ResponseValue[String]) => swaggerResponse(rv.responseCode, JsonSchema[String]())
-
-
   implicit val hNilResponseFormat: ResponseJsonFormat[HNil] =
     _ => JsObject()
 
@@ -23,20 +19,9 @@ trait ResponsesJsonProtocol {
     })
 
 
-  import scala.reflect.runtime.universe._
+  implicit def responseFormat[T: SchemaWriter]: ResponseJsonFormat[ResponseValue[T]] =
+  func2Format((rv: ResponseValue[T]) => swaggerResponse(rv.responseCode, JsonSchema[T]()))
 
-  implicit def caseClassResponseFormat0[T <: Product: TypeTag : SchemaWriter](constructor: () => T):
-  ResponseJsonFormat[ResponseValue[T]] =
-    caseClassFormat[T]
-
-  implicit def caseClassResponseFormat1[T <: Product: TypeTag : SchemaWriter,
-                                        F1: SchemaWriter](constructor: (F1) => T):
-  ResponseJsonFormat[ResponseValue[T]] =
-    caseClassFormat[T]
-
-
-  private def caseClassFormat[T <: Product : TypeTag : SchemaWriter]: ResponseJsonFormat[ResponseValue[T]] =
-    func2Format((rv: ResponseValue[T]) => swaggerResponse(rv.responseCode, JsonSchema[T]()))
 
   private def swaggerResponse[T](status: Int, schema: JsonSchema[T])
                                 (implicit sw: SchemaWriter[T]): JsValue =

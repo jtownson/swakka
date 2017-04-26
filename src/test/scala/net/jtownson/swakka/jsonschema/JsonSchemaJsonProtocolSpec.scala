@@ -18,11 +18,19 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   it should "describe an Int" in {
-    JsonSchema[Int]().toJson shouldBe JsObject("type" -> JsString("number"))
+    JsonSchema[Int]().toJson shouldBe JsObject("type" -> JsString("integer"), "format" -> JsString("int32"))
+  }
+
+  it should "describe a Long" in {
+    JsonSchema[Long]().toJson shouldBe JsObject("type" -> JsString("integer"), "format" -> JsString("int64"))
+  }
+
+  it should "describe an Float" in {
+    JsonSchema[Float]().toJson shouldBe JsObject("type" -> JsString("number"), "format" -> JsString("float"))
   }
 
   it should "describe an Double" in {
-    JsonSchema[Double]().toJson shouldBe JsObject("type" -> JsString("number"))
+    JsonSchema[Double]().toJson shouldBe JsObject("type" -> JsString("number"), "format" -> JsString("double"))
   }
 
   case class A()
@@ -44,7 +52,8 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
       "type" -> JsString("object"),
       "properties" -> JsObject(
         "i" -> JsObject(
-          "type" -> JsString("number"))
+          "type" -> JsString("integer"),
+          "format" -> JsString("int32"))
       ))
   }
 
@@ -73,7 +82,8 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
       "type" -> JsString("object"),
       "properties" -> JsObject(
         "id" -> JsObject(
-          "type" -> JsString("number")),
+          "type" -> JsString("integer"),
+          "format" -> JsString("int32")),
         "value" -> JsObject(
           "type" -> JsString("string")
         )
@@ -95,7 +105,8 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
       "properties" -> JsObject(
         "id" -> JsObject(
           "description" -> JsString("the id"),
-          "type" -> JsString("number")),
+          "type" -> JsString("integer"),
+          "format" -> JsString("int32")),
         "value" -> JsObject(
           "description" -> JsString("the value"),
           "type" -> JsString("string")
@@ -119,7 +130,8 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
           "properties" -> JsObject(
             "id" -> JsObject(
               "description" -> JsString("the id"),
-              "type" -> JsString("number")),
+              "type" -> JsString("integer"),
+              "format" -> JsString("int32")),
             "value" -> JsObject(
               "description" -> JsString("the value"),
               "type" -> JsString("string")
@@ -129,6 +141,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class G(o: Option[String])
+
   implicit val gWriter = schemaWriter(G)
 
   it should "produce a schema for options" in {
@@ -137,11 +150,12 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
       "properties" -> JsObject(
         "o" -> JsObject(
           "type" -> JsString("string"))
-        )
       )
+    )
   }
 
   case class H(s: Seq[String])
+
   implicit val hWriter = schemaWriter(H)
 
   it should "produce a schema for Seq" in {

@@ -4,7 +4,7 @@ import ApiModelDictionary.apiModelDictionary
 import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.OpenApiModel.ResponseValue
 import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
-import spray.json.{JsNull, JsObject, JsString, JsValue}
+import spray.json.{JsObject, JsString, JsValue}
 
 import scala.reflect.runtime.universe.TypeTag
 
@@ -27,10 +27,11 @@ object SchemaWriter {
       description.map("description" -> JsString(_))
     )
 
-  private def numberSchema(description: Option[String]) =
+  private def numericSchema(description: Option[String], `type`: String, format: Option[String]) =
     jsObject(
-      Some("type" -> JsString("number")),
-      description.map("description" -> JsString(_))
+      Some("type" -> JsString(`type`)),
+      description.map("description" -> JsString(_)),
+      format.map("format" -> JsString(_))
     )
 
   private def objectSchema(description: Option[String], fieldSchemas: List[(String, JsValue)]) =
@@ -56,8 +57,17 @@ object SchemaWriter {
   implicit val stringWriter: SchemaWriter[String] =
     (s: JsonSchema[String]) => stringSchema(s.description)
 
-  implicit def numberWriter[T: Numeric]: SchemaWriter[T] =
-    (s: JsonSchema[T]) => numberSchema(s.description)
+  implicit def intWriter: SchemaWriter[Int] =
+    (s: JsonSchema[Int]) => numericSchema(s.description, "integer", Some("int32"))
+
+  implicit def longWriter: SchemaWriter[Long] =
+    (s: JsonSchema[Long]) => numericSchema(s.description, "integer", Some("int64"))
+
+  implicit def floatWriter: SchemaWriter[Float] =
+    (s: JsonSchema[Float]) => numericSchema(s.description, "number", Some("float"))
+
+  implicit def doubleWriter: SchemaWriter[Double] =
+    (s: JsonSchema[Double]) => numericSchema(s.description, "number", Some("double"))
 
   implicit def optionWriter[T](implicit ev: SchemaWriter[T]): SchemaWriter[Option[T]] =
     (s: JsonSchema[Option[T]]) => ev.write(JsonSchema[T](s.description))
