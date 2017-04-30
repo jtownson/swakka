@@ -34,4 +34,8 @@ val swaggerAnnotations = Seq(
   "io.swagger" % "swagger-annotations" % "1.5.13"
 )
 
-libraryDependencies := akka ++ scalatest ++ scalaReflection ++ sprayJsonShapeless ++ swaggerAnnotations
+val jsonPath = Seq(
+  "com.jayway.jsonpath" % "json-path" % "2.2.0"
+)
+
+libraryDependencies := akka ++ scalatest ++ scalaReflection ++ sprayJsonShapeless ++ swaggerAnnotations ++ jsonPath

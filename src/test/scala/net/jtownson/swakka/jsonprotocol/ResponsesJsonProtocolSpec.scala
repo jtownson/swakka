@@ -33,11 +33,12 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
     type Responses = ResponseValue[Success] :: ResponseValue[String] :: ResponseValue[Error] :: HNil
 
     val responses: Responses =
-      ResponseValue[Success](200) :: ResponseValue[String](404) :: ResponseValue[Error](500) :: HNil
+      ResponseValue[Success](200, "ok") :: ResponseValue[String](404, "not found") :: ResponseValue[Error](500, "server error") :: HNil
 
     val expectedJson =
       JsObject(
         "200" -> JsObject(
+          "description" -> JsString("ok"),
           "schema" ->
             JsObject(
               "type" -> JsString("object"),
@@ -48,11 +49,13 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
             )
         ),
         "404" -> JsObject(
+          "description" -> JsString("not found"),
           "schema" ->
             JsObject(
               "type" -> JsString("string"))
         ),
         "500" -> JsObject(
+          "description" -> JsString("server error"),
           "schema" ->
             JsObject(
               "type" -> JsString("object"),

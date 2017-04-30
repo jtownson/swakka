@@ -52,7 +52,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
               description = Some("How many items to return at one time (max 100)"),
               required = true) ::
               HNil,
-          responses = ResponseValue[Pets](200),
+          responses = ResponseValue[Pets](200, "An paged array of pets"),
           endpointImplementation = _ => ???)))
 
 
@@ -88,9 +88,9 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 "format" -> JsString("int32")
               )
             ),
-
             "responses" -> JsObject(
               "200" -> JsObject(
+                "description" -> JsString("An paged array of pets"),
                 "schema" -> JsObject(
                   "type" -> JsString("array"),
                   "items" -> JsObject(
@@ -114,7 +114,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     )
 
     Get("http://petstore.swagger.io/v1/swagger.json") ~> apiRoutes ~> check {
-//      println(responseAs[String])
+      println(responseAs[String])
             responseAs[String] shouldBe expectedJson.prettyPrint
     }
   }

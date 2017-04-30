@@ -24,13 +24,16 @@ class PathsJsonProtocolSpec extends FlatSpec {
     val pathItem = PathItem(
       path = "/ruok",
       method = GET,
-      operation = Operation[HNil, ResponseValue[String]](parameters = HNil, responses = ResponseValue[String](200), endpointImplementation = endpointImpl))
+      operation = Operation[HNil, ResponseValue[String]](
+        parameters = HNil,
+        responses = ResponseValue[String](200, "ok"), endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
         "get" -> JsObject(
           "responses" -> JsObject(
             "200" -> JsObject(
+              "description" -> JsString("ok"),
               "schema" -> JsObject(
                 "type" -> JsString("string")
               )
@@ -70,7 +73,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       method = GET,
       operation = Operation(
         parameters = QueryParameter[String]('q) :: HNil,
-        responses = ResponseValue[String](200),
+        responses = ResponseValue[String](200, "ok"),
         endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
@@ -86,6 +89,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
               )),
           "responses" -> JsObject(
             "200" -> JsObject(
+              "description" -> JsString("ok"),
               "schema" -> JsObject(
                 "type" -> JsString("string")
               )
@@ -111,7 +115,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
           method = GET,
           operation = Operation(
             parameters = QueryParameter[Int]('q) :: HNil,
-            responses = ResponseValue[String](200),
+            responses = ResponseValue[String](200, "ok"),
             endpointImplementation = endpointImpl
           )
         )
@@ -121,7 +125,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
             method = GET,
             operation = Operation(
               parameters = QueryParameter[String]('q) :: HNil,
-              responses = ResponseValue[String](200),
+              responses = ResponseValue[String](200, "ok"),
               endpointImplementation = endpointImpl
             )
           )
@@ -147,6 +151,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
               )),
             "responses" -> JsObject(
               "200" -> JsObject(
+                "description" -> JsString("ok"),
                 "schema" -> JsObject(
                   "type" -> JsString("string")
                 )
@@ -165,6 +170,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
               )),
             "responses" -> JsObject(
               "200" -> JsObject(
+                "description" -> JsString("ok"),
                 "schema" -> JsObject(
                   "type" -> JsString("string")
                 )

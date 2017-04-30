@@ -4,6 +4,7 @@ import ApiModelDictionary.apiModelDictionary
 import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.OpenApiModel.ResponseValue
 import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
+import net.jtownson.swakka.misc.jsObject
 import spray.json.{JsObject, JsString, JsValue}
 
 import scala.reflect.runtime.universe.TypeTag
@@ -47,9 +48,6 @@ object SchemaWriter {
       description.map("description" -> JsString(_)),
       Some("items" -> itemSchema)
     )
-
-  private def jsObject(fields: Option[(String, JsValue)]*): JsObject =
-    JsObject(fields.flatten: _*)
 
   implicit val unitWriter: SchemaWriter[Unit] =
     (_: JsonSchema[Unit]) => unitSchema
