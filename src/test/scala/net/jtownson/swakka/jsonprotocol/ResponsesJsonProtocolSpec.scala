@@ -30,10 +30,10 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
 
   "Responses JsonProtocol" should "write a complex response" in {
 
-    type Responses = ResponseValue[Success] :: ResponseValue[String] :: ResponseValue[Error] :: HNil
+    type Responses = ResponseValue[Success, HNil] :: ResponseValue[String, HNil] :: ResponseValue[Error, HNil] :: HNil
 
     val responses: Responses =
-      ResponseValue[Success](200, "ok") :: ResponseValue[String](404, "not found") :: ResponseValue[Error](500, "server error") :: HNil
+      ResponseValue[Success, HNil](200, "ok") :: ResponseValue[String, HNil](404, "not found") :: ResponseValue[Error, HNil](500, "server error") :: HNil
 
     val expectedJson =
       JsObject(

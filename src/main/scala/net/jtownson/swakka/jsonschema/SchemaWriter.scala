@@ -123,8 +123,8 @@ object SchemaWriter {
       ))
     }
 
-  implicit def responseValueWriter[T](implicit ev: SchemaWriter[T]): SchemaWriter[ResponseValue[T]] =
-    (_: JsonSchema[ResponseValue[T]]) => ev.write(JsonSchema[T]())
+  implicit def responseValueWriter[T, Headers](implicit ev: SchemaWriter[T]): SchemaWriter[ResponseValue[T, Headers]] =
+    (_: JsonSchema[ResponseValue[T, Headers]]) => ev.write(JsonSchema[T]())
 
   private def writeSchema[T: SchemaWriter](description: Option[String]): JsValue = {
     jsonSchemaJsonWriter[T].write(JsonSchema[T](description))

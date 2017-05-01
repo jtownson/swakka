@@ -19,14 +19,14 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   "JsonProtocol" should "write a parameterless pathitem" in {
 
-    type Responses = ResponseValue[String]
+    type Responses = ResponseValue[String, HNil]
 
     val pathItem = PathItem(
       path = "/ruok",
       method = GET,
-      operation = Operation[HNil, ResponseValue[String]](
+      operation = Operation[HNil, ResponseValue[String, HNil]](
         parameters = HNil,
-        responses = ResponseValue[String](200, "ok"), endpointImplementation = endpointImpl))
+        responses = ResponseValue(200, "ok"), endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -65,7 +65,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
   it should "write an pathItem with a parameter" in {
 
     type Params = QueryParameter[String] :: HNil
-    type Responses = ResponseValue[String]
+    type Responses = ResponseValue[String, HNil]
     type Paths = PathItem[Params, Responses]
 
     val pathItem: PathItem[Params, Responses] = PathItem(
@@ -73,7 +73,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       method = GET,
       operation = Operation(
         parameters = QueryParameter[String]('q) :: HNil,
-        responses = ResponseValue[String](200, "ok"),
+        responses = ResponseValue[String, HNil](200, "ok"),
         endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
@@ -104,7 +104,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   type OneIntParam = QueryParameter[Int] :: HNil
   type OneStrParam = QueryParameter[String] :: HNil
-  type StringResponse = ResponseValue[String]
+  type StringResponse = ResponseValue[String, HNil]
   type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
 
   it should "write a simple swagger definition" in {
@@ -115,7 +115,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
           method = GET,
           operation = Operation(
             parameters = QueryParameter[Int]('q) :: HNil,
-            responses = ResponseValue[String](200, "ok"),
+            responses = ResponseValue[String, HNil](200, "ok"),
             endpointImplementation = endpointImpl
           )
         )
@@ -125,7 +125,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
             method = GET,
             operation = Operation(
               parameters = QueryParameter[String]('q) :: HNil,
-              responses = ResponseValue[String](200, "ok"),
+              responses = ResponseValue[String, HNil](200, "ok"),
               endpointImplementation = endpointImpl
             )
           )

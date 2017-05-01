@@ -20,8 +20,8 @@ trait ResponsesJsonProtocol {
     })
 
 
-  implicit def responseFormat[T: SchemaWriter]: ResponseJsonFormat[ResponseValue[T]] =
-  func2Format((rv: ResponseValue[T]) => swaggerResponse(rv.responseCode, rv.description, JsonSchema[T]()))
+  implicit def responseFormat[T: SchemaWriter, Headers]: ResponseJsonFormat[ResponseValue[T, Headers]] =
+  func2Format(rv => swaggerResponse(rv.responseCode, rv.description, JsonSchema[T]()))
 
 
   private def swaggerResponse[T](status: Int, description: String, schema: JsonSchema[T])

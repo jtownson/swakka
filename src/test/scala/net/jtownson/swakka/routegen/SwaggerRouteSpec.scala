@@ -23,7 +23,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   type OneIntParam = QueryParameter[Int] :: HNil
   type OneStrParam = QueryParameter[String] :: HNil
 
-  type StringResponse = ResponseValue[String]
+  type StringResponse = ResponseValue[String, HNil]
 
   type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
 
@@ -35,7 +35,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
           method = GET,
           operation = Operation(
             parameters = QueryParameter[Int]('q) :: HNil,
-            responses = ResponseValue[String](200, "ok"),
+            responses = ResponseValue[String, HNil](200, "ok"),
             endpointImplementation = f
           )
         ) ::
@@ -44,7 +44,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
           method = GET,
           operation = Operation(
             parameters = QueryParameter[String]('q) :: HNil,
-            responses = ResponseValue[String](200, "ok"),
+            responses = ResponseValue[String, HNil](200, "ok"),
             endpointImplementation = f
           )
         ) ::
