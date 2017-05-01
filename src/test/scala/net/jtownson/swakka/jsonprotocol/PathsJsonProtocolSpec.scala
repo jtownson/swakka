@@ -26,7 +26,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       method = GET,
       operation = Operation[HNil, ResponseValue[String, HNil]](
         parameters = HNil,
-        responses = ResponseValue(200, "ok"), endpointImplementation = endpointImpl))
+        responses = ResponseValue("200", "ok"), endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -73,7 +73,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       method = GET,
       operation = Operation(
         parameters = QueryParameter[String]('q) :: HNil,
-        responses = ResponseValue[String, HNil](200, "ok"),
+        responses = ResponseValue[String, HNil]("200", "ok"),
         endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
@@ -115,7 +115,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
           method = GET,
           operation = Operation(
             parameters = QueryParameter[Int]('q) :: HNil,
-            responses = ResponseValue[String, HNil](200, "ok"),
+            responses = ResponseValue[String, HNil]("200", "ok"),
             endpointImplementation = endpointImpl
           )
         )
@@ -125,7 +125,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
             method = GET,
             operation = Operation(
               parameters = QueryParameter[String]('q) :: HNil,
-              responses = ResponseValue[String, HNil](200, "ok"),
+              responses = ResponseValue[String, HNil]("200", "ok"),
               endpointImplementation = endpointImpl
             )
           )

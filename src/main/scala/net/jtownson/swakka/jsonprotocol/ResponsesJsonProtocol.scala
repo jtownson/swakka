@@ -21,13 +21,13 @@ trait ResponsesJsonProtocol {
 
 
   implicit def responseFormat[T: SchemaWriter, Headers: HeadersJsonFormat]: ResponseJsonFormat[ResponseValue[T, Headers]] =
-  func2Format(rv => swaggerResponse(rv.responseCode, rv.description, JsonSchema[T](), rv.headers))
+    func2Format(rv => swaggerResponse(rv.responseCode, rv.description, JsonSchema[T](), rv.headers))
 
 
-  private def swaggerResponse[T, Headers](status: Int, description: String, schema: JsonSchema[T], headers: Headers)
-                                (implicit sw: SchemaWriter[T], hf: HeadersJsonFormat[Headers]): JsValue =
+  private def swaggerResponse[T, Headers](status: String, description: String, schema: JsonSchema[T], headers: Headers)
+                                         (implicit sw: SchemaWriter[T], hf: HeadersJsonFormat[Headers]): JsValue =
     JsObject(
-      String.valueOf(status) -> jsObject(
+      status -> jsObject(
         Some("description" -> JsString(description)),
         filteringJsNull(hf.write(headers)).map("headers" -> _),
         Some("schema" -> sw.write(schema))

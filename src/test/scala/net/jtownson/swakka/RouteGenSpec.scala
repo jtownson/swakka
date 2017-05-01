@@ -26,7 +26,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   private val defaultOp = Operation[HNil, ResponseValue[String, HNil]](
     parameters = HNil,
-    responses = ResponseValue(200, "ok"), endpointImplementation = f)
+    responses = ResponseValue("200", "ok"), endpointImplementation = f)
 
   val zeroParamModels = Table(
     ("testcase name", "request", "model", "response"),
@@ -54,7 +54,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   private val opWithQueryParam = Operation(
     parameters = QueryParameter[String]('q) :: HNil,
-    responses = ResponseValue[String, HNil](200, "ok"), endpointImplementation = f)
+    responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f)
 
   val oneStrParamModels = Table(
     ("testcase name", "request", "model", "response"),
@@ -79,7 +79,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   val opWithIntParam = Operation(
     parameters = QueryParameter[Int]('q) :: HNil,
-    responses = ResponseValue[String, HNil](200, "ok"), endpointImplementation = f)
+    responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f)
 
   "int params that are NOT ints" should "be rejected" in {
 
@@ -117,7 +117,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   val opWithBodyParam = Operation(
     parameters = BodyParameter[Pet]('pet) :: HNil,
-    responses = ResponseValue[String, HNil](200, "ok"), endpointImplementation = f)
+    responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f)
 
   "body params of correct type" should "be marshallable" in {
 
@@ -174,7 +174,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         method = GET,
         operation = Operation(
           parameters = QueryParameter[Int]('q) :: HNil,
-          responses = ResponseValue[String, HNil](200, "ok"), endpointImplementation = f1))
+          responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f1))
 
     val path2: PathItem[OneStringParam, ResponseValue[String, HNil]] =
       PathItem(
@@ -182,7 +182,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         method = GET,
         operation = Operation(
           parameters = QueryParameter[String]('q) :: HNil,
-          responses = ResponseValue[String, HNil](200, "ok"), endpointImplementation = f2))
+          responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f2))
 
 
     val api = OpenApi(paths = path1 :: path2 :: HNil)
@@ -220,7 +220,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         method = GET,
         operation = Operation(
           parameters = QueryParameter[Int]('q) :: HNil,
-          responses = ResponseValue[String, HNil](200, "ok"), endpointImplementation = f)))
+          responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f)))
 
     val route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
 
