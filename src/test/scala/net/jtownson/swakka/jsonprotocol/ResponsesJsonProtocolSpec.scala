@@ -1,7 +1,8 @@
 package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.OpenApiModel.ResponseValue
+import net.jtownson.swakka.OpenApiModel.{Header, ResponseValue}
 import net.jtownson.swakka.jsonprotocol.ResponsesJsonProtocol._
+import net.jtownson.swakka.jsonprotocol.HeadersJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import org.scalatest.FlatSpec
@@ -24,11 +25,10 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
   import UserCode._
 
   "Responses JsonProtocol" should "write HNil as empty" in {
-    val hn: HNil = HNil
-    hn.toJson shouldBe JsObject()
+    hNilResponseFormat.write(HNil) shouldBe JsObject()
   }
 
-  "Responses JsonProtocol" should "write a complex response" in {
+  it should "write a complex response" in {
 
     type Responses = ResponseValue[Success, HNil] :: ResponseValue[String, HNil] :: ResponseValue[Error, HNil] :: HNil
 
@@ -61,6 +61,40 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
               "type" -> JsString("object"),
               "properties" -> JsObject(
                 "msg" -> JsObject(
+                  "type" -> JsString("string"))
+              )
+            )
+        )
+      )
+
+    responses.toJson shouldBe expectedJson
+  }
+
+
+  it should "write response headers" in {
+
+    type Headers = Header[String]
+
+    type Responses = ResponseValue[Success, Headers]
+
+    val responses: Responses =
+      ResponseValue[Success, Headers](200, "ok", Header[String](Symbol("x-foo"), Some("a header")))
+
+    val expectedJson =
+      JsObject(
+        "200" -> JsObject(
+          "description" -> JsString("ok"),
+          "headers" -> JsObject(
+            "x-foo" -> JsObject(
+              "type" -> JsString("string"),
+              "description" -> JsString("a header")
+            )
+          ),
+          "schema" ->
+            JsObject(
+              "type" -> JsString("object"),
+              "properties" -> JsObject(
+                "id" -> JsObject(
                   "type" -> JsString("string"))
               )
             )

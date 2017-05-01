@@ -6,7 +6,7 @@ import net.jtownson.swakka.jsonprotocol.ResponseJsonFormat._
 import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.misc.jsObject
 import shapeless.{::, HList, HNil}
-import spray.json.{JsArray, JsObject, JsString, JsValue}
+import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
 trait ResponsesJsonProtocol {
 
@@ -20,18 +20,24 @@ trait ResponsesJsonProtocol {
     })
 
 
-  implicit def responseFormat[T: SchemaWriter, Headers]: ResponseJsonFormat[ResponseValue[T, Headers]] =
-  func2Format(rv => swaggerResponse(rv.responseCode, rv.description, JsonSchema[T]()))
+  implicit def responseFormat[T: SchemaWriter, Headers: HeadersJsonFormat]: ResponseJsonFormat[ResponseValue[T, Headers]] =
+  func2Format(rv => swaggerResponse(rv.responseCode, rv.description, JsonSchema[T](), rv.headers))
 
 
-  private def swaggerResponse[T](status: Int, description: String, schema: JsonSchema[T])
-                                (implicit sw: SchemaWriter[T]): JsValue =
+  private def swaggerResponse[T, Headers](status: Int, description: String, schema: JsonSchema[T], headers: Headers)
+                                (implicit sw: SchemaWriter[T], hf: HeadersJsonFormat[Headers]): JsValue =
     JsObject(
       String.valueOf(status) -> jsObject(
         Some("description" -> JsString(description)),
+        filteringJsNull(hf.write(headers)).map("headers" -> _),
         Some("schema" -> sw.write(schema))
       )
     )
+
+  private def filteringJsNull(jsValue: JsValue): Option[JsValue] = jsValue match {
+    case JsNull => None
+    case _ => Some(jsValue)
+  }
 }
 
 object ResponsesJsonProtocol extends ResponsesJsonProtocol

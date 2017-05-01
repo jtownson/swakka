@@ -28,7 +28,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   "Swakka" should "support the petstore example" in {
 
     type ListPetsParams = QueryParameter[Int] :: HNil
-    type ListPetsResponses = ResponseValue[Pets, HNil]
+    type ListPetsHeaders = Header[String]
+    type ListPetsResponses = ResponseValue[Pets, ListPetsHeaders]
 
     type Paths = PathItem[ListPetsParams, ListPetsResponses]
 
@@ -52,7 +53,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
               description = Some("How many items to return at one time (max 100)"),
               required = true) ::
               HNil,
-          responses = ResponseValue[Pets, HNil](200, "An paged array of pets"),
+          responses = ResponseValue[Pets, ListPetsHeaders](
+            responseCode = 200,
+            description = "An paged array of pets",
+            headers = Header[String](Symbol("x-next"), Some("A link to the next page of responses"))),
           endpointImplementation = _ => ???)))
 
 
@@ -91,6 +95,12 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
             "responses" -> JsObject(
               "200" -> JsObject(
                 "description" -> JsString("An paged array of pets"),
+                "headers" -> JsObject(
+                  "x-next" -> JsObject(
+                    "type" -> JsString("string"),
+                    "description" -> JsString("A link to the next page of responses")
+                  )
+                ),
                 "schema" -> JsObject(
                   "type" -> JsString("array"),
                   "items" -> JsObject(
