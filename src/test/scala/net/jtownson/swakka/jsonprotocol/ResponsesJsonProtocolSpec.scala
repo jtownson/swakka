@@ -42,6 +42,7 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
           "schema" ->
             JsObject(
               "type" -> JsString("object"),
+              "required" -> JsArray(JsString("id")),
               "properties" -> JsObject(
                 "id" -> JsObject(
                   "type" -> JsString("string"))
@@ -59,6 +60,7 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
           "schema" ->
             JsObject(
               "type" -> JsString("object"),
+              "required" -> JsArray(JsString("msg")),
               "properties" -> JsObject(
                 "msg" -> JsObject(
                   "type" -> JsString("string"))
@@ -93,6 +95,7 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
           "schema" ->
             JsObject(
               "type" -> JsString("object"),
+              "required" -> JsArray(JsString("id")),
               "properties" -> JsObject(
                 "id" -> JsObject(
                   "type" -> JsString("string"))

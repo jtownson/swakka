@@ -5,7 +5,7 @@ import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.OpenApiModel.ResponseValue
 import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
 import net.jtownson.swakka.misc.jsObject
-import spray.json.{JsObject, JsString, JsValue}
+import spray.json.{JsArray, JsObject, JsString, JsValue}
 
 import scala.reflect.runtime.universe.TypeTag
 
@@ -35,12 +35,14 @@ object SchemaWriter {
       format.map("format" -> JsString(_))
     )
 
-  private def objectSchema(description: Option[String], fieldSchemas: List[(String, JsValue)]) =
+  private def objectSchema(description: Option[String], requiredFields: List[String], fieldSchemas: List[(String, JsValue)]) = {
     jsObject(
       Some("type" -> JsString("object")),
       description.map("description" -> JsString(_)),
+      optionalJsArray(requiredFields).map("required" -> _),
       Some("properties" -> JsObject(fieldSchemas: _*))
     )
+  }
 
   private def arraySchema(description: Option[String], itemSchema: JsValue) =
     jsObject(
@@ -48,6 +50,20 @@ object SchemaWriter {
       description.map("description" -> JsString(_)),
       Some("items" -> itemSchema)
     )
+
+  private def requiredFields(tDictionary: Map[String, ApiModelPropertyEntry]): List[String] =
+    tDictionary.
+      filter({ case (_, modelEntry) => modelEntry.required }).
+      keys.
+      toList
+
+  private def optionalJsArray(requiredFields: List[String]): Option[JsArray] =
+    optionally(requiredFields).map(requiredFields => requiredFields.map(JsString(_))).map(JsArray(_: _*))
+
+  private def optionally[T](l: List[T]): Option[List[T]] = l match {
+    case Nil => None
+    case _ => Some(l)
+  }
 
   implicit val unitWriter: SchemaWriter[Unit] =
     (_: JsonSchema[Unit]) => unitSchema
@@ -74,19 +90,24 @@ object SchemaWriter {
     (s: JsonSchema[Seq[T]]) => arraySchema(s.description, ev.write(JsonSchema[T]()))
 
   implicit def schemaWriter[T <: Product : TypeTag](constructor: () => T): SchemaWriter[T] =
-    (s: JsonSchema[T]) => objectSchema(s.description, Nil)
+    (s: JsonSchema[T]) => objectSchema(s.description, Nil, Nil)
 
   implicit def schemaWriter[T <: Product : TypeTag,
   F1: SchemaWriter : TypeTag]
   (constructor: (F1) => T): SchemaWriter[T] =
     (s: JsonSchema[T]) => {
 
-      val fields: List[String] = fieldNames[T]
+      val tDictionary: Map[String, ApiModelPropertyEntry] = apiModelDictionary[T]
 
-      val tDictionary = apiModelDictionary[T]
+      val fields: Seq[String] = tDictionary.keys.toSeq
 
-      objectSchema(s.description, List(
-        fields(0) -> writeSchema[F1](tDictionary.get(fields(0)).map(_.value))))
+      val f1Entry = tDictionary(fields(0))
+
+      objectSchema(
+        s.description,
+        requiredFields(tDictionary),
+        List(fields(0) -> writeSchema[F1](f1Entry.value))
+      )
     }
 
   implicit def schemaWriter[T <: Product : TypeTag,
@@ -99,10 +120,16 @@ object SchemaWriter {
 
       val tDictionary = apiModelDictionary[T]
 
-      objectSchema(s.description, List(
-        fields(0) -> writeSchema[F1](tDictionary.get(fields(0)).map(_.value)),
-        fields(1) -> writeSchema[F2](tDictionary.get(fields(1)).map(_.value))
-      ))
+      val f1Entry = tDictionary(fields(0))
+      val f2Entry = tDictionary(fields(1))
+
+      objectSchema(
+        s.description,
+        requiredFields(tDictionary),
+        List(
+          fields(0) -> writeSchema[F1](f1Entry.value),
+          fields(1) -> writeSchema[F2](f2Entry.value))
+      )
     }
 
   implicit def schemaWriter[T <: Product : TypeTag,
@@ -116,11 +143,18 @@ object SchemaWriter {
 
       val tDictionary = apiModelDictionary[T]
 
-      objectSchema(s.description, List(
-        fields(0) -> writeSchema[F1](tDictionary.get(fields(0)).map(_.value)),
-        fields(1) -> writeSchema[F2](tDictionary.get(fields(1)).map(_.value)),
-        fields(2) -> writeSchema[F3](tDictionary.get(fields(2)).map(_.value))
-      ))
+      val f1Entry: ApiModelPropertyEntry = tDictionary(fields(0))
+      val f2Entry: ApiModelPropertyEntry = tDictionary(fields(1))
+      val f3Entry: ApiModelPropertyEntry = tDictionary(fields(2))
+
+      objectSchema(
+        s.description,
+        requiredFields(tDictionary),
+        List(
+          fields(0) -> writeSchema[F1](f1Entry.value),
+          fields(1) -> writeSchema[F2](f2Entry.value),
+          fields(2) -> writeSchema[F3](f3Entry.value)
+        ))
     }
 
   implicit def responseValueWriter[T, Headers](implicit ev: SchemaWriter[T]): SchemaWriter[ResponseValue[T, Headers]] =

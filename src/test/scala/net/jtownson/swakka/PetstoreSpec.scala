@@ -1,9 +1,7 @@
 package net.jtownson.swakka
 
 import akka.http.scaladsl.model.HttpMethods.GET
-import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
-import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.jsonschema.SchemaWriter._
@@ -34,8 +32,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   "Swakka" should "support the petstore example" in {
 
     type ListPetsParams = QueryParameter[Int] :: HNil
-    type ListPetsHeaders = Header[String]
-    type ListPetsResponses = ResponseValue[Pets, ListPetsHeaders] :: ResponseValue[Error, HNil] :: HNil
+    type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
 
     type Paths = PathItem[ListPetsParams, ListPetsResponses]
 
@@ -60,7 +57,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
               required = true) ::
               HNil,
           responses =
-            ResponseValue[Pets, ListPetsHeaders](
+            ResponseValue[Pets, Header[String]](
               responseCode = "200",
               description = "An paged array of pets",
               headers = Header[String](Symbol("x-next"), Some("A link to the next page of responses"))) ::
@@ -116,6 +113,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   "type" -> JsString("array"),
                   "items" -> JsObject(
                     "type" -> JsString("object"),
+                    "required" -> JsArray(JsString("id"), JsString("name")),
                     "properties" -> JsObject(
                       "id" -> JsObject(
                         "type" -> JsString("integer"),
@@ -132,6 +130,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 "description" -> JsString("unexpected error"),
                 "schema" -> JsObject(
                   "type" -> JsString("object"),
+                  "required" -> JsArray(JsString("id"), JsString("message")),
                   "properties" -> JsObject(
                     "id" -> JsObject(
                       "type" -> JsString("integer"),
@@ -154,10 +153,6 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       responseAs[String] shouldBe expectedJson.prettyPrint
     }
   }
-
-//  private def get(path: String): HttpRequest = {
-//    Get(s"http://petstore.swagger.io$path")
-//  }
 
   override def failTest(msg: String): Nothing = throw new AssertionError(msg)
 }

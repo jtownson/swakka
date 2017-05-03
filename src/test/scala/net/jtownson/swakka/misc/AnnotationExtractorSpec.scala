@@ -8,7 +8,7 @@ import org.scalatest.Matchers._
 class AnnotationExtractorSpec extends FlatSpec {
 
   case class D(
-                @ApiModelProperty(value = "field 1", notes = "notes 1") id: Int,
+                @ApiModelProperty(value = "field 1", notes = "notes 1", required = true) id: Int,
                 @ApiModelProperty(value = "field 2", notes = "notes 2") data: String
               )
 
@@ -17,7 +17,7 @@ class AnnotationExtractorSpec extends FlatSpec {
     val annotationClass = classOf[ApiModelProperty]
 
     constructorAnnotations[D](annotationClass) shouldBe Map(
-      "id" -> Set(("value", "field 1"), ("notes", "notes 1")),
+      "id" -> Set(("value", "field 1"), ("notes", "notes 1"), ("required", "true")),
       "data" -> Set(("value", "field 2"), ("notes", "notes 2"))
     )
   }

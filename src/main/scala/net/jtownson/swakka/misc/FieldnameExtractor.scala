@@ -4,8 +4,7 @@ import scala.reflect.runtime.universe._
 
 object FieldnameExtractor {
 
-  def fieldNames[T: TypeTag]: List[String] = {
-
+  def fieldNameTypes[T: TypeTag]: List[(String, String)] = {
     val tpe = typeOf[T]
 
     val constructorSymbol = tpe.decl(termNames.CONSTRUCTOR)
@@ -21,6 +20,8 @@ object FieldnameExtractor {
         }.get
       }
 
-    defaultConstructor.paramLists.head.map(symbol => symbol.name.toString)
+    defaultConstructor.paramLists.head.map(symbol => (symbol.name.toString, symbol.typeSignature.typeSymbol.name.toString))
   }
+
+  def fieldNames[T: TypeTag]: List[String] = fieldNameTypes[T].map(_._1)
 }

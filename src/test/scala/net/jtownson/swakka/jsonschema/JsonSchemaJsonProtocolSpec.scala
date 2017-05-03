@@ -50,6 +50,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   it should "describe a single field case class" in {
     JsonSchema[B]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
+      "required" -> JsArray(JsString("i")),
       "properties" -> JsObject(
         "i" -> JsObject(
           "type" -> JsString("integer"),
@@ -65,6 +66,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
 
     JsonSchema[C]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
+      "required" -> JsArray(JsString("a")),
       "properties" -> JsObject(
         "a" -> JsObject(
           "type" -> JsString("object"),
@@ -80,6 +82,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   it should "describe a two field case class" in {
     JsonSchema[D]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
+      "required" -> JsArray(JsString("id"), JsString("value")),
       "properties" -> JsObject(
         "id" -> JsObject(
           "type" -> JsString("integer"),
@@ -91,7 +94,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class E(
-                @ApiModelProperty(value = "the id") id: Int,
+                @ApiModelProperty(value = "the id", required = true) id: Int,
                 @ApiModelProperty(value = "the value") value: String
               )
 
@@ -102,6 +105,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
     JsonSchema[E](Some("the parent")).toJson shouldBe JsObject(
       "type" -> JsString("object"),
       "description" -> JsString("the parent"),
+      "required" -> JsArray(JsString("id")),
       "properties" -> JsObject(
         "id" -> JsObject(
           "description" -> JsString("the id"),
@@ -127,6 +131,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
         "e" -> JsObject(
           "type" -> JsString("object"),
           "description" -> JsString("the nested e"),
+          "required" -> JsArray(JsString("id")),
           "properties" -> JsObject(
             "id" -> JsObject(
               "description" -> JsString("the id"),
@@ -161,6 +166,7 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   it should "produce a schema for Seq" in {
     JsonSchema[H]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
+      "required" -> JsArray(JsString("s")),
       "properties" -> JsObject(
         "s" -> JsObject(
           "type" -> JsString("array"),

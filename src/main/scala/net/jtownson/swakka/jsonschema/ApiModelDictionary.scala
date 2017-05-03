@@ -2,7 +2,9 @@ package net.jtownson.swakka.jsonschema
 
 import io.swagger.annotations.ApiModelProperty
 import net.jtownson.swakka.misc.AnnotationExtractor.constructorAnnotations
+import net.jtownson.swakka.misc.FieldnameExtractor.fieldNameTypes
 
+import scala.collection.immutable.ListMap
 import scala.reflect.runtime.universe._
 
 // Produce additional schema documentation entries
@@ -11,22 +13,34 @@ import scala.reflect.runtime.universe._
 
 object ApiModelDictionary {
 
-  implicit def apiModelDictionary[T: TypeTag]: Map[String, ApiModelPropertyEntry] =
-      constructorAnnotations[T](classOf[ApiModelProperty]).map( kv => (kv._1, tuples2Property(kv._2)))
+  implicit def apiModelDictionary[T: TypeTag]: Map[String, ApiModelPropertyEntry] = {
+
+    val annotationEntries: Map[String, ApiModelPropertyEntry] =
+      constructorAnnotations[T](classOf[ApiModelProperty]).map(kv => (kv._1, tuples2Property(kv._2)))
+
+    val allEntries: Seq[(String, ApiModelPropertyEntry)] =
+      fieldNameTypes[T].map(
+        fieldNameType => {
+          val (fieldName, itsType)  = fieldNameType
+          (fieldName, annotationEntries.getOrElse(fieldName, ApiModelPropertyEntry(None, None, isRequired(itsType))))
+        })
+
+    ListMap(allEntries: _*)
+  }
+
+  private def isRequired(fieldType: String): Boolean = fieldType != "Option"
 
   private def tuples2Property(s: Set[(String, String)]): ApiModelPropertyEntry = {
 
-    val value: String = s.find(findField("value")).getOrElse(("value", ""))._2
-    val name: String = s.find(findField("name")).getOrElse("name", "")._2
+    val value: Option[String] = s.find(findField("value")).map(_._2)
+    val name: Option[String] = s.find(findField("name")).map(_._2)
+    val required: String = s.find(findField("required")).map(_._2).getOrElse("false")
 
-    ApiModelPropertyEntry(value, name)
+    ApiModelPropertyEntry(name, value, required.toBoolean)
   }
 
-  private def findField(field: String) = {
-    (v: (String, String)) =>
-      v match {
-        case (f, _) if f == field => true
-        case _ => false
-      }
+  private def findField(field: String): ((String, String)) => Boolean = {
+    case (f, _) if f == field => true
+    case _ => false
   }
 }

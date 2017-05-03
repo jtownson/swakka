@@ -86,6 +86,7 @@ class ParametersJsonProtocolSpec extends FlatSpec {
         "required" -> JsFalse,
         "schema" -> JsObject(
           "type" -> JsString("object"),
+          "required" -> JsArray(JsString("petName")),
           "properties" -> JsObject(
             "petName" -> JsObject(
               "type" -> JsString("string")
