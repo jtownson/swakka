@@ -1,6 +1,6 @@
 package net.jtownson.swakka
 
-import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.model.HttpMethods.{GET, POST}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.RouteGen.openApiRoute
@@ -34,7 +34,11 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     type ListPetsParams = QueryParameter[Int] :: HNil
     type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
 
-    type Paths = PathItem[ListPetsParams, ListPetsResponses]
+    type CreatePetParams = HNil
+    type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
+
+    type Paths = PathItem[ListPetsParams, ListPetsResponses] :: PathItem[HNil, CreatePetResponses] :: HNil
+
 
     val petstoreApi = OpenApi[Paths](
       info = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(Licence(name = "MIT"))),
@@ -43,30 +47,53 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       schemes = Some(Seq("http")),
       consumes = Some(Seq("application/json")),
       produces = Some(Seq("application/json")),
-      paths = PathItem(
-        path = "/pets",
-        method = GET,
-        operation = Operation(
-          summary = Some("List all pets"),
-          operationId = Some("listPets"),
-          tags = Some(Seq("pets")),
-          parameters =
-            QueryParameter[Int](
-              name = 'limit,
-              description = Some("How many items to return at one time (max 100)"),
-              required = true) ::
-              HNil,
-          responses =
-            ResponseValue[Pets, Header[String]](
-              responseCode = "200",
-              description = "An paged array of pets",
-              headers = Header[String](Symbol("x-next"), Some("A link to the next page of responses"))) ::
-              ResponseValue[Error, HNil](
-                responseCode = "default",
-                description = "unexpected error"
-              ) :: HNil,
-          endpointImplementation = _ => ???)))
-
+      paths =
+        PathItem[ListPetsParams, ListPetsResponses](
+          path = "/pets",
+          method = GET,
+          operation = Operation(
+            summary = Some("List all pets"),
+            operationId = Some("listPets"),
+            tags = Some(Seq("pets")),
+            parameters =
+              QueryParameter[Int](
+                name = 'limit,
+                description = Some("How many items to return at one time (max 100)"),
+                required = false) ::
+                HNil,
+            responses =
+              ResponseValue[Pets, Header[String]](
+                responseCode = "200",
+                description = "An paged array of pets",
+                headers = Header[String](Symbol("x-next"), Some("A link to the next page of responses"))) ::
+                ResponseValue[Error, HNil](
+                  responseCode = "default",
+                  description = "unexpected error"
+                ) :: HNil,
+            endpointImplementation = _ => ???)) ::
+          PathItem[CreatePetParams, CreatePetResponses](
+            path = "/pets",
+            method = POST,
+            operation = Operation(
+              summary = Some("Create a pet"),
+              operationId = Some("createPets"),
+              tags = Some(Seq("pets")),
+              parameters = HNil,
+              responses =
+                ResponseValue[HNil, HNil](
+                  responseCode = "201",
+                  description = "Null response"
+                ) ::
+                ResponseValue[Error, HNil](
+                  responseCode = "default",
+                  description = "unexpected error"
+                ) ::
+                HNil,
+              endpointImplementation = _ => ???
+            )
+          ) ::
+          HNil
+    )
 
     val apiRoutes = openApiRoute(petstoreApi, includeSwaggerRoute = true)
 
@@ -89,13 +116,15 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           "get" -> JsObject(
             "summary" -> JsString("List all pets"),
             "operationId" -> JsString("listPets"),
-            "tags" -> JsArray(JsString("pets")),
+            "tags" -> JsArray(
+              JsString("pets")
+            ),
             "parameters" -> JsArray(
               JsObject(
                 "name" -> JsString("limit"),
                 "in" -> JsString("query"),
                 "description" -> JsString("How many items to return at one time (max 100)"),
-                "required" -> JsBoolean(true),
+                "required" -> JsBoolean(false),
                 "type" -> JsString("integer"),
                 "format" -> JsString("int32")
               )
@@ -143,6 +172,32 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 )
               )
             )
+          ),
+          "post" -> JsObject(
+            "summary" -> JsString("Create a pet"),
+            "operationId" -> JsString("createPets"),
+            "tags" -> JsArray(JsString("pets")),
+            "responses" -> JsObject(
+              "201" -> JsObject(
+                "description" -> JsString("Null response")
+              ),
+              "default" -> JsObject(
+                "description" -> JsString("unexpected error"),
+                "schema" -> JsObject(
+                  "type" -> JsString("object"),
+                  "required" -> JsArray(JsString("id"), JsString("message")),
+                  "properties" -> JsObject(
+                    "id" -> JsObject(
+                      "type" -> JsString("integer"),
+                      "format" -> JsString("int32")
+                    ),
+                    "message" -> JsObject(
+                      "type" -> JsString("string")
+                    )
+                  )
+                )
+              )
+            )
           )
         )
       )
@@ -150,7 +205,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     Get("http://petstore.swagger.io/v1/swagger.json") ~> apiRoutes ~> check {
 //      println(responseAs[String])
-      responseAs[String] shouldBe expectedJson.prettyPrint
+      JsonParser(responseAs[String]) shouldBe expectedJson
     }
   }
 

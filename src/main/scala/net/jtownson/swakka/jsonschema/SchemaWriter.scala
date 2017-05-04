@@ -1,11 +1,12 @@
 package net.jtownson.swakka.jsonschema
 
-import ApiModelDictionary.apiModelDictionary
-import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.OpenApiModel.ResponseValue
+import net.jtownson.swakka.jsonschema.ApiModelDictionary.apiModelDictionary
 import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
+import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.misc.jsObject
-import spray.json.{JsArray, JsObject, JsString, JsValue}
+import shapeless.HNil
+import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
 import scala.reflect.runtime.universe.TypeTag
 
@@ -159,6 +160,9 @@ object SchemaWriter {
 
   implicit def responseValueWriter[T, Headers](implicit ev: SchemaWriter[T]): SchemaWriter[ResponseValue[T, Headers]] =
     (_: JsonSchema[ResponseValue[T, Headers]]) => ev.write(JsonSchema[T]())
+
+  implicit val hNilWriter: SchemaWriter[HNil] =
+    _ => JsNull
 
   private def writeSchema[T: SchemaWriter](description: Option[String]): JsValue = {
     jsonSchemaJsonWriter[T].write(JsonSchema[T](description))

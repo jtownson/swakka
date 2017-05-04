@@ -114,4 +114,34 @@ class FlattenerSpec extends FlatSpec {
   "flattenToObject" should "work" in {
     flattenToObject(nested) shouldBe flattened
   }
+
+  val duplicated = JsArray(
+    JsObject(
+      "get" -> JsObject(
+        "field" -> JsString("f")
+      )),
+    JsObject(
+      "post" -> JsObject(
+        "field" -> JsString("g")
+      )
+    ))
+
+  val combined = JsObject(
+    "200" -> JsObject(
+      "schema" -> JsObject(
+        "type" -> JsString("string")
+      )
+    ),
+    "404" -> JsObject(
+      "schema" -> JsObject(
+        "type" -> JsString("string")
+      )
+    ),
+    "500" -> JsObject(
+      "schema" -> JsObject(
+        "type" -> JsString("string")
+      )
+    )
+  )
+
 }

@@ -1,7 +1,7 @@
 package net.jtownson.swakka.jsonprotocol
 
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
-import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.model.HttpMethods.{GET, POST}
 import akka.http.scaladsl.model.HttpRequest
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective0
@@ -23,14 +23,14 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
     val pathItem = PathItem(
       path = "/ruok",
-      method = GET,
+      method = POST,
       operation = Operation[HNil, ResponseValue[String, HNil]](
         parameters = HNil,
         responses = ResponseValue("200", "ok"), endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
-        "get" -> JsObject(
+        "post" -> JsObject(
           "responses" -> JsObject(
             "200" -> JsObject(
               "description" -> JsString("ok"),
@@ -197,4 +197,38 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
     apiFormat[HNil].write(api) shouldBe expectedJson
   }
+
+  it should "combine path items where the path is equal" in {
+
+    type Paths = PathItem[HNil, HNil] :: PathItem[HNil, HNil] :: HNil
+
+    val paths: Paths =
+      PathItem[HNil, HNil](
+        path = "/app",
+        method = GET,
+        operation = Operation(
+          endpointImplementation = endpointImpl
+        )
+      ) ::
+        PathItem[HNil, HNil](
+          path = "/app",
+          method = POST,
+          operation = Operation(
+            endpointImplementation = endpointImpl
+          )
+        ) ::
+        HNil
+
+    val expectedJson =
+      JsObject(
+        "/app" -> JsObject(
+          "get" -> JsObject(),
+          "post" -> JsObject()
+        )
+      )
+
+
+    paths.toJson shouldBe expectedJson
+  }
+
 }

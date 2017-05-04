@@ -1,8 +1,8 @@
 package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.OpenApiModel.{Header, ResponseValue}
-import net.jtownson.swakka.jsonprotocol.ResponsesJsonProtocol._
 import net.jtownson.swakka.jsonprotocol.HeadersJsonProtocol._
+import net.jtownson.swakka.jsonprotocol.ResponsesJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import org.scalatest.FlatSpec
@@ -103,6 +103,14 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
             )
         )
       )
+
+    responses.toJson shouldBe expectedJson
+  }
+
+  it should "implicitly serialize a response with no params or headers" in {
+
+    val responses = ResponseValue[HNil, HNil]("201", "created")
+    val expectedJson = JsObject("201" -> JsObject("description" -> JsString("created")))
 
     responses.toJson shouldBe expectedJson
   }

@@ -1,7 +1,7 @@
 package net.jtownson.swakka.jsonprotocol
 
-import Flattener.flattenToObject
 import net.jtownson.swakka.OpenApiModel.ResponseValue
+import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.jsonprotocol.ResponseJsonFormat._
 import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.misc.jsObject
@@ -30,7 +30,7 @@ trait ResponsesJsonProtocol {
       status -> jsObject(
         Some("description" -> JsString(description)),
         filteringJsNull(hf.write(headers)).map("headers" -> _),
-        Some("schema" -> sw.write(schema))
+        filteringJsNull(sw.write(schema)).map("schema" -> _)
       )
     )
 

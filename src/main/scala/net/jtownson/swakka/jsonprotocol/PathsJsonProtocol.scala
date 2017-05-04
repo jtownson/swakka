@@ -2,11 +2,11 @@ package net.jtownson.swakka.jsonprotocol
 
 import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.func2Format
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
+import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.func2Format
 import net.jtownson.swakka.model.{Contact, Info, Licence}
 import shapeless.{::, HList, HNil}
-import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonFormat, JsonWriter, RootJsonFormat, RootJsonWriter}
+import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonWriter, RootJsonFormat, RootJsonWriter}
 
 
 // A JsonProtocol supporting OpenApi paths
@@ -56,10 +56,6 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     else
       Some((s, j))
   }
-
-  private def operationFormat[Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonFormat[Operation[Params, Responses]] =
-    lift(operationWriter[Params, Responses])
 
   private def asString(method: HttpMethod): String = method match {
     case HttpMethod(value, _, _, _) => value.toLowerCase

@@ -98,4 +98,15 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
     params.toJson shouldBe expectedJson
   }
+
+  it should "implicitly serialize hnil" in {
+
+    type Params = HNil
+
+    val params: Params = HNil
+
+    val expectedJson = JsArray()
+
+    params.toJson shouldBe expectedJson
+  }
 }
