@@ -1,5 +1,7 @@
 import sbt.Keys.scalaVersion
 
+organization := "net.jtownson"
+
 name := "swakka"
 
 version := "1.0"
