@@ -38,7 +38,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     type CreatePetParams = HNil
     type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
 
-    type Paths = PathItem[ListPetsParams, ListPetsResponses] :: PathItem[HNil, CreatePetResponses] :: HNil
+    type ShowPetParams = PathParameter[String] :: HNil
+    type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
+
+    type Paths = PathItem[ListPetsParams, ListPetsResponses] :: PathItem[HNil, CreatePetResponses] :: PathItem[ShowPetParams, ShowPetResponses] :: HNil
 
 
     val petstoreApi = OpenApi[Paths](
@@ -89,6 +92,23 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   responseCode = "default",
                   description = "unexpected error"
                 ) ::
+                HNil,
+              endpointImplementation = _ => ???
+            )
+          ) ::
+          PathItem[ShowPetParams, ShowPetResponses](
+            path = "/pets/{petId}",
+            method = GET,
+            operation = Operation(
+              summary = Some("Info for a specific pet"),
+              operationId = Some("showPetById"),
+              tags = Some(Seq("pets")),
+              parameters =
+                PathParameter[String]('petId, Some("The id of the pet to retrieve"), true) ::
+                  HNil,
+              responses =
+                ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
+                ResponseValue[Error, HNil]("default", "unexpected error") ::
                 HNil,
               endpointImplementation = _ => ???
             )
@@ -181,6 +201,61 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
             "responses" -> JsObject(
               "201" -> JsObject(
                 "description" -> JsString("Null response")
+              ),
+              "default" -> JsObject(
+                "description" -> JsString("unexpected error"),
+                "schema" -> JsObject(
+                  "type" -> JsString("object"),
+                  "required" -> JsArray(JsString("id"), JsString("message")),
+                  "properties" -> JsObject(
+                    "id" -> JsObject(
+                      "type" -> JsString("integer"),
+                      "format" -> JsString("int32")
+                    ),
+                    "message" -> JsObject(
+                      "type" -> JsString("string")
+                    )
+                  )
+                )
+              )
+            )
+          )
+        ),
+        "/pets/{petId}" -> JsObject(
+          "get" -> JsObject(
+            "summary" -> JsString("Info for a specific pet"),
+            "operationId" -> JsString("showPetById"),
+            "tags" -> JsArray(
+              JsString("pets")
+            ),
+            "parameters" -> JsArray(
+              JsObject(
+                "name" -> JsString("petId"),
+                "in" -> JsString("path"),
+                "required" -> JsBoolean(true),
+                "description" -> JsString("The id of the pet to retrieve"),
+                "type" -> JsString("string")
+              )
+            ),
+            "responses" -> JsObject(
+              "200" -> JsObject(
+                "description" -> JsString("Expected response to a valid request"),
+                "schema" -> JsObject(
+                  "type" -> JsString("array"),
+                  "items" -> JsObject(
+                    "type" -> JsString("object"),
+                    "required" -> JsArray(JsString("id"), JsString("name")),
+                    "properties" -> JsObject(
+                      "id" -> JsObject(
+                        "type" -> JsString("integer"),
+                        "format" -> JsString("int64")),
+                      "name" -> JsObject(
+                        "type" -> JsString("string")),
+                      "tag" -> JsObject(
+                        "type" -> JsString("string"))
+                    )
+                  )
+                )
               ),
               "default" -> JsObject(
                 "description" -> JsString("unexpected error"),

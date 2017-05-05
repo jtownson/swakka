@@ -2,7 +2,7 @@ package net.jtownson.swakka
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
-import akka.http.scaladsl.model.HttpMethods.{GET, POST}
+import akka.http.scaladsl.model.HttpMethods.{GET, POST, PUT}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Route.seal
@@ -107,6 +107,38 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       responseAs[String] shouldBe "x"
     }
   }
+
+  "A PathParam" should "be passed if it matches the model path" in {
+
+    val request = Put("http://foo.com/widgets/12345")
+
+    val op = Operation[PathParameter[Int] :: HNil, HNil](
+      parameters = PathParameter[Int]('widgetId) :: HNil,
+      endpointImplementation = f)
+
+    f expects request returning "nothing"
+
+    val route = RouteGen.pathItemRoute(PathItem(path = "/widgets/{widgetId}", method = PUT, operation = op))
+    
+    request ~> route ~> check {
+      status shouldBe OK
+    }
+  }
+
+  it should "be rejected if it is of the wrong type" in {
+    val request = Put("http://foo.com/widgets/bam")
+
+    val op = Operation[PathParameter[Int] :: HNil, HNil](
+      parameters = PathParameter[Int]('widgetId) :: HNil,
+      endpointImplementation = f)
+
+    val route = RouteGen.pathItemRoute(PathItem(path = "/widgets/{widgetId}", method = PUT, operation = op))
+
+    request ~> seal(route) ~> check {
+      status shouldBe NotFound
+    }
+  }
+
 
   case class Pet(name: String)
 

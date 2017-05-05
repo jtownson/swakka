@@ -48,9 +48,9 @@ object RouteGen {
 
     method(httpMethod) {
 
-      akkaPath(modelPath) {
+      ev.convertToDirective0(operation.parameters) {
 
-        ev.convertToDirective0(operation.parameters) {
+        akkaPath(modelPath, ev.paramMap(operation.parameters)) {
 
           extractRequest { request =>
 
