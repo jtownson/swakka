@@ -9,10 +9,10 @@ import shapeless.{HList, HNil}
 
 object OpenApiModel {
 
-  case class QueryParameter[T](name: Symbol, description: Option[String] = None, required: Boolean = false)
-  case class PathParameter[T](name: Symbol, description: Option[String] = None, required: Boolean = false)
-  case class BodyParameter[T](name: Symbol)
-  case class Header[T](name: Symbol, description: Option[String] = None)
+  case class QueryParameter[T](name: Symbol, description: Option[String] = None, required: Boolean = false, value: T)
+  case class PathParameter[T](name: Symbol, description: Option[String] = None, required: Boolean = false, value: T)
+  case class BodyParameter[T](name: Symbol, value: T)
+  case class Header[T](name: Symbol, description: Option[String] = None, value: T)
 
   case class ResponseValue[T, Headers](responseCode: String, description: String, headers: Headers = HNil)
 
