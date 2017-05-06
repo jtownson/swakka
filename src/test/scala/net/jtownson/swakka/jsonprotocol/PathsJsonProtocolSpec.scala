@@ -4,7 +4,8 @@ import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.{GET, POST}
 import akka.http.scaladsl.model.HttpRequest
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.routegen.ConvertibleToDirective0
+import net.jtownson.swakka.routegen.ConvertibleToDirective._
+import net.jtownson.swakka.OpenApiJsonProtocol._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}
@@ -12,8 +13,6 @@ import spray.json.{JsArray, JsFalse, JsObject, JsString, _}
 
 class PathsJsonProtocolSpec extends FlatSpec {
 
-  import ConvertibleToDirective0._
-  import net.jtownson.swakka.OpenApiJsonProtocol._
 
   private val endpointImpl: HttpRequest => ToResponseMarshallable = (_: HttpRequest) => ???
 

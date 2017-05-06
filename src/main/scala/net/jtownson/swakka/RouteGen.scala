@@ -33,31 +33,32 @@ object RouteGen {
   implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
     (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  implicit def pathItemRouteGen[Params <: HList : ConvertibleToDirective0, Responses]: RouteGen[PathItem[Params, Responses]] =
+  implicit def pathItemRouteGen[Params <: HList : ConvertibleToDirective, Responses]: RouteGen[PathItem[Params, Responses]] =
     (pathItem: PathItem[Params, Responses]) => pathItemRoute(pathItem)
 
   implicit val hNilRouteGen: RouteGen[HNil] =
     _ => RouteDirectives.reject
 
-  def pathItemRoute[Params <: HList : ConvertibleToDirective0, Responses](pathItem: PathItem[Params, Responses]): Route =
+  def pathItemRoute[Params <: HList : ConvertibleToDirective, Responses](pathItem: PathItem[Params, Responses]): Route =
     pathItemRoute(pathItem.method, pathItem.path, pathItem.operation)
 
-  private def pathItemRoute[Params <: HList : ConvertibleToDirective0, Responses]
+  private def pathItemRoute[Params <: HList : ConvertibleToDirective, Responses]
   (httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses])
-  (implicit ev: ConvertibleToDirective0[Params]) = {
-
-    method(httpMethod) {
-
-      ev.convertToDirective0(operation.parameters) {
-
-        akkaPath(modelPath, ev.paramMap(operation.parameters)) {
-
-          extractRequest { request =>
-
-            complete(operation.endpointImplementation(request))
-          }
-        }
-      }
-    }
-  }
+  (implicit ev: ConvertibleToDirective[Params]) = ???
+//  {
+//
+//    method(httpMethod) {
+//
+//      ev.convertToDirective(operation.parameters) { p =>
+//
+//        akkaPath(modelPath, ev.paramMap(operation.parameters)) {
+//
+//          extractRequest { request =>
+//
+//            complete(operation.endpointImplementation(request))
+//          }
+//        }
+//      }
+//    }
+//  }
 }
