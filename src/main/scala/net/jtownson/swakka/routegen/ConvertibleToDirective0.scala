@@ -27,7 +27,7 @@ object ConvertibleToDirective0 {
     }
 
   private val BooleanSegment: PathMatcher1[Boolean] =
-    PathMatcher("""true|false""".r) flatMap (s => Some(s.toBoolean))
+    PathMatcher("""^(?i)(true|false)$""".r) flatMap (s => Some(s.toBoolean))
 
   private val FloatNumber: PathMatcher1[Float] =
     PathMatcher("""[+-]?\d*\.?\d*""".r) flatMap { string ⇒
