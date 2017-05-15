@@ -6,9 +6,12 @@ import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import net.jtownson.swakka.OpenApiModel.{BodyParameter, PathParameter, QueryParameter}
 import shapeless.HList
 
+import scala.collection.immutable
+
+
 
 trait ConvertibleToDirective[T] {
-  def convertToDirective(t: T): Directive1[T]
+  def convertToDirective(modelPath: String, t: T): Directive1[T]
 
   def paramMap(t: T): Map[String, PathMatcher0]
 }
@@ -18,11 +21,11 @@ object ConvertibleToDirective {
   import shapeless.{::, HNil}
 
   private def instance[T](f: T => Directive1[T]): ConvertibleToDirective[T] =
-    instance(f, _ => Map())
+    instance((_, t) => f(t), _ => Map())
 
-  private def instance[T](f: T => Directive1[T], g: T => Map[String, PathMatcher0]): ConvertibleToDirective[T] =
+  private def instance[T](f: (String, T) => Directive1[T], g: T => Map[String, PathMatcher0]): ConvertibleToDirective[T] =
     new ConvertibleToDirective[T] {
-      def convertToDirective(t: T): Directive1[T] = f(t)
+      def convertToDirective(modelPath: String, t: T): Directive1[T] = f(modelPath, t)
       def paramMap(t: T): Map[String, PathMatcher0] = g(t)
     }
 
@@ -37,39 +40,39 @@ object ConvertibleToDirective {
       }
     }
 
+  implicit val stringQueryConverter: ConvertibleToDirective[QueryParameter[String]] =
+    instance(qp => parameter(qp.name).map(s => qp))
 
-  implicit val stringQueryConverter: ConvertibleToDirective[QueryParameter[String]] = new ConvertibleToDirective[QueryParameter[String]] {
-    override def convertToDirective(qp: QueryParameter[String]) = {
-      val f: (String) => QueryParameter[String] = (s: String) => {
-        val copy: QueryParameter[String] = qp.copy()
-        copy.value = s
-        copy
-      }
+  implicit val floatQueryConverter: ConvertibleToDirective[QueryParameter[Float]] =
+    instance(qp => parameter(qp.name.as[Float]).map(f => qp))
 
-      parameter(qp.name).map(f)
-    }
+  implicit val doubleQueryConverter: ConvertibleToDirective[QueryParameter[Double]] =
+    instance(qp => parameter(qp.name.as[Double]).map(d => qp))
 
-    override def paramMap(t: QueryParameter[String]) = Map()
-  }
-//    instance(qp => toDir0(parameter(qp.name)))
+  implicit val booleanQueryConverter: ConvertibleToDirective[QueryParameter[Boolean]] =
+    instance(qp => parameter(qp.name.as[Boolean]).map(b => qp))
 
-  implicit val floatQueryConverter: ConvertibleToDirective[QueryParameter[Float]] = ???
-//    instance(qp => toDir0(parameter(qp.name.as[Float])))
+  implicit val intQueryConverter: ConvertibleToDirective[QueryParameter[Int]] =
+    instance(qp => parameter(qp.name.as[Int]).map(i => qp))
 
-  implicit val doubleQueryConverter: ConvertibleToDirective[QueryParameter[Double]] = ???
-//    instance(qp => toDir0(parameter(qp.name.as[Double])))
-
-  implicit val booleanQueryConverter: ConvertibleToDirective[QueryParameter[Boolean]] = ???
-//    instance(qp => toDir0(parameter(qp.name.as[Boolean])))
-
-  implicit val intQueryConverter: ConvertibleToDirective[QueryParameter[Int]] = ???
-//    instance(qp => toDir0(parameter(qp.name.as[Int])))
-
-  implicit val longQueryConverter: ConvertibleToDirective[QueryParameter[Long]] = ???
-//    instance(qp => toDir0(parameter(qp.name.as[Long])))
+  implicit val longQueryConverter: ConvertibleToDirective[QueryParameter[Long]] =
+    instance(qp => parameter(qp.name.as[Long]).map(l => qp))
 
   implicit val stringPathConverter: ConvertibleToDirective[PathParameter[String]] = ???
-//    instance(pp => pass, pp => Map(paramToken(pp) -> toPm0(Segment)))
+//  {
+//
+//    def f(modelPath: String, pp: PathParameter[String]): Directive[PathParameter[String]] = {
+//      val splits: List[String] = PathHandling.splitPath(modelPath)
+//      val vanillaMatcher: Seq[PathMatcher0] = PathHandling.splittingPathMatcher2(modelPath)
+//      val pos: Int = splits.indexOf(pp.name.name)
+//      val zipped: Seq[(PathMatcher0, Int)] = vanillaMatcher.zipWithIndex
+//      ???
+//    }
+//  }
+//    instance(pp => pass.tmap(() => pp.copy()), pp => Map(paramToken(pp) -> toPm0(Segment)))
+
+  val pp: PathParameter[String] = ???
+  val p = pass.tmap[PathParameter[String]](_ => pp)
 
   implicit val floatPathConverter: ConvertibleToDirective[PathParameter[Float]] = ???
 //    instance(pp => pass, pp => Map(paramToken(pp) -> toPm0(FloatNumber)))

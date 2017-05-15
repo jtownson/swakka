@@ -44,21 +44,22 @@ object RouteGen {
 
   private def pathItemRoute[Params <: HList : ConvertibleToDirective, Responses]
   (httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, Responses])
-  (implicit ev: ConvertibleToDirective[Params]) = ???
-//  {
-//
-//    method(httpMethod) {
-//
-//      ev.convertToDirective(operation.parameters) { p =>
-//
-//        akkaPath(modelPath, ev.paramMap(operation.parameters)) {
-//
-//          extractRequest { request =>
-//
-//            complete(operation.endpointImplementation(request))
-//          }
-//        }
-//      }
-//    }
-//  }
+  (implicit ev: ConvertibleToDirective[Params]) = {
+
+    method(httpMethod) {
+
+      val paramsDirective: Directive1[Params] = ev.convertToDirective(modelPath, operation.parameters)
+
+      paramsDirective { params =>
+
+        akkaPath(modelPath, ev.paramMap(operation.parameters)) {
+
+          extractRequest { request =>
+
+            complete(operation.endpointImpl2(params, request))
+          }
+        }
+      }
+    }
+  }
 }
