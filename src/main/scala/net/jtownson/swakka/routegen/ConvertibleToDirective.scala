@@ -8,7 +8,7 @@ import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
 import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
 import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.routegen.PathHandling.pathWithParamMatcher
-import shapeless.HList
+import shapeless.{::, HNil, HList}
 
 trait ConvertibleToDirective[T] {
   def convertToDirective(modelPath: String, t: T): Directive1[T]
@@ -16,15 +16,10 @@ trait ConvertibleToDirective[T] {
 
 object ConvertibleToDirective {
 
-  import shapeless.{::, HNil}
-
-  private def instance[T](f: T => Directive1[T]): ConvertibleToDirective[T] =
-    (_: String, t: T) => f(t)
-
   val BooleanSegment: PathMatcher1[Boolean] =
     PathMatcher("""^(?i)(true|false)$""".r) flatMap (s => Some(s.toBoolean))
 
-  private val FloatNumber: PathMatcher1[Float] =
+  val FloatNumber: PathMatcher1[Float] =
     PathMatcher("""[+-]?\d*\.?\d*""".r) flatMap { string =>
       try Some(java.lang.Float.parseFloat(string))
       catch {
@@ -32,14 +27,7 @@ object ConvertibleToDirective {
       }
     }
 
-  private def close[T](qp: QueryParameter[T]): T => QueryParameter[T] =
-    t => qp.asInstanceOf[OpenQueryParameter[T]].closeWith(t)
-
-  private def close[T](pp: PathParameter[T]): T => PathParameter[T] =
-    t => pp.asInstanceOf[OpenPathParameter[T]].closeWith(t)
-
-  private def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
-    t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
+  def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
 
   implicit val stringQueryConverter: ConvertibleToDirective[QueryParameter[String]] =
     instance(qp => parameter(qp.name).map(close(qp)))
@@ -58,11 +46,6 @@ object ConvertibleToDirective {
 
   implicit val longQueryConverter: ConvertibleToDirective[QueryParameter[Long]] =
     instance(qp => parameter(qp.name.as[Long]).map(close(qp)))
-
-  private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
-    (modelPath: String, pp: PathParameter[T]) =>
-      rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).map(close(pp))
-  }
 
   implicit val stringPathConverter: ConvertibleToDirective[PathParameter[String]] =
     pathParamDirective(Segment)
@@ -97,5 +80,21 @@ object ConvertibleToDirective {
       (headDirective & tailDirective).tmap((t: (H, T)) => t._1 :: t._2)
     }
 
-  def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
+  private def instance[T](f: T => Directive1[T]): ConvertibleToDirective[T] =
+    (_: String, t: T) => f(t)
+
+  private def close[T](qp: QueryParameter[T]): T => QueryParameter[T] =
+    t => qp.asInstanceOf[OpenQueryParameter[T]].closeWith(t)
+
+  private def close[T](pp: PathParameter[T]): T => PathParameter[T] =
+    t => pp.asInstanceOf[OpenPathParameter[T]].closeWith(t)
+
+  private def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
+    t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
+
+  private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
+    (modelPath: String, pp: PathParameter[T]) =>
+      rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).map(close(pp))
+  }
+
 }

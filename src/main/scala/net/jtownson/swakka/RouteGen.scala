@@ -6,7 +6,6 @@ import shapeless.{HList, HNil, :: => hcons}
 import OpenApiModel._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
-import net.jtownson.swakka.routegen.PathHandling.akkaPath
 import net.jtownson.swakka.routegen._
 import spray.json.JsonFormat
 
@@ -52,7 +51,16 @@ object RouteGen {
 
         extractRequest { request =>
 
-          complete(operation.endpointImplementation(params, request))
+          // TODO: consider redefining endpointImpl as Params => Route
+          // this allows users to provide additional extractions inside their endpoint impls.
+          // TODO
+          //  def additionalRoutes[Params <: HList](params: Params): Route = {
+          //    parameter('q2) { q2 =>
+          //      complete("x")
+          //    }
+          //  }
+
+        complete(operation.endpointImplementation(params, request))
         }
       }
     }
