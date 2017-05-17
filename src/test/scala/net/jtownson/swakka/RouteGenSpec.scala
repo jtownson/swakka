@@ -16,6 +16,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks._
 import shapeless.{::, HList, HNil}
 import spray.json._
 import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
 import org.scalamock.function.MockFunction2
 
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {

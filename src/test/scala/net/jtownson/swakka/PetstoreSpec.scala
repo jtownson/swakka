@@ -6,6 +6,7 @@ import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.jsonschema.SchemaWriter._
+import net.jtownson.swakka.model.Parameters.{PathParameter, QueryParameter}
 import net.jtownson.swakka.model.{Info, Licence}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec

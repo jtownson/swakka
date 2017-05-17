@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.HttpRequest
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.model.Parameters.QueryParameter
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}

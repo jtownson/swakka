@@ -48,9 +48,7 @@ object RouteGen {
 
     method(httpMethod) {
 
-      val paramsDirective: Directive1[Params] = ev.convertToDirective(modelPath, operation.parameters)
-
-      paramsDirective { params =>
+      ev.convertToDirective(modelPath, operation.parameters) { params =>
 
         extractRequest { request =>
 

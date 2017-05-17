@@ -3,7 +3,10 @@ package net.jtownson.swakka.routegen
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import net.jtownson.swakka.OpenApiModel.{BodyParameter, PathParameter, QueryParameter}
+import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
+import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
+import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
+import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.routegen.PathHandling.pathWithParamMatcher
 import shapeless.HList
 
@@ -16,39 +19,49 @@ object ConvertibleToDirective {
   import shapeless.{::, HNil}
 
   private def instance[T](f: T => Directive1[T]): ConvertibleToDirective[T] =
-    (modelPath: String, t: T) => f(t)
+    (_: String, t: T) => f(t)
 
   val BooleanSegment: PathMatcher1[Boolean] =
     PathMatcher("""^(?i)(true|false)$""".r) flatMap (s => Some(s.toBoolean))
 
   private val FloatNumber: PathMatcher1[Float] =
-    PathMatcher("""[+-]?\d*\.?\d*""".r) flatMap { string ⇒
+    PathMatcher("""[+-]?\d*\.?\d*""".r) flatMap { string =>
       try Some(java.lang.Float.parseFloat(string))
       catch {
         case _: NumberFormatException ⇒ None
       }
     }
 
+  private def close[T](qp: QueryParameter[T]): T => QueryParameter[T] =
+    t => qp.asInstanceOf[OpenQueryParameter[T]].closeWith(t)
+
+  private def close[T](pp: PathParameter[T]): T => PathParameter[T] =
+    t => pp.asInstanceOf[OpenPathParameter[T]].closeWith(t)
+
+  private def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
+    t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
+
   implicit val stringQueryConverter: ConvertibleToDirective[QueryParameter[String]] =
-    instance(qp => parameter(qp.name).map(s => qp))
+    instance(qp => parameter(qp.name).map(close(qp)))
 
   implicit val floatQueryConverter: ConvertibleToDirective[QueryParameter[Float]] =
-    instance(qp => parameter(qp.name.as[Float]).map(f => qp))
+    instance(qp => parameter(qp.name.as[Float]).map(close(qp)))
 
   implicit val doubleQueryConverter: ConvertibleToDirective[QueryParameter[Double]] =
-    instance(qp => parameter(qp.name.as[Double]).map(d => qp))
+    instance(qp => parameter(qp.name.as[Double]).map(close(qp)))
 
   implicit val booleanQueryConverter: ConvertibleToDirective[QueryParameter[Boolean]] =
-    instance(qp => parameter(qp.name.as[Boolean]).map(b => qp))
+    instance(qp => parameter(qp.name.as[Boolean]).map(close(qp)))
 
   implicit val intQueryConverter: ConvertibleToDirective[QueryParameter[Int]] =
-    instance(qp => parameter(qp.name.as[Int]).map(i => qp))
+    instance(qp => parameter(qp.name.as[Int]).map(close(qp)))
 
   implicit val longQueryConverter: ConvertibleToDirective[QueryParameter[Long]] =
-    instance(qp => parameter(qp.name.as[Long]).map(l => qp))
+    instance(qp => parameter(qp.name.as[Long]).map(close(qp)))
 
   private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
-    (modelPath: String, pp: PathParameter[T]) => rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).map(s => pp)
+    (modelPath: String, pp: PathParameter[T]) =>
+      rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).map(close(pp))
   }
 
   implicit val stringPathConverter: ConvertibleToDirective[PathParameter[String]] =
@@ -69,17 +82,8 @@ object ConvertibleToDirective {
   implicit val longPathConverter: ConvertibleToDirective[PathParameter[Long]] =
     pathParamDirective(LongNumber)
 
-  private def paramToken(pp: PathParameter[_]): String =
-    s"{${pp.name.name}}"
-
-  private def toPm0[T](pm: PathMatcher[T]): PathMatcher0 =
-    pm.tmap(_ => ())
-
-  private def toDir0[T](d: Directive[T]): Directive0 =
-    d.tmap(_ => ())
-
   implicit def bodyParamConverter[T: FromRequestUnmarshaller]: ConvertibleToDirective[BodyParameter[T]] =
-    (_: String, t: BodyParameter[T]) => entity(as[T]).tmap(_ => t)
+    (_: String, bp: BodyParameter[T]) => entity(as[T]).map(close(bp))
 
   implicit val hNilConverter: ConvertibleToDirective[HNil] =
     (_: String, _: HNil) => pass.tmap[HNil](_ => shapeless.HNil)
@@ -92,4 +96,6 @@ object ConvertibleToDirective {
 
       (headDirective & tailDirective).tmap((t: (H, T)) => t._1 :: t._2)
     }
+
+  def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
 }
