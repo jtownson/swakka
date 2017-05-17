@@ -14,7 +14,7 @@ import spray.json.{JsArray, JsFalse, JsObject, JsString, _}
 class PathsJsonProtocolSpec extends FlatSpec {
 
 
-  private val endpointImpl: HttpRequest => ToResponseMarshallable = (_: HttpRequest) => ???
+  private def endpointImpl[Params]: (Params, HttpRequest) => ToResponseMarshallable = (_, _) => ???
 
   "JsonProtocol" should "write a parameterless pathitem" in {
 
@@ -25,7 +25,8 @@ class PathsJsonProtocolSpec extends FlatSpec {
       method = POST,
       operation = Operation[HNil, ResponseValue[String, HNil]](
         parameters = HNil,
-        responses = ResponseValue("200", "ok"), endpointImplementation = endpointImpl))
+        responses = ResponseValue("200", "ok"),
+        endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(

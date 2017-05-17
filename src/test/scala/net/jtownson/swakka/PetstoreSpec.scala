@@ -74,7 +74,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   responseCode = "default",
                   description = "unexpected error"
                 ) :: HNil,
-            endpointImplementation = _ => ???)) ::
+            endpointImplementation = (_, _) => ???)) ::
           PathItem[CreatePetParams, CreatePetResponses](
             path = "/pets",
             method = POST,
@@ -93,7 +93,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   description = "unexpected error"
                 ) ::
                 HNil,
-              endpointImplementation = _ => ???
+              endpointImplementation = (_, _) => ???
             )
           ) ::
           PathItem[ShowPetParams, ShowPetResponses](
@@ -110,7 +110,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
                 ResponseValue[Error, HNil]("default", "unexpected error") ::
                 HNil,
-              endpointImplementation = _ => ???
+              endpointImplementation = (_, _) => ???
             )
           ) ::
           HNil

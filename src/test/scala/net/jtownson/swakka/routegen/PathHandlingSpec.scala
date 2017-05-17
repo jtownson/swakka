@@ -2,10 +2,11 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.PathMatcher.{Matched, Matching, Unmatched}
-import akka.http.scaladsl.server.{PathMatcher, PathMatcher0, PathMatcher1}
+import akka.http.scaladsl.server.PathMatcher.{Matched, Unmatched}
+import akka.http.scaladsl.server.{PathMatcher, PathMatcher1, Route}
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
+import net.jtownson.swakka.routegen.ConvertibleToDirective.BooleanSegment
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.exceptions.TestFailedException
@@ -30,15 +31,23 @@ class PathHandlingSpec extends FlatSpec with RouteTest with TestFrameworkInterfa
     }
   }
 
-  "PathHandling" should "match my experiments" in {
+  "pathWithParamMatcher" should "work for multiple params" in {
 
-    val matcher: PathMatcher[Tuple1[Int]] = Slash ~ PathMatcher("foo") / IntNumber / PathMatcher("bar")
+    val modelPath = "/foo/{param1}/bar/{param2}"
 
-    val request = Get("http://foo.com/foo/123/bar/baz")
+    val request = Get("http://foo.com/foo/123/bar/true")
 
-    PathHandling.combine3()(request.uri.path) match {
-      case Matched(p, Tuple1(i)) => println(s"ok, got $p, $i")
-      case Unmatched => fail("did not match")
+    val pm1: PathMatcher1[Int] = PathHandling.pathWithParamMatcher(modelPath, "param1", IntNumber)
+    val pm2: PathMatcher1[Boolean] = PathHandling.pathWithParamMatcher(modelPath, "param2", BooleanSegment)
+
+    val route: Route = rawPathPrefixTest(pm1) { ip =>
+      rawPathPrefixTest(pm2) { bp =>
+        complete(s"Okay: $ip, $bp")
+      }
+    }
+
+    request ~> route ~> check {
+      responseAs[String] shouldBe "Okay: 123, true"
     }
   }
 

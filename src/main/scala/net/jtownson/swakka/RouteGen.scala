@@ -17,7 +17,7 @@ trait RouteGen[T] {
 object RouteGen {
 
   def openApiRoute[Paths](api: OpenApi[Paths], includeSwaggerRoute: Boolean = false)
-                             (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths]]): Route =
+                         (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths]]): Route =
     hostDirective(api.host) {
       schemesDirective(api.schemes) {
         basePathDirective(api.basePath) {
@@ -52,12 +52,9 @@ object RouteGen {
 
       paramsDirective { params =>
 
-        akkaPath(modelPath, ev.paramMap(operation.parameters)) {
+        extractRequest { request =>
 
-          extractRequest { request =>
-
-            complete(operation.endpointImpl2(params, request))
-          }
+          complete(operation.endpointImplementation(params, request))
         }
       }
     }

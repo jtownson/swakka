@@ -1,10 +1,8 @@
 package net.jtownson.swakka
 
-import akka.http.scaladsl.marshalling
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.{HttpMethod, HttpRequest}
 import net.jtownson.swakka.model.Info
-import net.jtownson.swakka.model.Parameter
 import net.jtownson.swakka.model.ModelDefaults._
 import net.jtownson.swakka.routegen.ConvertibleToDirective
 import shapeless.{HList, HNil}
@@ -20,13 +18,12 @@ object OpenApiModel {
   case class ResponseValue[T, Headers](responseCode: String, description: String, headers: Headers = HNil)
 
   case class Operation[Params <: HList : ConvertibleToDirective, Responses](
-    summary: Option[String] = None,
-    operationId: Option[String] = None,
-    tags: Option[Seq[String]] = None,
-    parameters: Params = HNil,
-    responses: Responses = HNil,
-    endpointImplementation: HttpRequest => ToResponseMarshallable,
-    endpointImpl2: (Params, HttpRequest) => ToResponseMarshallable = null)
+   summary: Option[String] = None,
+   operationId: Option[String] = None,
+   tags: Option[Seq[String]] = None,
+   parameters: Params = HNil,
+   responses: Responses = HNil,
+   endpointImplementation: (Params, HttpRequest) => ToResponseMarshallable)
 
   case class PathItem[Params <: HList : ConvertibleToDirective, Responses](
     path: String,
