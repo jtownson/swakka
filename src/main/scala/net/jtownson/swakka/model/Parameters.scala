@@ -2,11 +2,13 @@ package net.jtownson.swakka.model
 
 object Parameters {
 
-  trait ClosedParameter[T] {
+  trait Parameter[T] {
     def value: T
   }
 
-  trait OpenParameter[T, U <: ClosedParameter[T]] {
+  trait ClosedParameter[T] extends Parameter[T]
+
+  trait OpenParameter[T, U <: ClosedParameter[T]] extends Parameter[T] {
     def value: T = throw new IllegalStateException(
       "The parameter is currently in the state of a template " +
         "without an associated value. Use closeWith to assign one.")
@@ -14,9 +16,7 @@ object Parameters {
     def closeWith(t: T): U
   }
 
-  sealed trait QueryParameter[T] {
-
-    def value: T
+  sealed trait QueryParameter[T] extends Parameter[T] {
 
     def name: Symbol
 
@@ -41,7 +41,7 @@ object Parameters {
 
   }
 
-  sealed trait PathParameter[T] {
+  sealed trait PathParameter[T] extends Parameter[T] {
     def name: Symbol
 
     def description: Option[String]
@@ -65,7 +65,7 @@ object Parameters {
 
   }
 
-  sealed trait BodyParameter[T] {
+  sealed trait BodyParameter[T] extends Parameter[T] {
     def name: Symbol
   }
 
@@ -83,7 +83,7 @@ object Parameters {
 
   }
 
-  sealed trait HeaderParameter[T] {
+  sealed trait HeaderParameter[T] extends Parameter[T] {
     def name: Symbol
 
     def description: Option[String]
