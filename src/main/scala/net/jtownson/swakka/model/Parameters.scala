@@ -11,7 +11,9 @@ object Parameters {
   trait OpenParameter[T, U <: ClosedParameter[T]] extends Parameter[T] {
     def value: T = throw new IllegalStateException(
       "The parameter is currently in the state of a template " +
-        "without an associated value. Use closeWith to assign one.")
+      "without an associated value. Parameters with values " +
+      "can only be passing http requests through matching route structures. " +
+      "(i.e. create an API definition, get its Route then make a request).")
 
     def closeWith(t: T): U
   }

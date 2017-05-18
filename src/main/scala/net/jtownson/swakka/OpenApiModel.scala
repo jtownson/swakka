@@ -9,10 +9,6 @@ import shapeless.{HList, HNil}
 
 object OpenApiModel {
 
-  case class Header[T](name: Symbol, description: Option[String] = None)
-
-  case class ResponseValue[T, Headers](responseCode: String, description: String, headers: Headers = HNil)
-
   case class Operation[Params <: HList : ConvertibleToDirective, Responses](
    summary: Option[String] = None,
    operationId: Option[String] = None,

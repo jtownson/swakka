@@ -1,10 +1,10 @@
 package net.jtownson.swakka.jsonschema
 
-import net.jtownson.swakka.OpenApiModel.ResponseValue
 import net.jtownson.swakka.jsonschema.ApiModelDictionary.apiModelDictionary
 import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
 import net.jtownson.swakka.misc.FieldnameExtractor.fieldNames
 import net.jtownson.swakka.misc.jsObject
+import net.jtownson.swakka.model.Responses.ResponseValue
 import shapeless.HNil
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
@@ -158,7 +158,8 @@ object SchemaWriter {
         ))
     }
 
-  implicit def responseValueWriter[T, Headers](implicit ev: SchemaWriter[T]): SchemaWriter[ResponseValue[T, Headers]] =
+  implicit def responseValueWriter[T, Headers](implicit ev: SchemaWriter[T]):
+  SchemaWriter[ResponseValue[T, Headers]] =
     (_: JsonSchema[ResponseValue[T, Headers]]) => ev.write(JsonSchema[T]())
 
   implicit val hNilWriter: SchemaWriter[HNil] =

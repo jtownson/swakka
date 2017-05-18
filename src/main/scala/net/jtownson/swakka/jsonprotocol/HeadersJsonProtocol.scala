@@ -1,6 +1,6 @@
 package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.OpenApiModel.Header
+import net.jtownson.swakka.model.Responses.Header
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}

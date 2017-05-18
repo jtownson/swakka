@@ -1,11 +1,11 @@
 package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.OpenApiModel.Header
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json._
 import HeadersJsonProtocol._
-import shapeless.{HNil, ::}
+import net.jtownson.swakka.model.Responses.Header
+import shapeless.{::, HNil}
 
 class HeadersJsonProtocolSpec extends FlatSpec {
 

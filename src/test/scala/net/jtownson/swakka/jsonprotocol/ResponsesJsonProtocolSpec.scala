@@ -1,10 +1,10 @@
 package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.OpenApiModel.{Header, ResponseValue}
 import net.jtownson.swakka.jsonprotocol.HeadersJsonProtocol._
 import net.jtownson.swakka.jsonprotocol.ResponsesJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter
 import net.jtownson.swakka.jsonschema.SchemaWriter._
+import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}

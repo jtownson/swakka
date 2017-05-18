@@ -7,6 +7,7 @@ import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.OpenApiJsonProtocol
 import net.jtownson.swakka.model.Parameters.QueryParameter
+import net.jtownson.swakka.model.Responses.ResponseValue
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

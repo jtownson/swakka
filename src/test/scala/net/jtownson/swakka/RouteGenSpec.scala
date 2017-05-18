@@ -17,6 +17,7 @@ import shapeless.{::, HList, HNil}
 import spray.json._
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
+import net.jtownson.swakka.model.Responses.ResponseValue
 import org.scalamock.function.{MockFunction1, MockFunction2}
 
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
