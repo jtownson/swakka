@@ -1,8 +1,7 @@
 package net.jtownson.swakka.jsonprotocol
 
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.{GET, POST}
-import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.server.Route
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import net.jtownson.swakka.OpenApiJsonProtocol._
@@ -15,7 +14,7 @@ import spray.json.{JsArray, JsFalse, JsObject, JsString, _}
 class PathsJsonProtocolSpec extends FlatSpec {
 
 
-  private def endpointImpl[Params]: (Params, HttpRequest) => ToResponseMarshallable = (_, _) => ???
+  private def endpointImpl[Params]: Params => Route = _ => ???
 
   "JsonProtocol" should "write a parameterless pathitem" in {
 
@@ -52,7 +51,10 @@ class PathsJsonProtocolSpec extends FlatSpec {
     val pathItem = PathItem(
       path = "/ruok",
       method = GET,
-      operation = Operation[HNil, HNil](parameters = HNil, responses = HNil, endpointImplementation = endpointImpl))
+      operation = Operation[HNil, HNil](
+        parameters = HNil,
+        responses = HNil,
+        endpointImplementation = endpointImpl))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -228,8 +230,6 @@ class PathsJsonProtocolSpec extends FlatSpec {
         )
       )
 
-
     paths.toJson shouldBe expectedJson
   }
-
 }

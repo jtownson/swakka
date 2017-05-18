@@ -49,19 +49,7 @@ object RouteGen {
 
       ev.convertToDirective(modelPath, operation.parameters) { params =>
 
-        extractRequest { request =>
-
-          // TODO: consider redefining endpointImpl as Params => Route
-          // this allows users to provide additional extractions inside their endpoint impls.
-          // TODO
-          //  def additionalRoutes[Params <: HList](params: Params): Route = {
-          //    parameter('q2) { q2 =>
-          //      complete("x")
-          //    }
-          //  }
-
-        complete(operation.endpointImplementation(params, request))
-        }
+        operation.endpointImplementation(params)
       }
     }
   }

@@ -1,9 +1,8 @@
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.HttpMethods.GET
-import akka.http.scaladsl.model.HttpRequest
 import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.OpenApiJsonProtocol
@@ -19,7 +18,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   import ConvertibleToDirective._
   import OpenApiJsonProtocol._
 
-  def f[Params] = mockFunction[Params, HttpRequest, ToResponseMarshallable]
+  def f[Params] = mockFunction[Params, Route]
 
   type OneIntParam = QueryParameter[Int] :: HNil
   type OneStrParam = QueryParameter[String] :: HNil

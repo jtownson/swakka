@@ -75,7 +75,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   responseCode = "default",
                   description = "unexpected error"
                 ) :: HNil,
-            endpointImplementation = (_, _) => ???)) ::
+            endpointImplementation = _ => ???)) ::
           PathItem[CreatePetParams, CreatePetResponses](
             path = "/pets",
             method = POST,
@@ -94,7 +94,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   description = "unexpected error"
                 ) ::
                 HNil,
-              endpointImplementation = (_, _) => ???
+              endpointImplementation = _ => ???
             )
           ) ::
           PathItem[ShowPetParams, ShowPetResponses](
@@ -111,7 +111,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
                 ResponseValue[Error, HNil]("default", "unexpected error") ::
                 HNil,
-              endpointImplementation = (_, _) => ???
+              endpointImplementation = _ => ???
             )
           ) ::
           HNil
@@ -281,7 +281,6 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     )
 
     Get("http://petstore.swagger.io/v1/swagger.json") ~> apiRoutes ~> check {
-//      println(responseAs[String])
       JsonParser(responseAs[String]) shouldBe expectedJson
     }
   }
