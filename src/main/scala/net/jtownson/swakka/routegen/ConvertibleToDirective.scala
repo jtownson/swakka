@@ -9,7 +9,7 @@ import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
 import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
 import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
 import net.jtownson.swakka.model.Parameters.{BodyParameter, HeaderParameter, PathParameter, QueryParameter}
-import net.jtownson.swakka.routegen.PathHandling.pathWithParamMatcher
+import net.jtownson.swakka.routegen.PathHandling.{containsParamToken, pathWithParamMatcher}
 import shapeless.{::, HList, HNil}
 
 trait ConvertibleToDirective[T] {
@@ -89,7 +89,12 @@ object ConvertibleToDirective {
     (_: String, bp: BodyParameter[T]) => entity(as[T]).map(close(bp))
 
   implicit val hNilConverter: ConvertibleToDirective[HNil] =
-    (_: String, _: HNil) => pass.tmap[HNil](_ => shapeless.HNil)
+    (modelPath: String, _: HNil) => {
+      if (containsParamToken(modelPath))
+        pass.tmap[HNil](_ => HNil)
+      else
+        path(PathHandling.splittingPathMatcher(modelPath)).tmap[HNil](_ => HNil)
+    }
 
   implicit def hConsConverter[H, T <: HList](implicit head: ConvertibleToDirective[H],
                                              tail: ConvertibleToDirective[T]): ConvertibleToDirective[H :: T] =

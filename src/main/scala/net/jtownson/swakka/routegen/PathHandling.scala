@@ -22,6 +22,8 @@ object PathHandling {
   def isParamToken(pathSegment: String, paramName: String): Boolean =
     pathSegment.matches(s"\\{\\s*$paramName\\s*\\}")
 
+  def containsParamToken(modelPath: String): Boolean =
+    splitPath(modelPath).exists(isAnyParamToken)
 
   def allMatcher[L](l: L)(implicit ev: Tuple[L]): PathMatcher[L] =
     new PathMatcher[L] {

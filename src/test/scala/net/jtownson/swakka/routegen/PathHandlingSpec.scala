@@ -2,11 +2,11 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.PathMatcher.{Matched, Unmatched}
 import akka.http.scaladsl.server.{PathMatcher, PathMatcher1, Route}
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.routegen.ConvertibleToDirective.BooleanSegment
+import net.jtownson.swakka.routegen.PathHandling.containsParamToken
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.exceptions.TestFailedException
@@ -49,6 +49,13 @@ class PathHandlingSpec extends FlatSpec with RouteTest with TestFrameworkInterfa
     request ~> route ~> check {
       responseAs[String] shouldBe "Okay: 123, true"
     }
+  }
+
+  "containsParamToken" should "get the right answer" in {
+
+    containsParamToken("/{a}/b") shouldBe true
+    containsParamToken("/a/b") shouldBe false
+    containsParamToken("a/{ b }") shouldBe true
   }
 
   def failTest(msg: String) = throw new TestFailedException(msg, 11)

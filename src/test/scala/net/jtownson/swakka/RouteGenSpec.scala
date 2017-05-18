@@ -18,7 +18,7 @@ import spray.json._
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.model.Responses.ResponseValue
-import org.scalamock.function.{MockFunction1, MockFunction2}
+import org.scalamock.function.MockFunction1
 
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
@@ -66,7 +66,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   val oneStrParamModels = Table(
     ("testcase name", "request", "model", "response"),
-    ("echo query", get("/app?q=x"), PathItem(path ="/app", method = GET, operation = opWithQueryParam), "x")
+    ("echo query", get("/app?q=x"), PathItem(path = "/app", method = GET, operation = opWithQueryParam), "x")
   )
 
   forAll(oneStrParamModels) { (testcaseName, request, apiModel, response) =>
@@ -93,7 +93,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val request = get("/app?q=x")
 
-    val route = RouteGen.pathItemRoute(PathItem(path ="/app", method = GET, operation = opWithIntParam))
+    val route = RouteGen.pathItemRoute(PathItem(path = "/app", method = GET, operation = opWithIntParam))
 
     request ~> route ~> check {
       inside(rejection) { case MalformedQueryParamRejection(parameterName, _, _) =>
@@ -108,7 +108,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     mockImpl(opWithIntParam).expects(*).returning(complete("x"))
 
-    val route = RouteGen.pathItemRoute(PathItem(path ="/app", method = GET, operation = opWithIntParam))
+    val route = RouteGen.pathItemRoute(PathItem(path = "/app", method = GET, operation = opWithIntParam))
 
     request ~> route ~> check {
       status shouldBe OK
@@ -127,7 +127,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     mockImpl(op).expects(*).returning(complete("nothing"))
 
     val route = RouteGen.pathItemRoute(PathItem(path = "/widgets/{widgetId}", method = PUT, operation = op))
-    
+
     request ~> route ~> check {
       status shouldBe OK
     }
@@ -162,7 +162,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   "body params of correct type" should "be marshallable" in {
 
     val request = post("/app", Pet("tiddles"))
-    val animalRoute = RouteGen.pathItemRoute(PathItem(path ="/app", method = POST, operation = opWithBodyParam))
+    val animalRoute = RouteGen.pathItemRoute(PathItem(path = "/app", method = POST, operation = opWithBodyParam))
     mockImpl(opWithBodyParam).expects(*).returning(complete("x"))
 
     request ~> animalRoute ~> check {
@@ -176,7 +176,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "body params of wrong type" should "be rejected" in {
 
-    val animalRoute = RouteGen.pathItemRoute(PathItem(path ="/app", method = POST, operation = opWithBodyParam))
+    val animalRoute = RouteGen.pathItemRoute(PathItem(path = "/app", method = POST, operation = opWithBodyParam))
 
     post("/app", WildAnimal("lion")) ~> animalRoute ~> check {
       inside(rejection) {
@@ -189,7 +189,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   "body params" should "be easy to handle in endpoint impls" in {
 
     val tiddles = Pet("tiddles")
-    val animalRoute = RouteGen.pathItemRoute(PathItem(path ="/app", method = POST, operation = opWithBodyParam))
+    val animalRoute = RouteGen.pathItemRoute(PathItem(path = "/app", method = POST, operation = opWithBodyParam))
 
     val request = post("/app", tiddles)
     mockImpl(opWithBodyParam).expects(*).returning(complete(tiddles))
@@ -269,6 +269,75 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     swaggerRequest ~> route ~> check {
       status shouldBe OK
       responseAs[String] shouldBe api.toJson.prettyPrint
+    }
+
+    Get("http://localhost:8080/") ~> seal(route) ~> check {
+      status shouldBe NotFound
+    }
+  }
+
+  "routes with no params" should "reject invalid paths" in {
+    type NoParams = HNil
+    type StringResponse = ResponseValue[String, HNil]
+
+    type Paths = PathItem[NoParams, StringResponse] :: HNil
+
+    val api =
+      OpenApi(
+        paths =
+          PathItem[NoParams, StringResponse](
+            path = "/app/e1",
+            method = GET,
+            operation = Operation[NoParams, StringResponse](
+              responses = ResponseValue[String, HNil]("200", "ok"),
+              endpointImplementation = _ => complete("pong")
+            )
+          ) ::
+          HNil
+      )
+
+    val route: Route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+
+    Get("http://localhost:8080/") ~> seal(route) ~> check {
+      status shouldBe NotFound
+      responseAs[String] shouldNot be("pong")
+    }
+    Get("http://localhost:8080/app/e1") ~> seal(route) ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe("pong")
+    }
+  }
+
+  "routes with a path param" should "not reject valid paths" in {
+
+    type Params = PathParameter[String] :: HNil
+    type StringResponse = ResponseValue[String, HNil]
+    type Paths = PathItem[Params, StringResponse] :: HNil
+
+    val greet: Params => Route = {
+      case (nameParameter :: HNil) =>
+        complete(s"Hello ${nameParameter.value}!")
+    }
+
+    val api =
+      OpenApi(paths =
+        PathItem(
+          path = "/greet/{name}",
+          method = GET,
+          operation = Operation[Params, StringResponse](
+            parameters = PathParameter[String]('name) :: HNil,
+            responses = ResponseValue[String, HNil]("200", "ok"),
+            endpointImplementation = greet
+          )
+        ) ::
+          HNil
+      )
+
+    val route: Route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+
+    Get("http://localhost:8080/greet/Katharine") ~> seal(route) ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe "Hello Katharine!"
     }
   }
 
