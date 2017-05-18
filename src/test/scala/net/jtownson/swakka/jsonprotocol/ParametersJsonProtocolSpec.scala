@@ -2,7 +2,7 @@ package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.jsonprotocol.ParametersJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
-import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
+import net.jtownson.swakka.model.Parameters.{BodyParameter, HeaderParameter, PathParameter, QueryParameter}
 import org.scalatest.Matchers._
 import org.scalatest._
 import shapeless.{::, HNil}
@@ -52,6 +52,23 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     params.toJson shouldBe expectedJson
   }
 
+  it should "serialize header parameters" in {
+    type Param = HeaderParameter[String] :: HNil
+
+    val headers = HeaderParameter[String](Symbol("x-my-header"), Some("a header"), false) :: HNil
+
+    val expectedJson = JsArray(
+      JsObject(
+        "name" -> JsString("x-my-header"),
+        "in" -> JsString("header"),
+        "description" -> JsString("a header"),
+        "required" -> JsBoolean(false),
+        "type" -> JsString("string")
+      )
+    )
+
+    headers.toJson shouldBe expectedJson
+  }
 
   it should "serialize a path parameter" in {
 

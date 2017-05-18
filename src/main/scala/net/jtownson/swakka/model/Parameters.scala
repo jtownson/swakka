@@ -83,8 +83,6 @@ object Parameters {
 
   }
 
-  case class Header[T](name: Symbol, description: Option[String] = None)
-
   sealed trait HeaderParameter[T] {
     def name: Symbol
 
@@ -94,6 +92,9 @@ object Parameters {
   }
 
   object HeaderParameter {
+
+    def apply[T](name: Symbol, description: Option[String] = None, required: Boolean = false):
+      HeaderParameter[T] = OpenHeaderParameter(name, description, required)
 
     case class OpenHeaderParameter[T](name: Symbol, description: Option[String], required: Boolean)
       extends HeaderParameter[T] with OpenParameter[T, ClosedHeaderParameter[T]] {

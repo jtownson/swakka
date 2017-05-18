@@ -1,14 +1,16 @@
 package net.jtownson.swakka.routegen
 
+import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
+import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
 import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
 import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
-import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
+import net.jtownson.swakka.model.Parameters.{BodyParameter, HeaderParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.routegen.PathHandling.pathWithParamMatcher
-import shapeless.{::, HNil, HList}
+import shapeless.{::, HList, HNil}
 
 trait ConvertibleToDirective[T] {
   def convertToDirective(modelPath: String, t: T): Directive1[T]
@@ -65,6 +67,24 @@ object ConvertibleToDirective {
   implicit val longPathConverter: ConvertibleToDirective[PathParameter[Long]] =
     pathParamDirective(LongNumber)
 
+  implicit val stringHeaderConverter: ConvertibleToDirective[HeaderParameter[String]] =
+    headerParamDirective(s => s)
+
+  implicit val floatHeaderConverter: ConvertibleToDirective[HeaderParameter[Float]] =
+    headerParamDirective(_.toFloat)
+
+  implicit val doubleHeaderConverter: ConvertibleToDirective[HeaderParameter[Double]] =
+    headerParamDirective(_.toDouble)
+
+  implicit val booleanHeaderConverter: ConvertibleToDirective[HeaderParameter[Boolean]] =
+    headerParamDirective(_.toBoolean)
+
+  implicit val intHeaderConverter: ConvertibleToDirective[HeaderParameter[Int]] =
+    headerParamDirective(_.toInt)
+
+  implicit val longHeaderConverter: ConvertibleToDirective[HeaderParameter[Long]] =
+    headerParamDirective(_.toLong)
+
   implicit def bodyParamConverter[T: FromRequestUnmarshaller]: ConvertibleToDirective[BodyParameter[T]] =
     (_: String, bp: BodyParameter[T]) => entity(as[T]).map(close(bp))
 
@@ -80,6 +100,17 @@ object ConvertibleToDirective {
       (headDirective & tailDirective).tmap((t: (H, T)) => t._1 :: t._2)
     }
 
+  private def headerParamDirective[T](valueParser: String => T):
+    ConvertibleToDirective[HeaderParameter[T]] =
+    (_: String, hp: HeaderParameter[T]) => {
+
+      val hMatcher: HttpHeader => Option[T] =
+        httpHeader => if (httpHeader.is(hp.name.name.toLowerCase)) Some(valueParser(httpHeader.value())) else None
+
+      headerValue(hMatcher).map(close(hp))
+    }
+
+
   private def instance[T](f: T => Directive1[T]): ConvertibleToDirective[T] =
     (_: String, t: T) => f(t)
 
@@ -91,6 +122,9 @@ object ConvertibleToDirective {
 
   private def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
     t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
+
+  private def close[T](hp: HeaderParameter[T]): T => HeaderParameter[T] =
+    t => hp.asInstanceOf[OpenHeaderParameter[T]].closeWith(t)
 
   private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
     (modelPath: String, pp: PathParameter[T]) =>

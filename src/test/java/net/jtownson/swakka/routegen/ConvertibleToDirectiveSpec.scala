@@ -35,6 +35,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     queryConverterTest(get("/path?q=2"), "2", QueryParameter[Long]('q))
   }
 
+  // TODO add path param and header param tests
 
   private def queryConverterTest[T](request: HttpRequest, expectedResponse: String, qp: QueryParameter[T])
                               (implicit ev: ConvertibleToDirective[QueryParameter[T]]): Unit = {
