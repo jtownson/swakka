@@ -1,2 +1,0 @@
-(List(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None),List()) (of class scala.Tuple2)
-(List(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None),List()) (of class scala.Tuple2)
