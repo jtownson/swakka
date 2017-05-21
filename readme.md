@@ -79,7 +79,8 @@ Content-Length: 4
 
 pong
 
-jtownson@munch ~$ # (5) The Swakka generated route contains directives that match the host, paths, parameters, etc of your swagger API definition.
+jtownson@munch ~$ # (5) The Swakka generated route contains directives that match the 
+jtownson@munch ~$ #     host, paths, parameters, etc of your swagger API definition.
 jtownson@munch ~$ curl -i localhost:8080/pang
 HTTP/1.1 404 Not Found
 Server: akka-http/10.0.5
