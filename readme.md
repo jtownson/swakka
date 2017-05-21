@@ -118,10 +118,14 @@ The requested resource could not be found.
         HNil
     )
 ```
-The input *parameters* of your API are defined in terms of a type parameter, which is 
+The input *parameters* of your API are defined in terms of a _Params_ type parameter, which is 
 a shapeless HList. In this example, it is a single query parameter that is read as a _String_.
 
 For each of your swagger endpoints, you provide an implementation as a function from
 ```scala
 endpointImplementation: Params => Route
 ```
+The Swakka-generated route contains Akka _directives_ that extract Params 
+(either in the query string, path, headers or request body) from the request. 
+Pattern match the Params HList to obtain each parameter.
+The _value_ field contains the extracted parameter value.
