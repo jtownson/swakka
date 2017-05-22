@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.Directives.complete
+import akka.http.scaladsl.server.Directives.{complete, reject}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
@@ -396,6 +396,70 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     f.expects(*).returning(complete("x"))
     request1 ~> route ~> check {
       status shouldBe OK
+    }
+  }
+
+  "optional query parameters, when missing" should "not cause rejections" in {
+
+    type Params = QueryParameter[Int] :: HNil
+    type Responses = ResponseValue[String, HNil]
+    type Paths = PathItem[Params, Responses]
+
+    val f: Params => Route = {
+      case (qp :: HNil) => {
+        if (qp.value == null)
+          complete("Ok")
+        else
+          reject
+      }
+    }
+
+    val api = OpenApi[Paths](paths =
+      PathItem(
+        path = "/app/e1",
+        method = GET,
+        operation = Operation(
+          parameters = QueryParameter[Int]('q, required = false) :: HNil,
+          responses = ResponseValue[String, HNil]("200", "ok"),
+          endpointImplementation = f)))
+
+    val route = RouteGen.openApiRoute(api)
+
+    Get("http://localhost:8080/app/e1") ~> seal(route) ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe "Ok"
+    }
+  }
+
+  "optional query parameters, when missing" should "be completed with a default value if one is available" in {
+
+    type Params = QueryParameter[String] :: HNil
+    type Responses = ResponseValue[String, HNil]
+    type Paths = PathItem[Params, Responses]
+
+    val f: Params => Route = {
+      case (qp :: HNil) => {
+        if (qp.value == "the-default")
+          complete("Ok")
+        else
+          reject
+      }
+    }
+
+    val api = OpenApi[Paths](paths =
+      PathItem(
+        path = "/app/e1",
+        method = GET,
+        operation = Operation(
+          parameters = QueryParameter[String]('q, required = false, default = Some("the-default")) :: HNil,
+          responses = ResponseValue[String, HNil]("200", "ok"),
+          endpointImplementation = f)))
+
+    val route = RouteGen.openApiRoute(api)
+
+    Get("http://localhost:8080/app/e1") ~> seal(route) ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe "Ok"
     }
   }
 

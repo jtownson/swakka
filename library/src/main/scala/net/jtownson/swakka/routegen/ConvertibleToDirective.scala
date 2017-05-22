@@ -31,23 +31,41 @@ object ConvertibleToDirective {
 
   def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
 
-  implicit val stringQueryConverter: ConvertibleToDirective[QueryParameter[String]] =
+  implicit val stringReqQueryConverter: ConvertibleToDirective[QueryParameter[String]] =
     instance(qp => parameter(qp.name).map(close(qp)))
 
-  implicit val floatQueryConverter: ConvertibleToDirective[QueryParameter[Float]] =
+  implicit val stringOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[String]]] =
+    instance(qp => parameter(qp.name.?).map(close(qp)))
+
+  implicit val floatReqQueryConverter: ConvertibleToDirective[QueryParameter[Float]] =
     instance(qp => parameter(qp.name.as[Float]).map(close(qp)))
 
-  implicit val doubleQueryConverter: ConvertibleToDirective[QueryParameter[Double]] =
+  implicit val floatOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Float]]] =
+    instance(qp => parameter(qp.name.as[Float].?).map(close(qp)))
+
+  implicit val doubleReqQueryConverter: ConvertibleToDirective[QueryParameter[Double]] =
     instance(qp => parameter(qp.name.as[Double]).map(close(qp)))
 
-  implicit val booleanQueryConverter: ConvertibleToDirective[QueryParameter[Boolean]] =
+  implicit val doubleOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Double]]] =
+    instance(qp => parameter(qp.name.as[Double].?).map(close(qp)))
+
+  implicit val booleanReqQueryConverter: ConvertibleToDirective[QueryParameter[Boolean]] =
     instance(qp => parameter(qp.name.as[Boolean]).map(close(qp)))
 
-  implicit val intQueryConverter: ConvertibleToDirective[QueryParameter[Int]] =
+  implicit val booleanOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Boolean]]] =
+    instance(qp => parameter(qp.name.as[Boolean].?).map(close(qp)))
+
+  implicit val intReqQueryConverter: ConvertibleToDirective[QueryParameter[Int]] =
     instance(qp => parameter(qp.name.as[Int]).map(close(qp)))
 
-  implicit val longQueryConverter: ConvertibleToDirective[QueryParameter[Long]] =
+  implicit val intOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Int]]] =
+    instance(qp => parameter(qp.name.as[Int].?).map(close(qp)))
+
+  implicit val longReqQueryConverter: ConvertibleToDirective[QueryParameter[Long]] =
     instance(qp => parameter(qp.name.as[Long]).map(close(qp)))
+
+  implicit val longOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Long]]] =
+    instance(qp => parameter(qp.name.as[Long].?).map(close(qp)))
 
   implicit val stringPathConverter: ConvertibleToDirective[PathParameter[String]] =
     pathParamDirective(Segment)

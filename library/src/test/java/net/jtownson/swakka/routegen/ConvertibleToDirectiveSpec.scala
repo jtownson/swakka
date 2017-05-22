@@ -17,34 +17,50 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
   "ConvertibleToDirective" should "convert a string query parameter" in {
     converterTest[String, QueryParameter[String]](get("/path?q=x"), "x", QueryParameter[String]('q))
+    converterTest[Option[String], QueryParameter[Option[String]]](get("/path?q=x"), "Some(x)", QueryParameter[Option[String]]('q))
+    converterTest[Option[String], QueryParameter[Option[String]]](get("/path"), "None", QueryParameter[Option[String]]('q))
   }
 
   it should "convert a float query parameter" in {
     converterTest[Float, QueryParameter[Float]](get("/path?q=3.14"), "3.14", QueryParameter[Float]('q))
+    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path?q=3.14"), "Some(3.14)", QueryParameter[Option[Float]]('q))
+    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path"), "None", QueryParameter[Option[Float]]('q))
   }
 
   it should "convert a double query parameter" in {
     converterTest[Double, QueryParameter[Double]](get("/path?q=3.14"), "3.14", QueryParameter[Double]('q))
+    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path?q=3.14"), "Some(3.14)", QueryParameter[Option[Double]]('q))
+    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path"), "None", QueryParameter[Option[Double]]('q))
   }
 
   it should "convert a boolean query parameter" in {
     converterTest[Boolean, QueryParameter[Boolean]](get("/path?q=true"), "true", QueryParameter[Boolean]('q))
+    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path?q=true"), "Some(true)", QueryParameter[Option[Boolean]]('q))
+    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path"), "None", QueryParameter[Option[Boolean]]('q))
   }
 
   it should "convert an int query parameter" in {
     converterTest[Int, QueryParameter[Int]](get("/path?q=2"), "2", QueryParameter[Int]('q))
+    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path?q=2"), "Some(2)", QueryParameter[Option[Int]]('q))
+    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path"), "None", QueryParameter[Option[Int]]('q))
   }
 
   it should "convert a long query parameter" in {
     converterTest[Long, QueryParameter[Long]](get("/path?q=2"), "2", QueryParameter[Long]('q))
+    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path?q=2"), "Some(2)", QueryParameter[Option[Long]]('q))
+    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path"), "None", QueryParameter[Option[Long]]('q))
   }
 
   it should "convert a string header parameter" in {
-    converterTest[String, HeaderParameter[String]](get("/", "x-p", "2"), "2", HeaderParameter[String](Symbol("x-p")))
+    converterTest[String, HeaderParameter[String]](get("/", "x-p", "x"), "x", HeaderParameter[String](Symbol("x-p")))
+//    converterTest[Option[String], HeaderParameter[Option[String]]](get("/", "x-p", "x"), "Some(x)", HeaderParameter[Option[String]]('q))
+//    converterTest[Option[String], HeaderParameter[Option[String]]](get("/"), "None", HeaderParameter[Option[String]]('q))
   }
 
   it should "convert a float header parameter" in {
-    converterTest[Float, HeaderParameter[Float]](get("/", "x-p", "2.1"), "2.1", HeaderParameter[Float](Symbol("x-p")))
+    converterTest[Float, HeaderParameter[Float]](get("/", "x-p", "3.14"), "3.14", HeaderParameter[Float](Symbol("x-p")))
+//    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/", "x-p", "3.14"), "Some(3.14)", QueryParameter[Option[Float]]('q))
+//    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/"), "None", QueryParameter[Option[Float]]('q))
   }
 
   it should "convert a double header parameter" in {
@@ -101,7 +117,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
   private def converterTest[T, U <: Parameter[T]](request: HttpRequest, expectedResponse: String, param: U)
                               (implicit ev: ConvertibleToDirective[U]): Unit = {
-    request ~> route[T, U](param) ~> check {
+    request ~> route[T, U](param)(ev) ~> check {
       responseAs[String] shouldBe expectedResponse
     }
   }
