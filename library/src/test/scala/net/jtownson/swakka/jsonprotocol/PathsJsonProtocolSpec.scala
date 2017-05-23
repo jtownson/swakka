@@ -88,7 +88,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
               JsObject(
                 "name" -> JsString("q"),
                 "in" -> JsString("query"),
-                "required" -> JsFalse,
+                "required" -> JsTrue,
                 "type" -> JsString("string")
               )),
           "responses" -> JsObject(
@@ -149,7 +149,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
               JsObject(
                 "name" -> JsString("q"),
                 "in" -> JsString("query"),
-                "required" -> JsFalse,
+                "required" -> JsTrue,
                 "type" -> JsString("integer"),
                 "format" -> JsString("int32")
               )),
@@ -169,7 +169,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
               JsObject(
                 "name" -> JsString("q"),
                 "in" -> JsString("query"),
-                "required" -> JsFalse,
+                "required" -> JsTrue,
                 "type" -> JsString("string")
               )),
             "responses" -> JsObject(

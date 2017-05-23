@@ -401,16 +401,16 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "optional query parameters, when missing" should "not cause rejections" in {
 
-    type Params = QueryParameter[Int] :: HNil
+    type Params = QueryParameter[Option[Int]] :: HNil
     type Responses = ResponseValue[String, HNil]
     type Paths = PathItem[Params, Responses]
 
     val f: Params => Route = {
       case (qp :: HNil) => {
-        if (qp.value == null)
-          complete("Ok")
-        else
-          reject
+        qp.value match {
+          case None => complete("Ok")
+          case _ => reject
+        }
       }
     }
 
@@ -419,7 +419,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         path = "/app/e1",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[Int]('q, required = false) :: HNil,
+          parameters = QueryParameter[Option[Int]]('q, required = false) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = f)))
 
@@ -432,6 +432,8 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   }
 
   "optional query parameters, when missing" should "be completed with a default value if one is available" in {
+
+    fail("todo")
 
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String, HNil]

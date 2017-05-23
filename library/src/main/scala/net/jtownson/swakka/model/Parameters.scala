@@ -2,6 +2,9 @@ package net.jtownson.swakka.model
 
 object Parameters {
 
+  // 1. A required parameter, t: T
+  // 2. An optional parameter, ot: Option[T]
+  // 3. An optional parameter, t: T with default d.
   sealed trait Parameter[T] {
     def name: Symbol
 
