@@ -1,6 +1,5 @@
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
@@ -67,7 +66,9 @@ object ConvertibleToDirective {
   implicit val longOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Long]]] =
     instance(qp => parameter(qp.name.as[Long].?).map(close(qp)))
 
-  implicit val stringPathConverter: ConvertibleToDirective[PathParameter[String]] =
+
+
+  implicit val stringReqPathConverter: ConvertibleToDirective[PathParameter[String]] =
     pathParamDirective(Segment)
 
   implicit val floatPathConverter: ConvertibleToDirective[PathParameter[Float]] =
@@ -123,8 +124,25 @@ object ConvertibleToDirective {
   implicit val longOptHeaderConverter: ConvertibleToDirective[HeaderParameter[Option[Long]]] =
     optionalHeaderParamDirective(_.toLong)
 
-  implicit def bodyParamConverter[T: FromRequestUnmarshaller]: ConvertibleToDirective[BodyParameter[T]] =
-    (_: String, bp: BodyParameter[T]) => entity(as[T]).map(close(bp))
+  implicit def bodyParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[T]] =
+    (_: String, bp: BodyParameter[T]) => {
+      entity(as[T](ev)).map(close(bp))
+    }
+
+  implicit def bodyOptParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[Option[T]]] =
+    (_: String, bp: BodyParameter[Option[T]]) => {
+      optionalEntity[T](as[T]).map(close(bp))
+    }
+
+  def optionalEntity[T](unmarshaller: FromRequestUnmarshaller[T]): Directive1[Option[T]] =
+    entity(as[String]).flatMap { stringEntity =>
+      if(stringEntity == null || stringEntity.isEmpty) {
+        provide(Option.empty[T])
+      } else {
+        entity(unmarshaller).flatMap(e => provide(Some(e)))
+      }
+    }
+
 
   implicit val hNilConverter: ConvertibleToDirective[HNil] =
     (modelPath: String, _: HNil) => {
@@ -170,7 +188,8 @@ object ConvertibleToDirective {
     t => pp.asInstanceOf[OpenPathParameter[T]].closeWith(t)
 
   private def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
-    t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
+    t =>
+      bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
 
   private def close[T](hp: HeaderParameter[T]): T => HeaderParameter[T] =
     t => hp.asInstanceOf[OpenHeaderParameter[T]].closeWith(t)
@@ -179,5 +198,4 @@ object ConvertibleToDirective {
     (modelPath: String, pp: PathParameter[T]) =>
       rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).map(close(pp))
   }
-
 }

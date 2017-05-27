@@ -433,19 +433,16 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "optional query parameters, when missing" should "be completed with a default value if one is available" in {
 
-    fail("todo")
-
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String, HNil]
     type Paths = PathItem[Params, Responses]
 
     val f: Params => Route = {
-      case (qp :: HNil) => {
+      case (qp :: HNil) =>
         if (qp.value == "the-default")
           complete("Ok")
         else
           reject
-      }
     }
 
     val api = OpenApi[Paths](paths =
