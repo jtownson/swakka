@@ -23,6 +23,8 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[String, QueryParameter[String]](get("/path?q=x"), "x", QueryParameter[String]('q))
     converterTest[Option[String], QueryParameter[Option[String]]](get("/path?q=x"), "Some(x)", QueryParameter[Option[String]]('q))
     converterTest[Option[String], QueryParameter[Option[String]]](get("/path"), "None", QueryParameter[Option[String]]('q))
+
+    converterTest[String, QueryParameter[String]](get("/path"), "x", QueryParameter[String]('p, default = Some("x")))
   }
 
   it should "convert a float query parameter" in {

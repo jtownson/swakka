@@ -431,6 +431,10 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     }
   }
 
+  "required query parameters, when missing" should "be completed with a default value if one is available" in {
+
+  }
+
   "optional query parameters, when missing" should "be completed with a default value if one is available" in {
 
     type Params = QueryParameter[String] :: HNil
