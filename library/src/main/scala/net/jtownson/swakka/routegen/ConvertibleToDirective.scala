@@ -1,13 +1,15 @@
 package net.jtownson.swakka.routegen
 
+import akka.http.scaladsl.common.{NameDefaultReceptacle, NameReceptacle}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.directives.ParameterDirectives.ParamMagnet
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
 import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
 import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
 import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
-import net.jtownson.swakka.model.Parameters.{BodyParameter, HeaderParameter, PathParameter, QueryParameter}
+import net.jtownson.swakka.model.Parameters._
 import net.jtownson.swakka.routegen.PathHandling.{containsParamToken, pathWithParamMatcher}
 import shapeless.{::, HList, HNil}
 
@@ -31,41 +33,100 @@ object ConvertibleToDirective {
   def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
 
   implicit val stringReqQueryConverter: ConvertibleToDirective[QueryParameter[String]] =
-    instance(qp => parameter(qp.name).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.?(default)).map(close(qp))
+        case None => parameter(qp.name).map(close(qp))
+      }
+    })
 
   implicit val stringOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[String]]] =
-    instance(qp => parameter(qp.name.?).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.?(default)).map(close(qp))
+        case None => parameter(qp.name.?).map(close(qp))
+      }
+    })
 
   implicit val floatReqQueryConverter: ConvertibleToDirective[QueryParameter[Float]] =
-    instance(qp => parameter(qp.name.as[Float]).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Float].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Float]).map(close(qp))
+      }
+    })
 
   implicit val floatOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Float]]] =
-    instance(qp => parameter(qp.name.as[Float].?).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Float].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Float].?).map(close(qp))
+      }
+    })
 
   implicit val doubleReqQueryConverter: ConvertibleToDirective[QueryParameter[Double]] =
-    instance(qp => parameter(qp.name.as[Double]).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Double].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Double]).map(close(qp))
+      }
+    })
 
   implicit val doubleOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Double]]] =
-    instance(qp => parameter(qp.name.as[Double].?).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Double].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Double].?).map(close(qp))
+      }
+    })
 
   implicit val booleanReqQueryConverter: ConvertibleToDirective[QueryParameter[Boolean]] =
-    instance(qp => parameter(qp.name.as[Boolean]).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Boolean].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Boolean]).map(close(qp))
+      }
+    })
 
   implicit val booleanOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Boolean]]] =
-    instance(qp => parameter(qp.name.as[Boolean].?).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Boolean].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Boolean].?).map(close(qp))
+      }
+    })
 
   implicit val intReqQueryConverter: ConvertibleToDirective[QueryParameter[Int]] =
-    instance(qp => parameter(qp.name.as[Int]).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Int].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Int]).map(close(qp))
+      }
+    })
 
   implicit val intOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Int]]] =
-    instance(qp => parameter(qp.name.as[Int].?).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Int].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Int].?).map(close(qp))
+      }
+    })
 
   implicit val longReqQueryConverter: ConvertibleToDirective[QueryParameter[Long]] =
-    instance(qp => parameter(qp.name.as[Long]).map(close(qp)))
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Long].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Long]).map(close(qp))
+      }
+    })
 
   implicit val longOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Long]]] =
-    instance(qp => parameter(qp.name.as[Long].?).map(close(qp)))
-
+    instance(qp => {
+      qp.default match {
+        case Some(default) => parameter(qp.name.as[Long].?(default)).map(close(qp))
+        case None => parameter(qp.name.as[Long].?).map(close(qp))
+      }
+    })
 
 
   implicit val stringReqPathConverter: ConvertibleToDirective[PathParameter[String]] =
@@ -85,7 +146,6 @@ object ConvertibleToDirective {
 
   implicit val longPathConverter: ConvertibleToDirective[PathParameter[Long]] =
     pathParamDirective(LongNumber)
-
 
 
   implicit val stringReqHeaderConverter: ConvertibleToDirective[HeaderParameter[String]] =
@@ -136,7 +196,7 @@ object ConvertibleToDirective {
 
   def optionalEntity[T](unmarshaller: FromRequestUnmarshaller[T]): Directive1[Option[T]] =
     entity(as[String]).flatMap { stringEntity =>
-      if(stringEntity == null || stringEntity.isEmpty) {
+      if (stringEntity == null || stringEntity.isEmpty) {
         provide(Option.empty[T])
       } else {
         entity(unmarshaller).flatMap(e => provide(Some(e)))
@@ -162,18 +222,35 @@ object ConvertibleToDirective {
     }
 
   private def requiredHeaderParamDirective[T](valueParser: String => T):
-  ConvertibleToDirective[HeaderParameter[T]] =
-    (_: String, hp: HeaderParameter[T]) => {
-
-      headerValueByName(hp.name).map(value => close(hp)(valueParser(value)))
+  ConvertibleToDirective[HeaderParameter[T]] = (_: String, hp: HeaderParameter[T]) => {
+    hp.default match {
+      case Some(default) => optionalHeaderValueByName(hp.name).map {
+        case Some(header) => close(hp)(valueParser(header))
+        case None => close(hp)(default)
+      }
+      case None => headerValueByName(hp.name).map(value => close(hp)(valueParser(value)))
     }
+  }
 
   private def optionalHeaderParamDirective[T](valueParser: String => T):
   ConvertibleToDirective[HeaderParameter[Option[T]]] = (_: String, hp: HeaderParameter[Option[T]]) => {
 
-    optionalHeaderValueByName(hp.name).map {
-      case Some(value) => close(hp)(Some(valueParser(value)))
-      case None => close(hp)(None)
+//    optionalHeaderValueByName(hp.name).map {
+//      case Some(value) => close(hp)(Some(valueParser(value)))
+//      case None => close(hp)(None)
+//    }
+//
+    hp.default match {
+      case Some(default) =>
+        optionalHeaderValueByName(hp.name).map {
+          case Some(header) => close(hp)(Some(valueParser(header)))
+          case None => close(hp)(default)
+        }
+      case None =>
+        optionalHeaderValueByName(hp.name).map {
+          case Some(value) => close(hp)(Some(valueParser(value)))
+          case None => close(hp)(None)
+        }
     }
   }
 

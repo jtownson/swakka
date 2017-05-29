@@ -35,8 +35,7 @@ object Parameters {
 
     def apply[T](name: Symbol, description: Option[String] = None,
                  required: Boolean = false, default: Option[T] = None): QueryParameter[T] =
-      default.map(ClosedQueryParameter(name, description, required, default, _))
-        .getOrElse(OpenQueryParameter(name, description, required, default))
+        OpenQueryParameter(name, description, required, default)
 
     case class OpenQueryParameter[T](name: Symbol, description: Option[String],
                                      required: Boolean, default: Option[T])
