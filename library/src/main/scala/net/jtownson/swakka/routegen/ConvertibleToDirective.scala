@@ -1,9 +1,7 @@
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.common.{NameDefaultReceptacle, NameReceptacle}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.directives.ParameterDirectives.ParamMagnet
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
 import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
@@ -43,8 +41,12 @@ object ConvertibleToDirective {
   implicit val stringOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[String]]] =
     instance(qp => {
       qp.default match {
-        case Some(default) => parameter(qp.name.?(default)).map(close(qp))
-        case None => parameter(qp.name.?).map(close(qp))
+        case Some(Some(default)) => {
+          parameter(qp.name.?(default)).map(os => {
+            close(qp)(Some(os))
+          })
+        }
+        case _ => parameter(qp.name.?).map(close(qp))
       }
     })
 
@@ -235,11 +237,6 @@ object ConvertibleToDirective {
   private def optionalHeaderParamDirective[T](valueParser: String => T):
   ConvertibleToDirective[HeaderParameter[Option[T]]] = (_: String, hp: HeaderParameter[Option[T]]) => {
 
-//    optionalHeaderValueByName(hp.name).map {
-//      case Some(value) => close(hp)(Some(valueParser(value)))
-//      case None => close(hp)(None)
-//    }
-//
     hp.default match {
       case Some(default) =>
         optionalHeaderValueByName(hp.name).map {

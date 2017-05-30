@@ -24,6 +24,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[String], QueryParameter[Option[String]]](get("/path?q=x"), "Some(x)", QueryParameter[Option[String]]('q))
     converterTest[Option[String], QueryParameter[Option[String]]](get("/path"), "None", QueryParameter[Option[String]]('q))
     converterTest[String, QueryParameter[String]](get("/path"), "x", QueryParameter[String]('p, default = Some("x")))
+    converterTest[Option[String], QueryParameter[Option[String]]](get("/path"), "Some(x)", QueryParameter[Option[String]]('p, default = Some(Some("x"))))
   }
 
   it should "convert a float query parameter" in {
@@ -195,6 +196,18 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     Get("http://localhost/x/y") ~> route ~> check {
       status shouldBe OK
       responseAs[String] shouldBe "matched"
+    }
+  }
+
+  "akk http" should "support optional with default properly" in {
+//    val default = Some("x")
+
+    val route = parameter("p".?("x")) { os =>
+      complete(s"$os")
+    }
+
+    Get("http://localhost") ~> route ~> check {
+      responseAs[String] shouldBe "x"
     }
   }
 
