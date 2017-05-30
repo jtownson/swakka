@@ -419,7 +419,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         path = "/app/e1",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[Option[Int]]('q, required = false) :: HNil,
+          parameters = QueryParameter[Option[Int]]('q) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = f)))
 
@@ -454,7 +454,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         path = "/app/e1",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[String]('q, required = false, default = Some("the-default")) :: HNil,
+          parameters = QueryParameter[String]('q, default = Some("the-default")) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = f)))
 

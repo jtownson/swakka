@@ -41,11 +41,7 @@ object ConvertibleToDirective {
   implicit val stringOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[String]]] =
     instance(qp => {
       qp.default match {
-        case Some(Some(default)) => {
-          parameter(qp.name.?(default)).map(os => {
-            close(qp)(Some(os))
-          })
-        }
+        case Some(Some(default)) => parameter(qp.name.?(default)).map(os => close(qp)(Some(os)))
         case _ => parameter(qp.name.?).map(close(qp))
       }
     })
@@ -61,8 +57,8 @@ object ConvertibleToDirective {
   implicit val floatOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Float]]] =
     instance(qp => {
       qp.default match {
-        case Some(default) => parameter(qp.name.as[Float].?(default)).map(close(qp))
-        case None => parameter(qp.name.as[Float].?).map(close(qp))
+        case Some(Some(default)) => parameter(qp.name.as[Float].?(default)).map(of => close(qp)(Some(of)))
+        case _ => parameter(qp.name.as[Float].?).map(close(qp))
       }
     })
 
@@ -77,8 +73,8 @@ object ConvertibleToDirective {
   implicit val doubleOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Double]]] =
     instance(qp => {
       qp.default match {
-        case Some(default) => parameter(qp.name.as[Double].?(default)).map(close(qp))
-        case None => parameter(qp.name.as[Double].?).map(close(qp))
+        case Some(Some(default)) => parameter(qp.name.as[Double].?(default)).map(dp => close(qp)(Some(dp)))
+        case _ => parameter(qp.name.as[Double].?).map(close(qp))
       }
     })
 
@@ -93,8 +89,8 @@ object ConvertibleToDirective {
   implicit val booleanOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Boolean]]] =
     instance(qp => {
       qp.default match {
-        case Some(default) => parameter(qp.name.as[Boolean].?(default)).map(close(qp))
-        case None => parameter(qp.name.as[Boolean].?).map(close(qp))
+        case Some(Some(default)) => parameter(qp.name.as[Boolean].?(default)).map(bp => close(qp)(Some(bp)))
+        case _ => parameter(qp.name.as[Boolean].?).map(close(qp))
       }
     })
 
@@ -109,8 +105,8 @@ object ConvertibleToDirective {
   implicit val intOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Int]]] =
     instance(qp => {
       qp.default match {
-        case Some(default) => parameter(qp.name.as[Int].?(default)).map(close(qp))
-        case None => parameter(qp.name.as[Int].?).map(close(qp))
+        case Some(Some(default)) => parameter(qp.name.as[Int].?(default)).map(ip => close(qp)(Some(ip)))
+        case _ => parameter(qp.name.as[Int].?).map(close(qp))
       }
     })
 
@@ -125,8 +121,8 @@ object ConvertibleToDirective {
   implicit val longOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Long]]] =
     instance(qp => {
       qp.default match {
-        case Some(default) => parameter(qp.name.as[Long].?(default)).map(close(qp))
-        case None => parameter(qp.name.as[Long].?).map(close(qp))
+        case Some(Some(default)) => parameter(qp.name.as[Long].?(default)).map(lp => close(qp)(Some(lp)))
+        case _ => parameter(qp.name.as[Long].?).map(close(qp))
       }
     })
 
@@ -188,12 +184,24 @@ object ConvertibleToDirective {
 
   implicit def bodyParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[T]] =
     (_: String, bp: BodyParameter[T]) => {
-      entity(as[T](ev)).map(close(bp))
+      bp.default match {
+        case None => entity(as[T]).map(close(bp))
+        case Some(default) => optionalEntity[T](as[T]).map {
+          case Some(value) => close(bp)(value)
+          case None => close(bp)(default)
+        }
+      }
     }
 
   implicit def bodyOptParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[Option[T]]] =
     (_: String, bp: BodyParameter[Option[T]]) => {
-      optionalEntity[T](as[T]).map(close(bp))
+      bp.default match {
+        case None => optionalEntity[T](as[T]).map(close(bp))
+        case Some(default) => optionalEntity[T](as[T]).map {
+          case v@Some(_) => close(bp)(v)
+          case None => close(bp)(default)
+        }
+      }
     }
 
   def optionalEntity[T](unmarshaller: FromRequestUnmarshaller[T]): Directive1[Option[T]] =

@@ -64,8 +64,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
             parameters =
               QueryParameter[Int](
                 name = 'limit,
-                description = Some("How many items to return at one time (max 100)"),
-                required = false) ::
+                description = Some("How many items to return at one time (max 100)")) ::
                 HNil,
             responses =
               ResponseValue[Pets, Header[String]](
@@ -106,7 +105,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
               operationId = Some("showPetById"),
               tags = Some(Seq("pets")),
               parameters =
-                PathParameter[String]('petId, Some("The id of the pet to retrieve"), true) ::
+                PathParameter[String]('petId, Some("The id of the pet to retrieve")) ::
                   HNil,
               responses =
                 ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::

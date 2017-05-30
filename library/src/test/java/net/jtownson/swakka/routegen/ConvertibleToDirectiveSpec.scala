@@ -19,6 +19,14 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
 class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFrameworkInterface {
 
+  // For query, header and body params, handle...
+  // 1. A required parameter, t: T
+  // 2. An optional parameter, ot: Option[T]
+  // 3. A required parameters, t, with default Some(t)
+  // 4. An optional parameter, t: T with default d.
+
+  // Path params are never optional and the above logic does not apply.
+
   "ConvertibleToDirective" should "convert a string query parameter" in {
     converterTest[String, QueryParameter[String]](get("/path?q=x"), "x", QueryParameter[String]('q))
     converterTest[Option[String], QueryParameter[Option[String]]](get("/path?q=x"), "Some(x)", QueryParameter[Option[String]]('q))
@@ -32,6 +40,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path?q=3.14"), "Some(3.14)", QueryParameter[Option[Float]]('q))
     converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path"), "None", QueryParameter[Option[Float]]('q))
     converterTest[Float, QueryParameter[Float]](get("/path"), "3.14", QueryParameter[Float]('p, default = Some(3.14f)))
+    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path"), "Some(3.14)", QueryParameter[Option[Float]]('p, default = Some(Some(3.14f))))
   }
 
   it should "convert a double query parameter" in {
@@ -39,6 +48,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path?q=3.14"), "Some(3.14)", QueryParameter[Option[Double]]('q))
     converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path"), "None", QueryParameter[Option[Double]]('q))
     converterTest[Double, QueryParameter[Double]](get("/path"), "3.14", QueryParameter[Double]('p, default = Some(3.14)))
+    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path"), "Some(3.14)", QueryParameter[Option[Double]]('p, default = Some(Some(3.14))))
   }
 
   it should "convert a boolean query parameter" in {
@@ -46,6 +56,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path?q=true"), "Some(true)", QueryParameter[Option[Boolean]]('q))
     converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path"), "None", QueryParameter[Option[Boolean]]('q))
     converterTest[Boolean, QueryParameter[Boolean]](get("/path"), "true", QueryParameter[Boolean]('p, default = Some(true)))
+    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path"), "Some(true)", QueryParameter[Option[Boolean]]('p, default = Some(Some(true))))
   }
 
   it should "convert an int query parameter" in {
@@ -53,7 +64,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path?q=2"), "Some(2)", QueryParameter[Option[Int]]('q))
     converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path"), "None", QueryParameter[Option[Int]]('q))
     converterTest[Int, QueryParameter[Int]](get("/path"), "2", QueryParameter[Int]('p, default = Some(2)))
-
+    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path"), "Some(2)", QueryParameter[Option[Int]]('p, default = Some(Some(2))))
   }
 
   it should "convert a long query parameter" in {
@@ -61,6 +72,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path?q=2"), "Some(2)", QueryParameter[Option[Long]]('q))
     converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path"), "None", QueryParameter[Option[Long]]('q))
     converterTest[Long, QueryParameter[Long]](get("/path"), "2", QueryParameter[Long]('p, default = Some(2)))
+    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path"), "Some(2)", QueryParameter[Option[Long]]('p, default = Some(Some(2))))
   }
 
   it should "convert a string header parameter" in {
@@ -68,6 +80,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[String], HeaderParameter[Option[String]]](get("/", "x-p", "x"), "Some(x)", HeaderParameter[Option[String]](Symbol("x-p")))
     converterTest[Option[String], HeaderParameter[Option[String]]](get("/"), "None", HeaderParameter[Option[String]](Symbol("x-p")))
     converterTest[String, HeaderParameter[String]](get("/"), "x", HeaderParameter[String](Symbol("x-p"), default = Some("x")))
+    converterTest[Option[String], HeaderParameter[Option[String]]](get("/"), "Some(x)", HeaderParameter[Option[String]](Symbol("x-p"), default = Some(Some("x"))))
   }
 
   it should "convert a float header parameter" in {
@@ -75,6 +88,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Float], HeaderParameter[Option[Float]]](get("/", "x-p", "3.14"), "Some(3.14)", HeaderParameter[Option[Float]](Symbol("x-p")))
     converterTest[Option[Float], HeaderParameter[Option[Float]]](get("/"), "None", HeaderParameter[Option[Float]](Symbol("x-p")))
     converterTest[Float, HeaderParameter[Float]](get("/"), "3.14", HeaderParameter[Float](Symbol("x-p"), default = Some(3.14f)))
+    converterTest[Option[Float], HeaderParameter[Option[Float]]](get("/"), "Some(3.14)", HeaderParameter[Option[Float]](Symbol("x-p"), default = Some(Some(3.14f))))
   }
 
   it should "convert a double header parameter" in {
@@ -82,6 +96,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Double], HeaderParameter[Option[Double]]](get("/", "x-p", "3.14"), "Some(3.14)", HeaderParameter[Option[Double]](Symbol("x-p")))
     converterTest[Option[Double], HeaderParameter[Option[Double]]](get("/"), "None", HeaderParameter[Option[Double]](Symbol("x-p")))
     converterTest[Double, HeaderParameter[Double]](get("/"), "3.14", HeaderParameter[Double](Symbol("x-p"), default = Some(3.14)))
+    converterTest[Option[Double], HeaderParameter[Option[Double]]](get("/"), "Some(3.14)", HeaderParameter[Option[Double]](Symbol("x-p"), default = Some(Some(3.14))))
   }
 
   it should "convert a boolean header parameter" in {
@@ -89,6 +104,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Boolean], HeaderParameter[Option[Boolean]]](get("/", "x-p", "true"), "Some(true)", HeaderParameter[Option[Boolean]](Symbol("x-p")))
     converterTest[Option[Boolean], HeaderParameter[Option[Boolean]]](get("/"), "None", HeaderParameter[Option[Boolean]](Symbol("x-p")))
     converterTest[Boolean, HeaderParameter[Boolean]](get("/"), "true", HeaderParameter[Boolean](Symbol("x-p"), default = Some(true)))
+    converterTest[Option[Boolean], HeaderParameter[Option[Boolean]]](get("/"), "Some(true)", HeaderParameter[Option[Boolean]](Symbol("x-p"), default = Some(Some(true))))
   }
 
   it should "convert a int header parameter" in {
@@ -96,6 +112,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Int], HeaderParameter[Option[Int]]](get("/", "x-p", "2"), "Some(2)", HeaderParameter[Option[Int]](Symbol("x-p")))
     converterTest[Option[Int], HeaderParameter[Option[Int]]](get("/"), "None", HeaderParameter[Option[Int]](Symbol("x-p")))
     converterTest[Int, HeaderParameter[Int]](get("/"), "2", HeaderParameter[Int](Symbol("x-p"), default = Some(2)))
+    converterTest[Option[Int], HeaderParameter[Option[Int]]](get("/"), "Some(2)", HeaderParameter[Option[Int]](Symbol("x-p"), default = Some(Some(2))))
   }
 
   it should "convert a long header parameter" in {
@@ -103,38 +120,16 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Long], HeaderParameter[Option[Long]]](get("/", "x-p", "2"), "Some(2)", HeaderParameter[Option[Long]](Symbol("x-p")))
     converterTest[Option[Long], HeaderParameter[Option[Long]]](get("/"), "None", HeaderParameter[Option[Long]](Symbol("x-p")))
     converterTest[Long, HeaderParameter[Long]](get("/"), "2", HeaderParameter[Long](Symbol("x-p"), default = Some(2)))
-
-  }
-
-  // NB: according to the open api schema def, path parameters must have required = true.
-  // i.e. Option types not supported.
-  it should "convert a string path parameter" in {
-    converterTest[String, PathParameter[String]](get("/a/x"), "x", PathParameter[String]('p), "/a/{p}")
-  }
-
-  it should "convert a float path parameter" in {
-    converterTest[Float, PathParameter[Float]](get("/a/3.14"), "3.14", PathParameter[Float]('p), "/a/{p}")
-  }
-
-  it should "convert a double path parameter" in {
-    converterTest[Double, PathParameter[Double]](get("/a/3.14"), "3.14", PathParameter[Double]('p), "/a/{p}")
-  }
-
-  it should "convert a boolean path parameter" in {
-    converterTest[Boolean, PathParameter[Boolean]](get("/a/true"), "true", PathParameter[Boolean]('p), "/a/{p}")
-  }
-
-  it should "convert an int path parameter" in {
-    converterTest[Int, PathParameter[Int]](get("/a/2"), "2", PathParameter[Int]('p), "/a/{p}")
-  }
-
-  it should "convert a long path parameter" in {
-    converterTest[Long, PathParameter[Long]](get("/a/2"), "2", PathParameter[Long]('p), "/a/{p}")
+    converterTest[Option[Long], HeaderParameter[Option[Long]]](get("/"), "Some(2)", HeaderParameter[Option[Long]](Symbol("x-p"), default = Some(Some(2))))
   }
 
 
   it should "convert a body param of String" in {
     converterTest[String, BodyParameter[String]](post("/p", "Hello"), "Hello", BodyParameter[String]('p))
+    converterTest[Option[String], BodyParameter[Option[String]]](post("/p", "Hello"), "Some(Hello)", BodyParameter[Option[String]]('p))
+    converterTest[Option[String], BodyParameter[Option[String]]](post("/p"), "None", BodyParameter[Option[String]]('p))
+    converterTest[String, BodyParameter[String]](post("/p"), "Hello", BodyParameter[String]('p, default = Some("Hello")))
+    converterTest[Option[String], BodyParameter[Option[String]]](post("/p"), "Some(Hello)", BodyParameter[Option[String]]('p, default = Some(Some("Hello"))))
   }
 
   case class Pet(id: Int, name: String)
@@ -167,6 +162,33 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Option[Pet], BodyParameter[Option[Pet]]](post("/p"), "got nothing", route)
   }
 
+  // NB: according to the open api schema def, path parameters must have required = true.
+  // i.e. Option types not supported.
+  it should "convert a string path parameter" in {
+    converterTest[String, PathParameter[String]](get("/a/x"), "x", PathParameter[String]('p), "/a/{p}")
+  }
+
+  it should "convert a float path parameter" in {
+    converterTest[Float, PathParameter[Float]](get("/a/3.14"), "3.14", PathParameter[Float]('p), "/a/{p}")
+  }
+
+  it should "convert a double path parameter" in {
+    converterTest[Double, PathParameter[Double]](get("/a/3.14"), "3.14", PathParameter[Double]('p), "/a/{p}")
+  }
+
+  it should "convert a boolean path parameter" in {
+    converterTest[Boolean, PathParameter[Boolean]](get("/a/true"), "true", PathParameter[Boolean]('p), "/a/{p}")
+  }
+
+  it should "convert an int path parameter" in {
+    converterTest[Int, PathParameter[Int]](get("/a/2"), "2", PathParameter[Int]('p), "/a/{p}")
+  }
+
+  it should "convert a long path parameter" in {
+    converterTest[Long, PathParameter[Long]](get("/a/2"), "2", PathParameter[Long]('p), "/a/{p}")
+  }
+
+
   "HNil converter" should "match paths without parameter tokens" in {
 
     val toDirective: Directive1[HNil] = hNilConverter.convertToDirective("/a/b", HNil)
@@ -196,18 +218,6 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     Get("http://localhost/x/y") ~> route ~> check {
       status shouldBe OK
       responseAs[String] shouldBe "matched"
-    }
-  }
-
-  "akk http" should "support optional with default properly" in {
-//    val default = Some("x")
-
-    val route = parameter("p".?("x")) { os =>
-      complete(s"$os")
-    }
-
-    Get("http://localhost") ~> route ~> check {
-      responseAs[String] shouldBe "x"
     }
   }
 

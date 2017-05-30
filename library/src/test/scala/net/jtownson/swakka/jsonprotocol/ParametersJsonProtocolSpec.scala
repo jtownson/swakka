@@ -98,14 +98,14 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
   it should "serialize required body parameters" in {
 
-    val params = BodyParameter[Pet]('pet, Some("a description"), false) :: HNil
+    val params = BodyParameter[Pet]('pet, Some("a description")) :: HNil
 
     params.toJson shouldBe bodyParameterJson(true)
   }
 
   it should "serialize optional body parameters" in {
 
-    val params = BodyParameter[Option[Pet]]('pet, Some("a description"), false) :: HNil
+    val params = BodyParameter[Option[Pet]]('pet, Some("a description")) :: HNil
 
     params.toJson shouldBe bodyParameterJson(false)
   }
@@ -149,8 +149,8 @@ class ParametersJsonProtocolSpec extends FlatSpec {
         QueryParameter[Int] :: QueryParameter[String] :: HNil
 
     val params =
-      QueryParameter[Int]('r, required = true) :: QueryParameter[String]('s) ::
-        QueryParameter[Int]('t, required = true) :: QueryParameter[String]('u) :: HNil
+      QueryParameter[Int]('r) :: QueryParameter[String]('s) ::
+        QueryParameter[Int]('t) :: QueryParameter[String]('u) :: HNil
 
     val expectedJson = JsArray(
       JsObject(
