@@ -30,20 +30,15 @@ object PathHandling {
       def apply(v1: Path): PathMatcher.Matching[L] = Matched(v1, l)
     }
 
-  def withParam(pathSegment: String, paramMatchers: Map[String, PathMatcher[Unit]]): PathMatcher[Unit] = {
+  def withParam(pathSegment: String): PathMatcher[Unit] =
+    PathMatcher(pathSegment)
 
-    if (isAnyParamToken(pathSegment))
-      paramMatchers.getOrElse(pathSegment, PathMatcher(pathSegment))
-    else
-      PathMatcher(pathSegment)
-  }
 
-  def splittingPathMatcher(modelPath: String,
-                           paramMatchers: Map[String, PathMatcher[Unit]] = Map()): PathMatcher[Unit] = {
+  def splittingPathMatcher(modelPath: String): PathMatcher[Unit] = {
     def loop(paths: List[String]): PathMatcher[Unit] = paths match {
       case Nil => PathMatchers.Neutral
-      case pathSegment :: Nil => withParam(pathSegment, paramMatchers)
-      case pathSegment :: tail => withParam(pathSegment, paramMatchers) / loop(tail)
+      case pathSegment :: Nil => withParam(pathSegment)
+      case pathSegment :: tail => withParam(pathSegment) / loop(tail)
     }
     loop(splitPath(modelPath))
   }
@@ -84,7 +79,6 @@ object PathHandling {
     Slash ~ segmentMatchers.reduceLeft(f).left.get
   }
 
-
-  def akkaPath(modelPath: String, paramMatchers: Map[String, PathMatcher[Unit]]): Directive[Unit] =
-    path(splittingPathMatcher(modelPath, paramMatchers))
+  def pathWithSplit(modelPath: String): Directive[Unit] =
+    path(splittingPathMatcher(modelPath))
 }

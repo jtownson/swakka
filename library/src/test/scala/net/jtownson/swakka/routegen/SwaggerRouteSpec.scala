@@ -1,18 +1,25 @@
 package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.model.HttpMethods.GET
-import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
+import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{HttpHeader, HttpRequest, StatusCode}
 import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
-import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.OpenApiJsonProtocol
+import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.model.Parameters.QueryParameter
 import net.jtownson.swakka.model.Responses.ResponseValue
+import net.jtownson.swakka.routegen.CorsUseCases.{CorsHandledByProxyServer, CustomCors, NoCors, SwaggerUiOnSameHostAsApplication}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+import org.scalatest.prop.TableDrivenPropertyChecks._
 import shapeless.{::, HNil}
 import spray.json._
+
+import scala.collection.immutable.Seq
 
 class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
@@ -28,18 +35,17 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
   type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
 
-  "Swagger route" should "return a swagger file" in {
-    val api =
-      OpenApi(paths =
-        PathItem[OneIntParam, StringResponse](
-          path = "/app/e1",
-          method = GET,
-          operation = Operation(
-            parameters = QueryParameter[Int]('q) :: HNil,
-            responses = ResponseValue[String, HNil]("200", "ok"),
-            endpointImplementation = f
-          )
-        ) ::
+  val api =
+    OpenApi(paths =
+      PathItem[OneIntParam, StringResponse](
+        path = "/app/e1",
+        method = GET,
+        operation = Operation(
+          parameters = QueryParameter[Int]('q) :: HNil,
+          responses = ResponseValue[String, HNil]("200", "ok"),
+          endpointImplementation = f
+        )
+      ) ::
         PathItem[OneStrParam, StringResponse](
           path = "/app/e2",
           method = GET,
@@ -50,15 +56,54 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
           )
         ) ::
         HNil
-      )
+    )
+
+  "Swagger route" should "return a swagger file" in {
 
     val route = SwaggerRoute.swaggerRoute(api)
 
-    val request = Get(s"http://example.com/swagger.json")
-
-    request ~> route ~> check {
+    Get(s"http://example.com/swagger.json") ~> route ~> check {
       status shouldBe OK
       responseAs[String] shouldBe api.toJson.prettyPrint
+    }
+  }
+
+  val paths = Table[String, HttpRequest, StatusCode](
+    ("path", "request", "expected status"),
+    ("/another/swagger-file.json", Get(s"http://example.com/another/swagger-file.json"), OK),
+    ("another/swagger-file.json", Get(s"http://example.com/another/swagger-file.json"), OK),
+    ("another/swagger-file.json", Get(s"http://example.com/swagger-file.json"), NotFound)
+  )
+
+  it should "allow swagger endpoint url to be configured" in {
+    forAll(paths) { (path, request, expectedStatus) =>
+
+      val route = SwaggerRoute.swaggerRoute(api, NoCors, path)
+
+      request ~> seal(route) ~> check {
+        status shouldBe expectedStatus
+      }
+    }
+  }
+
+  val corsCases = Table[CorsUseCase, Seq[HttpHeader]](
+    ("use case", "expected headers"),
+    (NoCors, Seq()),
+    (SwaggerUiOnSameHostAsApplication, Seq()),
+    (CorsHandledByProxyServer, Seq()),
+    (CustomCors("*", Seq("GET"), Seq()),
+      Seq(RawHeader("Access-Control-Allow-Origin", "*"),
+        RawHeader("Access-Control-Allow-Methods", "GET")))
+  )
+
+  it should "return CORS headers as configured" in {
+    forAll(corsCases) { (useCase, expectedHeaders) =>
+
+      val route = SwaggerRoute.swaggerRoute(api, useCase)
+
+      Get(s"http://example.com/swagger.json") ~> route ~> check {
+        headers shouldBe expectedHeaders
+      }
     }
   }
 
