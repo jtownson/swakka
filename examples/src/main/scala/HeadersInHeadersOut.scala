@@ -3,16 +3,19 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.model.StatusCodes.NoContent
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{HttpResponse}
+import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.RouteGen
-import net.jtownson.swakka.model.Parameters.{HeaderParameter}
+import net.jtownson.swakka.model.Parameters.HeaderParameter
 import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
+import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
 import shapeless.{::, HNil}
+
+import scala.collection.immutable.Seq
 
 // Shows how to declare
 // 1. an endpoint that accepts parameters in headers and returns headers in the response
@@ -30,21 +33,26 @@ object HeadersInHeadersOut extends App {
 
   type Paths = PathItem[Params, Responses]
 
+  val corsHeaders = Seq(
+    RawHeader("Access-Control-Allow-Origin", "*"),
+    RawHeader("Access-Control-Allow-Methods", "GET"))
+
   val multiplyInputBy2: Params => Route = {
 
-    case (numberHeader :: HNil) => {
+    case (HeaderParameter(number) :: HNil) => {
 
-      val ret = (numberHeader.value * 2).toString
+      val ret = (number * 2).toString
 
       complete(HttpResponse(
         NoContent,
-        List(RawHeader("x-header-out", ret))
-      ))
+        corsHeaders :+ RawHeader("x-header-out", ret))
+      )
     }
   }
 
   val api =
-    OpenApi(paths =
+    OpenApi(
+      paths =
       PathItem(
         path = "/",
         method = GET,
@@ -59,7 +67,8 @@ object HeadersInHeadersOut extends App {
       )
     )
 
-  val route: Route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+  val route: Route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings(
+    corsUseCase = CorsUseCases.SpecificallyThese(corsHeaders))))
 
   val bindingFuture = Http().bindAndHandle(
     route,

@@ -1,10 +1,16 @@
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives.complete
 import akka.stream.ActorMaterializer
-import shapeless.{HNil, ::}
+import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
+import shapeless.{::, HNil}
+
+import scala.collection.immutable.Seq
 
 
 // Shows how to create
@@ -36,20 +42,27 @@ object PingPong extends App {
 
   type Paths = PathItem[NoParams, StringResponse] :: HNil
 
-    val api =
-      OpenApi(paths =
-        PathItem[NoParams, StringResponse](
-          path = "/ping",
-          method = GET,
-          operation = Operation[NoParams, StringResponse](
-            responses = ResponseValue[String, HNil]("200", "ok"),
-            endpointImplementation = _ => complete("pong")
-          )
-        ) ::
-          HNil
-      )
+  val corsHeaders = Seq(
+    RawHeader("Access-Control-Allow-Origin", "*"),
+    RawHeader("Access-Control-Allow-Methods", "GET"))
 
-  val route: Route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+  val api =
+    OpenApi(
+      produces = Some(Seq("text/plain")),
+      paths =
+      PathItem[NoParams, StringResponse](
+        path = "/ping",
+        method = GET,
+        operation = Operation[NoParams, StringResponse](
+          responses = ResponseValue[String, HNil]("200", "ok"),
+          endpointImplementation = _ => complete(HttpResponse(OK, corsHeaders, "pong"))
+        )
+      ) ::
+        HNil
+    )
+
+  val route: Route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings(
+    corsUseCase = CorsUseCases.SpecificallyThese(corsHeaders))))
 
   val bindingFuture = Http().bindAndHandle(
     route,

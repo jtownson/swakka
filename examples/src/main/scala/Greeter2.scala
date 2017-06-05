@@ -1,18 +1,22 @@
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import shapeless.{::, HNil}
-
+import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.RouteGen
 import net.jtownson.swakka.model.Parameters.PathParameter
 import net.jtownson.swakka.model.Responses.ResponseValue
+import net.jtownson.swakka.routegen.CorsUseCases.SpecificallyThese
+import net.jtownson.swakka.routegen.SwaggerRouteSettings
+import shapeless.{::, HNil}
 
-import net.jtownson.swakka.RouteGen
-
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import scala.collection.immutable.Seq
 
 // Shows how to create
 // an endpoint that accepts a path parameter
@@ -30,13 +34,19 @@ object Greeter2 extends App {
 
   type Paths = PathItem[Params, StringResponse] :: HNil
 
+  val corsHeaders = Seq(
+    RawHeader("Access-Control-Allow-Origin", "*"),
+    RawHeader("Access-Control-Allow-Methods", "GET"))
+
   val greet: Params => Route = {
-    case (nameParameter :: HNil) =>
-      complete(s"Hello ${nameParameter.value}!")
+    case (PathParameter(name) :: HNil) =>
+      complete(HttpResponse(OK, corsHeaders, s"Hello ${name}!"))
   }
 
   val api =
-    OpenApi(paths =
+    OpenApi(
+      produces = Some(Seq("text/plain")),
+      paths =
       PathItem(
         path = "/greet/{name}",
         method = GET,
@@ -49,7 +59,10 @@ object Greeter2 extends App {
         HNil
     )
 
-  val route: Route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+  val route: Route = RouteGen.openApiRoute(
+    api,
+    Some(SwaggerRouteSettings(
+      corsUseCase = SpecificallyThese(corsHeaders))))
 
   val bindingFuture = Http().bindAndHandle(
     route,
