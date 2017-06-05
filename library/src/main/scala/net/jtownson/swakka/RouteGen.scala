@@ -15,19 +15,18 @@ trait RouteGen[T] {
 
 object RouteGen {
 
-  def openApiRoute[Paths](api: OpenApi[Paths], includeSwaggerRoute: Boolean = false)
+  def openApiRoute[Paths](api: OpenApi[Paths], swaggerRouteSettings: Option[SwaggerRouteSettings] = None)
                          (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths]]): Route =
     hostDirective(api.host) {
       schemesDirective(api.schemes) {
         basePathDirective(api.basePath) {
-          if (includeSwaggerRoute)
-            ev1.toRoute(api.paths) ~ SwaggerRoute.swaggerRoute(api)
-          else
-            ev1.toRoute(api.paths)
+          swaggerRouteSettings match {
+            case Some(settings) => ev1.toRoute(api.paths) ~ SwaggerRoute.swaggerRoute(api, settings)
+            case None => ev1.toRoute(api.paths)
+          }
         }
       }
     }
-
 
   implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
     (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)

@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.func2Format
-import net.jtownson.swakka.model.{Contact, Info, Licence}
+import net.jtownson.swakka.model.{Contact, Info, License}
 import shapeless.{::, HList, HNil}
 import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonWriter, RootJsonFormat, RootJsonWriter}
 
@@ -75,7 +75,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     JsObject(fields: _*)
   }
 
-  private val licenceWriter: JsonWriter[Licence] = (licence: Licence) => {
+  private val licenceWriter: JsonWriter[License] = (licence: License) => {
     val fields: List[(String, JsValue)] = List(
       Some("name" -> JsString(licence.name)),
       licence.url.map("url" -> JsString(_))).flatten
@@ -91,7 +91,7 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
       info.description.map("description" -> JsString(_)),
       info.termsOfService.map("termsOfService" -> JsString(_)),
       info.contact.map("contact" -> contactWriter.write(_)),
-      info.licence.map("licence" -> licenceWriter.write(_))).
+      info.licence.map("license" -> licenceWriter.write(_))).
       flatten
 
     JsObject(fields: _*)

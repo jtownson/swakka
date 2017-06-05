@@ -4,9 +4,10 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.HttpMethods.{GET, POST, PUT}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
+import akka.http.scaladsl.model.headers.Host
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.Directives.{complete, reject}
+import akka.http.scaladsl.server.Directives.{complete, reject, host}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
@@ -18,6 +19,8 @@ import spray.json._
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.model.Responses.ResponseValue
+import net.jtownson.swakka.routegen.CorsUseCases.NoCors
+import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
 import org.scalamock.function.MockFunction1
 
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
@@ -246,7 +249,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     }
   }
 
-  "the swagger route" should "be enabled with a toggle" in {
+  "the swagger route" should "be enabled by providing settings" in {
 
     type Params = QueryParameter[Int] :: HNil
     type Responses = ResponseValue[String, HNil]
@@ -262,7 +265,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           parameters = QueryParameter[Int]('q) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f)))
 
-    val route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+    val route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings()))
 
     val swaggerRequest = get("/swagger.json")
 
@@ -296,7 +299,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           HNil
       )
 
-    val route: Route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+    val route: Route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings()))
 
     Get("http://localhost:8080/") ~> seal(route) ~> check {
       status shouldBe NotFound
@@ -333,7 +336,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           HNil
       )
 
-    val route: Route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+    val route: Route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings()))
 
     Get("http://localhost:8080/greet/Katharine") ~> seal(route) ~> check {
       status shouldBe OK
@@ -366,6 +369,35 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     }
   }
 
+  "if the host element includes a port, it" should "be removed from the route defn" in {
+
+    type Paths = PathItem[HNil, HNil]
+
+    val f = mockFunction[HNil, Route]
+
+    val api = OpenApi[Paths](
+      host = Some("foo:8080"),
+      paths =
+        PathItem(path =
+          "/app", method = GET, operation = Operation(parameters = HNil, responses = HNil, endpointImplementation = f)))
+
+    val route = RouteGen.openApiRoute(api)
+
+    f.expects(*).returning(complete("x"))
+
+    val request0 = get("foo", "/app")
+    request0 ~> seal(route) ~> check {
+      status shouldBe OK
+    }
+
+    f.expects(*).returning(complete("x"))
+
+    val request1 = get("foo:8080", "/app")
+    request1 ~> route ~> check {
+      status shouldBe OK
+    }
+  }
+
   "schemes" should "be included in the route defn" in {
     type Paths = PathItem[HNil, HNil]
 
@@ -383,7 +415,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
             endpointImplementation = f))
     )
 
-    val route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+    val route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings()))
 
     val request0 = Get("https://foo.com/app")
     request0 ~> route ~> check {

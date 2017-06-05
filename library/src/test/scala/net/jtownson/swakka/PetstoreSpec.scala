@@ -8,7 +8,9 @@ import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import net.jtownson.swakka.model.Parameters.{PathParameter, QueryParameter}
 import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
-import net.jtownson.swakka.model.{Info, Licence}
+import net.jtownson.swakka.model.{Info, License}
+import net.jtownson.swakka.routegen.CorsUseCases.NoCors
+import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
@@ -47,7 +49,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
 
     val petstoreApi = OpenApi[Paths](
-      info = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(Licence(name = "MIT"))),
+      info = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(License(name = "MIT"))),
       host = Some("petstore.swagger.io"),
       basePath = Some("/v1"),
       schemes = Some(Seq("http")),
@@ -117,14 +119,14 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           HNil
     )
 
-    val apiRoutes = openApiRoute(petstoreApi, includeSwaggerRoute = true)
+    val apiRoutes = openApiRoute(petstoreApi, Some(SwaggerRouteSettings()))
 
     val expectedJson = JsObject(
       "swagger" -> JsString("2.0"),
       "info" -> JsObject(
         "title" -> JsString("Swagger Petstore"),
         "version" -> JsString("1.0.0"),
-        "licence" -> JsObject(
+        "license" -> JsObject(
           "name" -> JsString("MIT")
         )
       ),

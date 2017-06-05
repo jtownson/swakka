@@ -32,6 +32,11 @@ object Parameters {
                  default: Option[T] = None): QueryParameter[T] =
         OpenQueryParameter(name, description, default)
 
+    def unapply[T](qp: QueryParameter[T]): Option[T] = qp match {
+      case OpenQueryParameter(_, _, default) => default
+      case ClosedQueryParameter(_, _, _, value) => Some(value)
+    }
+
     case class OpenQueryParameter[T](name: Symbol, description: Option[String],
                                      default: Option[T])
       extends QueryParameter[T] with OpenParameter[T, ClosedQueryParameter[T]] {
@@ -52,6 +57,11 @@ object Parameters {
     def apply[T](name: Symbol, description: Option[String] = None,
                  default: Option[T] = None): PathParameter[T] =
       OpenPathParameter(name, description, default)
+
+    def unapply[T](pp: PathParameter[T]): Option[T] = pp match {
+      case OpenPathParameter(_, _, default) => default
+      case ClosedPathParameter(_, _, _, value) => Some(value)
+    }
 
     case class OpenPathParameter[T](name: Symbol, description: Option[String],
                                     default: Option[T])
@@ -75,6 +85,11 @@ object Parameters {
                  default: Option[T] = None): BodyParameter[T] =
       OpenBodyParameter(name, description, default)
 
+    def unapply[T](bp: BodyParameter[T]): Option[T] = bp match {
+      case OpenBodyParameter(_, _, default) => default
+      case ClosedBodyParameter(_, _, _, value) => Some(value)
+    }
+
     case class OpenBodyParameter[T](name: Symbol, description: Option[String],
                                     default: Option[T])
       extends BodyParameter[T] with OpenParameter[T, ClosedBodyParameter[T]] {
@@ -96,6 +111,11 @@ object Parameters {
     def apply[T](name: Symbol, description: Option[String] = None,
                  default: Option[T] = None):
       HeaderParameter[T] = OpenHeaderParameter(name, description, default)
+
+    def unapply[T](hp: HeaderParameter[T]): Option[T] = hp match {
+      case OpenHeaderParameter(_, _, default) => default
+      case ClosedHeaderParameter(_, _, _, value) => Some(value)
+    }
 
     case class OpenHeaderParameter[T](name: Symbol, description: Option[String],
                                       default: Option[T])

@@ -18,6 +18,8 @@ object CorsUseCases {
 
   val CorsHandledByProxyServer = NoCors
 
+  case class SpecificallyThese(headers: Seq[HttpHeader]) extends CorsUseCase
+
   case class CustomCors(accessControlAllowOrigin: String,
                         accessControlAllowMethods: Seq[String],
                         accessControlAllowHeaders: Seq[String]) extends CorsUseCase {

@@ -60,7 +60,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
   "Swagger route" should "return a swagger file" in {
 
-    val route = SwaggerRoute.swaggerRoute(api)
+    val route = SwaggerRoute.swaggerRoute(api, SwaggerRouteSettings())
 
     Get(s"http://example.com/swagger.json") ~> route ~> check {
       status shouldBe OK
@@ -78,7 +78,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   it should "allow swagger endpoint url to be configured" in {
     forAll(paths) { (path, request, expectedStatus) =>
 
-      val route = SwaggerRoute.swaggerRoute(api, NoCors, path)
+      val route = SwaggerRoute.swaggerRoute(api, SwaggerRouteSettings(endpointPath = path))
 
       request ~> seal(route) ~> check {
         status shouldBe expectedStatus
@@ -99,7 +99,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   it should "return CORS headers as configured" in {
     forAll(corsCases) { (useCase, expectedHeaders) =>
 
-      val route = SwaggerRoute.swaggerRoute(api, useCase)
+      val route = SwaggerRoute.swaggerRoute(api, SwaggerRouteSettings(corsUseCase = useCase))
 
       Get(s"http://example.com/swagger.json") ~> route ~> check {
         headers shouldBe expectedHeaders
