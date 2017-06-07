@@ -10,12 +10,12 @@ import shapeless.{HList, HNil}
 object OpenApiModel {
 
   case class Operation[Params <: HList : ConvertibleToDirective, Responses](
-   summary: Option[String] = None,
-   operationId: Option[String] = None,
-   tags: Option[Seq[String]] = None,
-   parameters: Params = HNil,
-   responses: Responses = HNil,
-   endpointImplementation: Params => Route)
+    summary: Option[String] = None,
+    operationId: Option[String] = None,
+    tags: Option[Seq[String]] = None,
+    parameters: Params = HNil,
+    responses: Responses = HNil,
+    endpointImplementation: Params => Route)
 
   case class PathItem[Params <: HList : ConvertibleToDirective, Responses](
     path: String,
@@ -30,5 +30,15 @@ object OpenApiModel {
     consumes: Option[Seq[String]] = None,
     produces: Option[Seq[String]] = None,
     paths: Paths)
+
+  case class SecureOpenApi[Paths, SecurityDefinitions] (
+    info: Info = pointlessInfo,
+    host: Option[String] = None,
+    basePath: Option[String] = None,
+    schemes: Option[Seq[String]] = None,
+    consumes: Option[Seq[String]] = None,
+    produces: Option[Seq[String]] = None,
+    paths: Paths,
+    securityDefinitions: Option[SecurityDefinitions] = None)
 }
 
