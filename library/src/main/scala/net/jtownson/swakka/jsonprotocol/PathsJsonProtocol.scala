@@ -117,9 +117,10 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     ))
 
 
-  implicit def apiWriter[Paths](implicit ev: PathsJsonFormat[Paths]): RootJsonWriter[OpenApi[Paths]] =
-    new RootJsonWriter[OpenApi[Paths]] {
-      override def write(api: OpenApi[Paths]): JsValue = {
+  implicit def apiWriter[Paths, SecurityDefinitions]
+  (implicit ev: PathsJsonFormat[Paths]): RootJsonWriter[OpenApi[Paths, SecurityDefinitions]] =
+    new RootJsonWriter[OpenApi[Paths, SecurityDefinitions]] {
+      override def write(api: OpenApi[Paths, SecurityDefinitions]): JsValue = {
 
         val paths = ev.write(api.paths)
 
@@ -137,8 +138,9 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
       }
     }
 
-  implicit def apiFormat[Paths](implicit ev: PathsJsonFormat[Paths]): RootJsonFormat[OpenApi[Paths]] =
-    lift(apiWriter[Paths])
+  implicit def apiFormat[Paths, SecurityDefinitions]
+  (implicit ev: PathsJsonFormat[Paths]): RootJsonFormat[OpenApi[Paths, SecurityDefinitions]] =
+    lift(apiWriter[Paths, SecurityDefinitions])
 }
 
 object PathsJsonProtocol extends PathsJsonProtocol

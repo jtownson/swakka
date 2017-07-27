@@ -1,6 +1,6 @@
 package net.jtownson.swakka
 
-import net.jtownson.swakka.jsonprotocol.{HeadersJsonProtocol, ParametersJsonProtocol, PathsJsonProtocol, ResponsesJsonProtocol}
+import net.jtownson.swakka.jsonprotocol._
 import spray.json.DefaultJsonProtocol
 
 trait OpenApiJsonProtocol extends
@@ -8,6 +8,7 @@ trait OpenApiJsonProtocol extends
   ResponsesJsonProtocol with
   PathsJsonProtocol with
   HeadersJsonProtocol with
+  SecurityDefinitionsJsonProtocol with
   DefaultJsonProtocol
 
 object OpenApiJsonProtocol extends OpenApiJsonProtocol

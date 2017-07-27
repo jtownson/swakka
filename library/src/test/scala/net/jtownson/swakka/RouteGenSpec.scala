@@ -228,7 +228,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f2))
 
 
-    val api = OpenApi(paths = path1 :: path2 :: HNil)
+    val api = OpenApi[Paths, HNil](paths = path1 :: path2 :: HNil)
 
     val route = RouteGen.openApiRoute(api)
 
@@ -257,7 +257,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val f = mockFunction[Params, Route]
 
-    val api = OpenApi[Paths](paths =
+    val api = OpenApi[Paths, HNil](paths =
       PathItem(
         path = "/app/e1",
         method = GET,
@@ -286,7 +286,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     type Paths = PathItem[NoParams, StringResponse] :: HNil
 
     val api =
-      OpenApi(
+      OpenApi[Paths, HNil](
         paths =
           PathItem[NoParams, StringResponse](
             path = "/app/e1",
@@ -323,7 +323,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     }
 
     val api =
-      OpenApi(paths =
+      OpenApi[Paths, HNil](paths =
         PathItem(
           path = "/greet/{name}",
           method = GET,
@@ -349,7 +349,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val f = mockFunction[HNil, Route]
 
-    val api = OpenApi[Paths](
+    val api = OpenApi[Paths, HNil](
       host = Some("foo"),
       paths =
         PathItem(path =
@@ -375,7 +375,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val f = mockFunction[HNil, Route]
 
-    val api = OpenApi[Paths](
+    val api = OpenApi[Paths, HNil](
       host = Some("foo:8080"),
       paths =
         PathItem(path =
@@ -403,7 +403,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val f = mockFunction[HNil, Route]
 
-    val api = OpenApi[Paths](
+    val api = OpenApi[Paths, HNil](
       schemes = Some(Seq("http")),
       paths =
         PathItem(
@@ -446,7 +446,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       }
     }
 
-    val api = OpenApi[Paths](paths =
+    val api = OpenApi[Paths, HNil](paths =
       PathItem(
         path = "/app/e1",
         method = GET,
@@ -481,7 +481,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           reject
     }
 
-    val api = OpenApi[Paths](paths =
+    val api = OpenApi[Paths, HNil](paths =
       PathItem(
         path = "/app/e1",
         method = GET,

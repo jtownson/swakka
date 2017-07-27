@@ -112,7 +112,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
   type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
 
   it should "write a simple swagger definition" in {
-    val api: OpenApi[Paths] =
+    val api: OpenApi[Paths, HNil] =
       OpenApi(paths =
         PathItem[OneIntParam, StringResponse](
           path = "/app/e1",
@@ -185,11 +185,11 @@ class PathsJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    apiFormat[Paths].write(api) shouldBe expectedJson
+    apiFormat[Paths, HNil].write(api) shouldBe expectedJson
   }
 
   it should "write an empty swagger definition" in {
-    val api = OpenApi[HNil](paths = HNil)
+    val api = OpenApi[HNil, HNil](paths = HNil)
     val expectedJson = JsObject(
       "swagger" -> JsString("2.0"),
       "info" -> JsObject(
@@ -199,7 +199,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       "paths" -> JsObject()
     )
 
-    apiFormat[HNil].write(api) shouldBe expectedJson
+    apiFormat[HNil, HNil].write(api) shouldBe expectedJson
   }
 
   it should "combine path items where the path is equal" in {

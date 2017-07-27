@@ -36,7 +36,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
 
   val api =
-    OpenApi(paths =
+    OpenApi[Paths, HNil](paths =
       PathItem[OneIntParam, StringResponse](
         path = "/app/e1",
         method = GET,

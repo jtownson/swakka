@@ -91,7 +91,7 @@ Content-Length: 42
 The requested resource could not be found.
 ```
 
-### Some other key details:
+### Other useful details:
 
 ```scala
   type Params = QueryParameter[String] :: HNil
@@ -129,3 +129,9 @@ The Swakka-generated route contains Akka _directives_ that extract Params
 (either in the query string, path, headers or request body) from the request. 
 Pattern match the Params HList to obtain each parameter.
 The _value_ field contains the extracted parameter value.
+
+Be aware that Swakka routes check and extracts _request_ information but do not
+check _response_ information. If, for example, your swagger definition says your 
+API returns a ResponseValue[Pet] but your implementation actually returns something
+else, you have a bug.
+

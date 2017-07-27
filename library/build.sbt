@@ -18,8 +18,9 @@ val akka = Seq(
   "com.typesafe.akka" %% "akka-http-jackson" % "10.0.5",
   "com.typesafe.akka" %% "akka-http-xml" % "10.0.5")
 
-val sprayJsonShapeless = Seq(
-  "com.github.fommil" %% "spray-json-shapeless" % "1.3.0"
+
+val shapeless = Seq(
+  "com.chuusai" %% "shapeless" % "2.3.2"
 )
 
 val scalatest = Seq(
@@ -40,4 +41,4 @@ val jsonPath = Seq(
   "com.jayway.jsonpath" % "json-path" % "2.2.0"
 )
 
-libraryDependencies := akka ++ scalatest ++ scalaReflection ++ sprayJsonShapeless ++ swaggerAnnotations ++ jsonPath
+libraryDependencies := akka ++ scalatest ++ scalaReflection ++ shapeless ++ swaggerAnnotations ++ jsonPath

@@ -1,5 +1,6 @@
 package net.jtownson.swakka.routegen
 
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
@@ -7,15 +8,14 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server.{Directive1, Route}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
+import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonschema.SchemaWriter.schemaWriter
 import net.jtownson.swakka.model.Parameters._
+import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.HNil
 import spray.json._
-import net.jtownson.swakka.OpenApiJsonProtocol._
-import net.jtownson.swakka.jsonschema.SchemaWriter.schemaWriter
-import net.jtownson.swakka.routegen.ConvertibleToDirective._
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
 class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFrameworkInterface {
 

@@ -10,8 +10,9 @@ import spray.json.JsonFormat
 
 object SwaggerRoute {
 
-  def swaggerRoute[Paths](api: OpenApi[Paths], swaggerRouteSettings: SwaggerRouteSettings)
-                         (implicit ev: JsonFormat[OpenApi[Paths]]): Route = {
+  def swaggerRoute[Paths, SecurityDefinitions]
+  (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: SwaggerRouteSettings)
+                         (implicit ev: JsonFormat[OpenApi[Paths, SecurityDefinitions]]): Route = {
 
     get {
       pathWithSplit(swaggerRouteSettings.endpointPath) {

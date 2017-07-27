@@ -48,7 +48,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     type Paths = PathItem[ListPetsParams, ListPetsResponses] :: PathItem[HNil, CreatePetResponses] :: PathItem[ShowPetParams, ShowPetResponses] :: HNil
 
 
-    val petstoreApi = OpenApi[Paths](
+    val petstoreApi = OpenApi[Paths, HNil](
       info = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(License(name = "MIT"))),
       host = Some("petstore.swagger.io"),
       basePath = Some("/v1"),

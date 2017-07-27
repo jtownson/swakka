@@ -16,4 +16,5 @@ object SecurityDefinitions {
 
   case class Oauth2AccessCodeSecurity(authorizationUrl: String, tokenUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None)
 
+  case class SecurityRequirement(name: Symbol, refs: Seq[String] = Seq())
 }

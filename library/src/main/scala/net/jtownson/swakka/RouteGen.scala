@@ -15,8 +15,9 @@ trait RouteGen[T] {
 
 object RouteGen {
 
-  def openApiRoute[Paths](api: OpenApi[Paths], swaggerRouteSettings: Option[SwaggerRouteSettings] = None)
-                         (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths]]): Route =
+  def openApiRoute[Paths, SecurityDefinitions]
+  (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: Option[SwaggerRouteSettings] = None)
+  (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths, SecurityDefinitions]]): Route =
     hostDirective(api.host) {
       schemesDirective(api.schemes) {
         basePathDirective(api.basePath) {
