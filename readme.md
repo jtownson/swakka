@@ -14,7 +14,8 @@ object PingPong extends App {
 
   type Paths = PathItem[NoParams, StringResponse] :: HNil
   
-  // (1) - Create a swagger-like API structure.
+  // (1) - Create a swagger-like API structure using case classes.
+  // Implement each endpoint as a _Route_ (e.g. complete("pong"))
   val api =
     OpenApi(paths =
       PathItem[NoParams, StringResponse](
@@ -28,8 +29,11 @@ object PingPong extends App {
         HNil
     )
 
-  // (2) - Swakka generates a route for the API and an additional route for the swagger.json.
-  val route: Route = RouteGen.openApiRoute(api, includeSwaggerRoute = true)
+  // (2) - Swakka generates an outer route for the API, using your implementation(s) as inner routes.
+  // Optionally, add an additional route for the swagger.json.
+  val route: Route = RouteGen.openApiRoute(
+    api,
+    swaggerRouteSettings = Some(SwaggerRouteSettings()))
 
   val bindingFuture = Http().bindAndHandle(
     route,
@@ -39,7 +43,7 @@ object PingPong extends App {
 ```
 
 ```bash
-jtownson@munch ~$ # (3) Get the swagger file
+jtownson@munch ~$ # (3) Your callers can then get the swagger file
 jtownson@munch ~$ curl -i localhost:8080/swagger.json
 HTTP/1.1 200 OK
 Server: akka-http/10.0.5
@@ -69,7 +73,7 @@ Content-Length: 302
   }
 }
 
-jtownson@munch ~$ # (4) Call the API
+jtownson@munch ~$ # (4) and call the API
 jtownson@munch ~$ curl -i localhost:8080/ping
 HTTP/1.1 200 OK
 Server: akka-http/10.0.5
@@ -79,7 +83,7 @@ Content-Length: 4
 
 pong
 
-jtownson@munch ~$ # (5) The Swakka generated route contains directives that match the 
+jtownson@munch ~$ # (5) With the generated route directives matching the
 jtownson@munch ~$ #     host, paths, parameters, etc of your swagger API definition.
 jtownson@munch ~$ curl -i localhost:8080/pang
 HTTP/1.1 404 Not Found
@@ -91,9 +95,11 @@ Content-Length: 42
 The requested resource could not be found.
 ```
 
-### Other useful details:
+### Parameters:
 
 ```scala
+
+  // We'll define an endpoint that takes a single query parameter as a String.
   type Params = QueryParameter[String] :: HNil
   type StringResponse = ResponseValue[String, HNil]
 
@@ -130,8 +136,25 @@ The Swakka-generated route contains Akka _directives_ that extract Params
 Pattern match the Params HList to obtain each parameter.
 The _value_ field contains the extracted parameter value.
 
-Be aware that Swakka routes check and extracts _request_ information but do not
-check _response_ information. If, for example, your swagger definition says your 
-API returns a ResponseValue[Pet] but your implementation actually returns something
-else, you have a bug.
+Type parameters also define endpoint Responses. Note, however, *the swagger response definitions
+do not modify the generated Route* (they only change how the swagger.json will be rendered).
 
+Swakka generates two things from your API definition:
+1) An akka Route
+2) A swagger.json
+Parameters affect both 1 and 2. Responses only affect the swagger file.
+
+### Optional Parameters
+
+### API security
+
+### Imports and implicits
+
+
+
+### Troubleshooting
+#### Scala compiler unable to find implicits
+
+#### Akka rejects requests for the swagger file
+
+#### Akka rejects API requests
