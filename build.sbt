@@ -2,7 +2,7 @@ import sbt.Keys.scalaVersion
 
 organization := "net.jtownson"
 
-name := "swakka"
+name := "swakka-build"
 
 version := "1.0"
 

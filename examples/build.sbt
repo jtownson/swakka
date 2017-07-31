@@ -1,4 +1,4 @@
-name := "swakka-app"
+name := "swakka-examples"
 
 version := "1.0"
 
