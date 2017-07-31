@@ -29,8 +29,12 @@ object PetstoreV1 extends App {
   case class Pet(id: String, name: String, tag: Option[String] = None)
 
   type Pets = Seq[Pet]
+  implicit val petSchemaWriter = schemaWriter(Pet)
+  implicit val petJsonFormat = jsonFormat3(Pet)
 
   case class Error(id: Int, message: String)
+  implicit val errorSchemaWriter = schemaWriter(Error)
+  implicit val errorJsonFormat = jsonFormat2(Error)
 
   type ListPetsParams = QueryParameter[Int] :: HNil
   type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
@@ -40,17 +44,6 @@ object PetstoreV1 extends App {
 
   type ShowPetParams = PathParameter[String] :: HNil
   type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
-
-  type Paths =
-    PathItem[ListPetsParams, ListPetsResponses] ::
-    PathItem[CreatePetParams, CreatePetResponses]::
-    PathItem[ShowPetParams, ShowPetResponses]::
-    HNil
-
-  implicit val petSchemaWriter = schemaWriter(Pet)
-  implicit val petJsonFormat = jsonFormat3(Pet)
-  implicit val errorSchemaWriter = schemaWriter(Error)
-  implicit val errorJsonFormat = jsonFormat2(Error)
 
 
   val petsDb = mutable.LinkedHashMap[String, Pet]()
@@ -82,7 +75,7 @@ object PetstoreV1 extends App {
       }
   }
 
-  val petstoreApi = OpenApi[Paths](
+  val petstoreApi = OpenApi(
     info = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(License(name = "MIT"))),
     host = Some("petstore.swagger.io:8080"),
     basePath = Some("/v1"),

@@ -27,7 +27,7 @@ object OpenApiModel {
     method: HttpMethod,
     operation: Operation[Params, Responses])
 
-  case class OpenApi[Paths, SecurityDefinitions] (
+  case class OpenApi[Paths, +SecurityDefinitions] (
     info: Info = pointlessInfo,
     host: Option[String] = None,
     basePath: Option[String] = None,

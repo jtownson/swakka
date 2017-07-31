@@ -1,4 +1,3 @@
-import Greeter2.corsHeaders
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods.GET
@@ -9,7 +8,7 @@ import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import net.jtownson.swakka.routegen.CorsUseCases.SpecificallyThese
-import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
+import net.jtownson.swakka.routegen.SwaggerRouteSettings
 import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
