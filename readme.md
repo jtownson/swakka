@@ -305,6 +305,11 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
 If you want to see some fully working, copy-and-pasteable code, there are implementations of the Petstore app in Swakka's
 examples project and in the library unit tests. Take your pick.
 
+### Annotating BodyParameters and Responses
+You will probably want to annotate your custom model classes (either those used for requests or for responses) so that
+the swagger file contains useful comments about each of the fields.
+
+ 
 ### Imports and implicits
 
 Before reading further it's worth having a look at the code in the PetstoreV1 samples (either the sample apps or unit test). 
