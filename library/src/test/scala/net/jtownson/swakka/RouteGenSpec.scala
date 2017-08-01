@@ -438,15 +438,13 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     type Paths = PathItem[Params, Responses]
 
     val f: Params => Route = {
-      case (qp :: HNil) => {
-        qp.value match {
-          case None => complete("Ok")
-          case _ => reject
-        }
-      }
+      case QueryParameter(Some(_)) :: HNil =>
+        reject
+      case QueryParameter(None) :: HNil =>
+        complete("Ok")
     }
 
-    val api = OpenApi[Paths, HNil](paths =
+    val api = OpenApi[Paths, Nothing](paths =
       PathItem(
         path = "/app/e1",
         method = GET,
