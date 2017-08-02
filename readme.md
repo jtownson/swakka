@@ -155,14 +155,96 @@ The Swakka-generated outer Route contains Akka _directives_ that extract these P
 
 You can then pattern match the Params HList to get the value of each ```QueryParameter```, ```PathParameter```, etc.
 
-The responses from your API are also statically typed using a type parameter. Note, however, *the swagger response definitions
-do not modify the generated Route* (they only change how the swagger.json will be rendered).
+### Responses
+
+The responses from your API are defined using a _Responses_ HList. 
+
+For example
+```scala
+type EndpointResponses = ResponseValue[String, HNil] :: ResponseValue[Pet, HNil] :: ResponseValue[Error, HNil] :: HNil
+
+val responses = 
+      ResponseValue[String, HNil](
+        responseCode = "404",
+        description = "Pet not found with the id provided. Response body contains a String error message."
+      ) ::
+      ResponseValue[Pet, HNil](
+        responseCode = "200",
+        description = "Pet returned in the response body"
+      ) ::
+      ResponseValue[Error, HNil](
+        responseCode = "500",
+        description = "There was an error. Response will contain an Error json object to help debugging."
+      ) ::
+      HNil
+
+```
+
+Each ```ResponseValue``` takes two type parameters:
+
+1. The type of the response body. This can be any any case class. You make it work you need too things
+  1.1. a spray ```JsonFormat``` so that Akka Http can marshall it correctly.
+  1.2. a Swakka ```SchemaWriter``` so that Swakka can write a json schema for the case class into the swagger file.
+2. Any headers set in the response (e.g. caching headers)
+
+Here is an example:
+
+```scala
+import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
+import net.jtownson.swakka.jsonschema.SchemaWriter._
+import shapeless.{::, HNil}
+import spray.json._
+
+case class Success(id: String)
+
+implicit val successSchema: SchemaWriter[Success] = schemaWriter(Success)
+
+type Headers = Header[String]
+type Responses = ResponseValue[Success, Headers] :: HNil
+
+val responses: Responses = 
+  ResponseValue[Success, Headers](
+    responseCode = "200", 
+    description = "ok",
+    headers = Header[String](Symbol("cache-control"), Some("a cache control header specifying the max-age of the entity")))
+    
+println(responses.toJson)    
+
+```
+
+This will output the following Swagger snippet
+```json
+{
+  "200": {
+    "description": "ok",
+    "headers": {
+      "cache-control": {
+        "type": "string",
+        "description": "a cache control header specifying the max-age of the entity"
+      }
+    },
+    "schema": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+```  
 
 Given your OpenApi definition, Swakka creates two things:
+1. An Akka Route
+2. A swagger.json
 
-1) An akka Route
-2) A swagger.json
-Parameters affect both 1 and 2. Responses only affect the swagger file.
+NB: the *response definitions do not modify the generated Akka Route in (step 1), they only modify how the swagger.json (step 2).
+This means neither the scala compiler nor Akka's runtime will tell you if the response types declared in your OpenApi definition
+are in sync with the actual type returned by your endpoint implementation. If you change the return type of an endpoint, you
+must _remember_ to update the OpenApi definition.
+
 
 ### Optional Parameters
 
