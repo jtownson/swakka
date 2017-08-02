@@ -185,7 +185,9 @@ Each ```ResponseValue``` takes two type parameters:
 1. The type of the response body. This can be any any case class. You make it work you need two things
 
     1.1. a spray ```JsonFormat``` so that Akka Http can marshall it correctly.
+    
     1.2. a Swakka ```SchemaWriter``` so that Swakka can write a json schema for the case class into the swagger file.
+    
 2. Any headers set in the response (e.g. caching headers)
 
 Here is an example:
