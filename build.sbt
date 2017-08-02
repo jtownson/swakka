@@ -1,14 +1,19 @@
 import sbt.Keys.scalaVersion
 
-organization := "net.jtownson"
+lazy val commonSettings = Seq(
+  organization := "net.jtownson",
+  version := "0.1a",
+  scalaVersion := "2.12.1",
+  scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
+)
 
-name := "swakka-build"
-
-version := "1.0"
-
-scalaVersion := "2.12.1"
-//scalaOrganization in ThisBuild := "org.typelevel"
-scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
+lazy val sonatypeSettings = Seq(
+  homepage := Some(url("https://bitbucket.org/jtownson/swakka")),
+  scmInfo := Some(ScmInfo(url("https://bitbucket.org/jtownson/swakka"), "git@bitbucket.org:jtownson/swakka.git")),
+  developers := List(Developer("jtownson", "Jeremy Townson", "jeremy dot townson at gmail dot com", url("https://bitbucket.org/jtownson"))),
+  licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
+  pomIncludeRepository := (_ => false)
+)
 
 val akka = Seq(
   "com.typesafe.akka" %% "akka-http-core" % "10.0.5",
@@ -42,13 +47,25 @@ val jsonPath = Seq(
 )
 
 lazy val library = project
-  .settings(libraryDependencies ++=
+  .settings(
+    name := "swakka",
+    commonSettings,
+    sonatypeSettings,
+    libraryDependencies ++=
       akka ++
-      scalatest ++
-      scalaReflection ++
-      shapeless ++
-      swaggerAnnotations ++
-      jsonPath)
+        scalatest ++
+        scalaReflection ++
+        shapeless ++
+        swaggerAnnotations ++
+        jsonPath)
 
 lazy val examples = project
-  .settings(libraryDependencies += "net.jtownson" %% "swakka" % "1.0")
+  .settings(
+    name := "swakka-examples",
+    commonSettings)
+  .dependsOn(library)
+
+lazy val root = (project in file("."))
+  .settings(
+    name := "swakka-build")
+  .aggregate(library, examples)
