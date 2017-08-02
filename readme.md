@@ -240,6 +240,7 @@ This will output the following Swagger snippet
 ```  
 
 Given your OpenApi definition, Swakka creates two things:
+
 1. An Akka Route
 2. A swagger.json
 
