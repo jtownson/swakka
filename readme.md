@@ -23,7 +23,7 @@ object PingPong extends App {
 
   type Paths = PathItem[NoParams, StringResponse] :: HNil
   
-  // (1) - Create a swagger-like API structure using an OpenApi case classe.
+  // (1) - Create a swagger-like API structure using an OpenApi case class.
   // Implement each endpoint as an Akka _Route_ (e.g. complete("pong"))
   val api =
     OpenApi(paths =
@@ -32,14 +32,17 @@ object PingPong extends App {
         method = GET,
         operation = Operation[NoParams, StringResponse](
           responses = ResponseValue[String, HNil]("200", "ok"),
-          endpointImplementation = _ => complete("pong") // this is the implementation. It is a function from n Akka Http Route.
+          endpointImplementation = _ => complete("pong") // this is the implementation. 
+          // It is a function from NoParams to an Akka Http Route.
         )
       ) ::
         HNil
     )
 
   // (2) - Swakka will generate 
-  //       a) a Route for the API. This extracts the paths, parameters, headers, etc in your swagger definition and passes them to your implementation.
+  //       a) a Route for the API. 
+  //          This extracts the paths, parameters, headers, etc in your swagger definition 
+  //          and passes them to your implementation.
   //       b) a swagger.json. This is added to the API route above.
   val route: Route = RouteGen.openApiRoute(
     api,
@@ -107,8 +110,8 @@ The requested resource could not be found.
 
 ### Parameters:
 
-APIs without inputs are never very interesting (counter examples, oh please).
-Enter QueryParameter[T], PathParameter[T], HeaderParameter[T] and BodyParameter[T].
+APIs without inputs are never very interesting (counter examples, please).
+Enter ```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParameter[T]``` and ```BodyParameter[T]```.
 
 ```scala
 
@@ -118,7 +121,9 @@ Enter QueryParameter[T], PathParameter[T], HeaderParameter[T] and BodyParameter[
 
   type Paths = PathItem[Params, StringResponse] :: HNil
 
+  // The endpoint is then a function Params => Route
   val greet: Params => Route = {
+    // Pattern match the Params HList
     case (QueryParameter(name) :: HNil) =>
       complete(s"Hello ${name}!")
   }
@@ -145,17 +150,16 @@ For each of your swagger endpoints, you provide an implementation as a function
 endpointImplementation: Params => Route
 ```
 
-This means the scala compiler can check that the parameters in your swagger match those in your endpoint.
-
 The Swakka-generated outer Route contains Akka _directives_ that extract these Params from the HTTP request
 (either from the query string, path, headers or request body). 
 
-You can then use pattern match the Param HList to get the value of each QueryParameter, PathParameter, etc.
+You can then pattern match the Params HList to get the value of each ```QueryParameter```, ```PathParameter```, etc.
 
 The responses from your API are also statically typed using a type parameter. Note, however, *the swagger response definitions
 do not modify the generated Route* (they only change how the swagger.json will be rendered).
 
 Given your OpenApi definition, Swakka creates two things:
+
 1) An akka Route
 2) A swagger.json
 Parameters affect both 1 and 2. Responses only affect the swagger file.
@@ -247,10 +251,11 @@ a URL makes sense both with and without some part of the path, you should *defin
 ### Other types of parameters
 
 The sorts of parameters you can define in Swakka are the same as those defined in the Swagger specification. Namely,
-QueryParameter[T], PathParameter[T], HeaderParamter[T] and BodyParameter[T].
+```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParamter[T]``` and ```BodyParameter[T]```.
 
 QueryParameter, PathParameter and HeaderParameter all work in the same way. Note that Swagger limits the type T to
 the following
+
 * String
 * Float
 * Double
@@ -258,7 +263,7 @@ the following
 * Long
 * Boolean
 
-Swakka defines implicit (Akka) JsonFormats to convert all of these types (and their Optional variants) into Swagger json.
+Swakka defines implicit (Spray) JsonFormats to convert all of these types (and their Optional variants) into Swagger json.
 You just need to import these conversions: 
 ```scala
 import net.jtownson.swakka.OpenApiJsonProtocol._
@@ -299,6 +304,7 @@ Defining a PathParameter requires code like this:
 BodyParameter[T] allows custom (i.e. case class) types for T (because Swagger allows custom models for the request body).
 
 For this to work, your code must create 
+
 1. An implicit JsonFormat for T (in just the same way that you already do with Akka-Http apps)
 2. A _SchemaWriter_. This writes the Json Schema for T into the body of the swagger.json
 (i.e. it introspects case class T and spits out a json schema as a String). Swakka provides a function to do
@@ -342,7 +348,7 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
   implicit val petJsonFormat = jsonFormat3(Pet)
   // SchemaWriter required by Swakka to generate json schema 
   implicit val petSchemaWriter = schemaWriter(Pet)
-  // ConvertibleToDirective instance required which Swakka uses to tell Akka how to extract the request body.
+  // ConvertibleToDirective instance which Swakka uses to tell Akka how to extract the request body.
   // Note the types are a bit confusing. Getting them wrong would cause an implicit resolution error from scalac. 
   implicit val petBodyParamConverter: ConvertibleToDirective[BodyParameter[Pet]] = bodyParamConverter[Pet]
 
@@ -368,10 +374,10 @@ case class A(@ApiModelProperty(name = "the name", value = "the value", required 
 (Depending on feedback, I may introduce a pluggable scheme to provide this data without annotations).
 
 
-### The endpoint implementation, _Params => Route
+### The endpoint implementation, _Params => Route_
 
 You might want to extract details from a HTTP request but not document those details publicly in the swagger.json.
-A header like X-Forwarded-For would be an example here. Because the endpoint implementation returns an inner Route,
+A header like ```X-Forwarded-For``` would be an example here. Because the endpoint implementation returns an inner Route,
 you can add arbitrary Akka directives in the endpoint function to do this. For example
 
 ```scala
@@ -408,7 +414,7 @@ you can add arbitrary Akka directives in the endpoint function to do this. For e
 ```
 
 This feature of Swakka's design makes it easy to integrate with existing Akka Http apps
-because you can layer your OpenApi definition on top of any existing Route. 
+because you can layer your OpenApi definition on top of existing Routes. 
 
 
 ### Route generation and CORS
@@ -500,7 +506,7 @@ Here is an example from the Petstore
           path = "/pets",
           method = GET,
           operation = Operation(
-            // 2. reference one of these security schemes in an endpoint
+            // 2. reference one or more of these security schemes in an endpoint
             security = Some(Seq(SecurityRequirement('petstore_auth, Seq("read:pets")))),
             endpointImplementation = _ => ???
           )
@@ -512,24 +518,22 @@ Here is an example from the Petstore
 ### Imports and implicits
 
 Before reading further it's worth having a look at the code in the Petstore apps and unit tests. There is a V1 example
-that declares a simple API for posting and getting Pets and a more complex V1 example demonstrates oAuth, api_key security
+that declares a simple API for posting and getting Pets and a more complex V2 example that demonstrates oAuth, api_key security
 and a wider array of endpoints.
   
 Once you get a feel for those, here is a checklist of the implicit values (and other key objects) that you need to import or create.
 
-1. The JsonFormats to convert the OpenApi model classes (to swagger json)
+* The JsonFormats to convert the OpenApi model classes (to swagger json)
 ```scala
 import net.jtownson.swakka.OpenApiJsonProtocol._
 ```
 where N is 1, 2, 3, according to the number of fields in the case class.
-
-2. For a custom case class, T, the SchemaWriter needed to write T's json schema into the swagger file
+* For a custom case class, T, the SchemaWriter needed to write T's json schema into the swagger file
 ```scala
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 implicit val schemaWriter = schemaWriter(T)
 ```
-
-3. For custom request body types (for POST and PUT requests),
+* For custom request body types (for POST and PUT requests),
 the RouteGen instances to convert case class T to an Akka Directive
 that will match and extract instances of T from HTTP requests.
 ```scala
@@ -540,7 +544,7 @@ that will match and extract instances of T from HTTP requests.
 Note the type parameters on the left and right of the expression above. Calling bodyParamConverter with the
 wrong type causes the scala compiler to emit a 'Cannot find implicit...' error which is hard to track down (I know!)
 
-4. Imports for shapeless HLists to work
+* Imports for shapeless HLists to work
 ```scala
 import shapeless.{::, HNil}
 ```
@@ -550,7 +554,7 @@ import shapeless.record._
 import shapeless.syntax.singleton._
 ```
 
-5. Additional imports/vals required to make Akka Http work
+* Additional imports/vals required to make Akka Http work
 ```scala
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json._
@@ -561,6 +565,7 @@ implicit val jsonFormat = jsonFormatN(T) // where N is 1, 2, 3, according to the
 ### Examples and testcases
 
 If you need some working code to help get started or debug a particular problem, you can look in
+
 1. The examples project. These allow you to run up sample APIs on localhost:8080, which you can
 then examine with swagger-ui or curl.
 2. The library unit tests. The testcases are often pedagogical and exemplary, rather than formal tests against the swagger
@@ -587,6 +592,7 @@ Check there are no Optional PathParameters.
 #### Akka rejects requests for the swagger file
 
 Check that
+
 1. The host header in the request matches any host declared in the OpenApi definition.
 2. The scheme (http/https) matches any schemes declared in the OpenApi definition.
 3. The base path in the URL matches an basePath declared in the OpenApi definition.
