@@ -259,7 +259,7 @@ Here is some example code showing these two steps (taken from the Petstore2 test
 
 ```scala
 
-// SprayJsonSupport is required for Akka-Http to marshal case class, Pet, to/from json. 
+// SprayJsonSupport is required for Akka-Http to marshal case classes (e.g. Pet), to/from json.
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
 // SchemaWriter converts Pet to JsonSchema (to insert into the swagger.json)
@@ -287,13 +287,6 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
                   name: String,
                   tag: Option[String] = None)
 
-  type Pets = Seq[Pet]
-
-  case class Error(
-                    id: Int,
-                    message: String
-                  )
-
   implicit val petJsonFormat = jsonFormat3(Pet)
   implicit val petSchemaWriter = schemaWriter(Pet)
   implicit val petBodyParamConverter: ConvertibleToDirective[BodyParameter[Pet]] = bodyParamConverter[Pet]
@@ -309,24 +302,54 @@ examples project and in the library unit tests. Take your pick.
 You will probably want to annotate your custom model classes (either those used for requests or for responses) so that
 the swagger file contains useful comments about each of the fields.
 
- 
+Swakka currently allows you to do this using an existing Swagger annotation.
+
+```scala
+import io.swagger.annotations.ApiModelProperty
+
+case class A(@ApiModelProperty(name = "the name", value = "the value", required = true) foo: Int)
+```
+(Depending on feedback, I may introduce a pluggable scheme to provide this data without annotations).
+
 ### Imports and implicits
 
 Before reading further it's worth having a look at the code in the PetstoreV1 samples (either the sample apps or unit test). 
-Once you get a feel for that, here is a checklist of the implicit values that you need to import or create.
+Once you get a feel for that, here is a checklist of the implicit values (and other key objects) that you need to import or create.
 
 1. The JsonFormats to convert the Swagger model classes (to swagger json)
 ```scala
-import net.jtownson.swakka.OpenApiJsonProtocol._  
+import net.jtownson.swakka.OpenApiJsonProtocol._
 ```
+where N is 1, 2, 3, according to the number of fields in the case class.
 
-2. The SchemaWriters to generate swagger schemas from your case classes
+2. For a custom case class, T, the SchemaWriter needed to write T's json schema into the swagger file
 ```scala
 import net.jtownson.swakka.jsonschema.SchemaWriter._
-``` 
+implicit val schemaWriter = schemaWriter(T)
+```
 
-3. The RouteGen instances to convert Swagger model classes to Akka Directives (which match and extract values from HTTP requests)
+3. For custom request body types (i.e. for POST and PUT requests),
+the RouteGen instances to convert T to an Akka Directives that will match and extract instances of T from HTTP requests.
 ```scala
+  import
+  implicit val bodyParamConverter: ConvertibleToDirective[BodyParameter[T]] = bodyParamConverter[T]
+```
+
+4. Imports for shapeless HLists work
+```scala
+import shapeless.{::, HNil}
+```
+And, for api security definitions, imports to make extensible records work
+```scala
+import shapeless.record._
+import shapeless.syntax.singleton._
+```
+
+5. Additional imports required to make Akka Http work
+```scala
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import spray.json._
+implicit val jsonFormat = jsonFormatN(T) // where N is 1, 2, 3, according to the number of fields in the case class.
 
 ```
  or Have a look through the code in the Petstore samples before you read
