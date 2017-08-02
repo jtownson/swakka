@@ -4,10 +4,10 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.HttpMethods.{GET, POST, PUT}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
-import akka.http.scaladsl.model.headers.Host
+import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.Directives.{complete, reject, host}
+import akka.http.scaladsl.server.Directives.{complete, optionalHeaderValueByName, reject}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
@@ -17,11 +17,13 @@ import org.scalatest.prop.TableDrivenPropertyChecks._
 import shapeless.{::, HList, HNil}
 import spray.json._
 import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.model.Responses.ResponseValue
-import net.jtownson.swakka.routegen.CorsUseCases.NoCors
-import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
+import net.jtownson.swakka.routegen.SwaggerRouteSettings
 import org.scalamock.function.MockFunction1
+
+import scala.collection.immutable.Seq
 
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
@@ -318,8 +320,8 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     type Paths = PathItem[Params, StringResponse] :: HNil
 
     val greet: Params => Route = {
-      case (nameParameter :: HNil) =>
-        complete(s"Hello ${nameParameter.value}!")
+      case (PathParameter(name) :: HNil) =>
+        complete(s"Hello $name!")
     }
 
     val api =
@@ -493,6 +495,44 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     Get("http://localhost:8080/app/e1") ~> seal(route) ~> check {
       status shouldBe OK
       responseAs[String] shouldBe "Ok"
+    }
+  }
+
+  "Endpoints" should "support private Akka directives" in {
+
+    type Params = HNil
+
+    val f: Params => Route = _ =>
+      optionalHeaderValueByName("x-forwarded-for") {
+        case Some(forward) => complete(s"x-forwarded-for = $forward")
+        case None => complete("no x-forwarded-for header set")
+      }
+
+    val api = OpenApi(paths =
+      PathItem(
+        path = "/app",
+        method = GET,
+        operation = Operation[HNil, HNil](endpointImplementation = f)))
+
+    import net.jtownson.swakka.routegen.SwaggerRouteSettings
+    import net.jtownson.swakka.routegen.CorsUseCases._
+
+    val corsHeaders = Seq(
+      RawHeader("Access-Control-Allow-Origin", "*"),
+      RawHeader("Access-Control-Allow-Methods", "GET"))
+
+    val route = RouteGen.openApiRoute(
+      api,
+      Some(SwaggerRouteSettings(
+        endpointPath = "my/path/to/my/swagger-file.json",
+        corsUseCase = SpecificallyThese(corsHeaders))))
+
+    Get("http://localhost:8080/app").withHeaders(RawHeader("x-forwarded-for", "client, proxy1")) ~> seal(route) ~> check {
+      responseAs[String] shouldBe "x-forwarded-for = client, proxy1"
+    }
+
+    Get("http://localhost:8080/app") ~> seal(route) ~> check {
+      responseAs[String] shouldBe "no x-forwarded-for header set"
     }
   }
 

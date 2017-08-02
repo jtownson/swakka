@@ -6,6 +6,7 @@ import shapeless.{HList, HNil, :: => hcons}
 import OpenApiModel._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
+import net.jtownson.swakka.routegen.SwaggerRoute.swaggerRoute
 import net.jtownson.swakka.routegen._
 import spray.json.JsonFormat
 
@@ -22,7 +23,7 @@ object RouteGen {
       schemesDirective(api.schemes) {
         basePathDirective(api.basePath) {
           swaggerRouteSettings match {
-            case Some(settings) => ev1.toRoute(api.paths) ~ SwaggerRoute.swaggerRoute(api, settings)
+            case Some(settings) => ev1.toRoute(api.paths) ~ swaggerRoute(api, settings)
             case None => ev1.toRoute(api.paths)
           }
         }

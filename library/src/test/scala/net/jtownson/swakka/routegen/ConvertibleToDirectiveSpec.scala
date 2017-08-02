@@ -221,6 +221,17 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     }
   }
 
+  "Query parameters" should "be case sensitive" in {
+
+    val route = stringReqQueryConverter.convertToDirective("/", QueryParameter('q)) { _ =>
+      complete("ok")
+    }
+
+    Get("http://localhost/?Q") ~> seal(route) ~> check {
+      status shouldBe NotFound
+    }
+  }
+
   private def converterTest[T, U <: Parameter[T]]
   (request: HttpRequest, expectedResponse: String, param: U, modelPath: String = "")
                               (implicit ev: ConvertibleToDirective[U]): Unit = {
