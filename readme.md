@@ -244,7 +244,7 @@ Given your OpenApi definition, Swakka creates two things:
 1. An Akka Route
 2. A swagger.json
 
-NB: the *response definitions do not modify the generated Akka Route in (step 1), they only modify how the swagger.json (step 2).
+NB: response definitions do not modify the generated Akka Route (step 1), they only modify how the swagger.json (step 2).
 This means neither the scala compiler nor Akka's runtime will tell you if the response types declared in your OpenApi definition
 are in sync with the actual type returned by your endpoint implementation. If you change the return type of an endpoint, you
 must _remember_ to update the OpenApi definition.
