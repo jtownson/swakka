@@ -1,5 +1,7 @@
 package net.jtownson.swakka.model
 
+import spray.json.JsonFormat
+
 object Parameters {
 
   sealed trait Parameter[T] {
@@ -22,6 +24,39 @@ object Parameters {
       "(i.e. create an API definition, get its Route then make a request).")
 
     def closeWith(t: T): U
+  }
+
+  sealed trait FormParameter[T] extends Parameter[T]
+
+  object FormParameter {
+
+    def apply[P1, T](name: Symbol, description: Option[String], default: Option[T] = None,
+                            construct: (P1) => T): FormParameter[T] =
+      OpenFormParameter(name, description, default, construct)
+
+    def unapply[T](fp: FormParameter[T]): Option[T] = fp match {
+      case OpenFormParameter(_, _, default, _) => default
+      case ClosedFormParameter(_, _, _, _, value) => Some(value)
+    }
+
+    case class OpenFormParameter[P1, T](
+                                  name: Symbol,
+                                  description: Option[String],
+                                  default: Option[T],
+                                  construct: (P1) => T)
+      extends FormParameter[T] with OpenParameter[T, ClosedFormParameter[P1, T]] {
+
+      override def closeWith(t: T): ClosedFormParameter[P1, T] =
+        ClosedFormParameter(name, description, default, construct, t)
+    }
+
+    case class ClosedFormParameter[P1, T](
+                                      name: Symbol,
+                                      description: Option[String],
+                                      default: Option[T],
+                                      construct: (P1) => T,
+                                      value: T)
+      extends FormParameter[T] with ClosedParameter[T, ClosedFormParameter[P1, T]]
   }
 
   sealed trait QueryParameter[T] extends Parameter[T]
