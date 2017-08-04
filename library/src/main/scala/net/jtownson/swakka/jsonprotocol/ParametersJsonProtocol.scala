@@ -6,7 +6,7 @@ import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsBoolean, JsString, JsValue}
 import ParameterJsonFormat.func2Format
 import net.jtownson.swakka.misc.jsObject
-import net.jtownson.swakka.model.Parameters.{BodyParameter, HeaderParameter, PathParameter, QueryParameter}
+import net.jtownson.swakka.model.Parameters._
 
 import scala.reflect.runtime.universe.TypeTag
 
@@ -132,6 +132,10 @@ trait ParametersJsonProtocol {
     implicit val dict = apiModelDictionary[T]
 
     func2Format((bp: BodyParameter[Option[T]]) => bodyParameter(ev, bp.name, bp.description, false))
+  }
+
+  implicit def requiredFormParamFormat[T]: ParameterJsonFormat[FormParameter[T]] = {
+    ???
   }
 
   private def bodyParameter[T: TypeTag](ev: SchemaWriter[T], name: Symbol,

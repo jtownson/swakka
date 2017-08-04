@@ -1,7 +1,5 @@
 package net.jtownson.swakka.model
 
-import spray.json.JsonFormat
-
 object Parameters {
 
   sealed trait Parameter[T] {
@@ -30,7 +28,7 @@ object Parameters {
 
   object FormParameter {
 
-    def apply[P1, T](name: Symbol, description: Option[String], default: Option[T] = None,
+    def apply[P1, T](name: Symbol, description: Option[String] = None, default: Option[T] = None,
                             construct: (P1) => T): FormParameter[T] =
       OpenFormParameter(name, description, default, construct)
 
