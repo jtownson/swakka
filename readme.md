@@ -193,7 +193,7 @@ val responses =
 
 Each ```ResponseValue``` takes two type parameters:
 
-1. The type of the response body. This can be any any case class. You make it work you need two things
+1. The type of the response body. This can be any any case class. To make it work you need two things
 
     1.1. a spray ```JsonFormat``` so that Akka Http can marshall it correctly.
     
@@ -255,7 +255,7 @@ Given your OpenApi definition, Swakka creates two things:
 1. An Akka Route
 2. A swagger.json
 
-NB: response definitions do not modify the generated Akka Route (step 1), they only modify the swagger.json (step 2).
+```Response[T, Headers]``` definitions do not modify the generated Akka Route (step 1), they only modify the swagger.json (step 2).
 This means neither the scala compiler nor Akka's runtime will tell you if the response types declared in your OpenApi definition
 are in sync with the actual type returned by your endpoint implementation. If you change the return type of an endpoint, you
 must _remember_ to update the OpenApi definition.
@@ -348,7 +348,8 @@ a URL makes sense both with and without some part of the path, you should *defin
 ### Other types of parameters
 
 The sorts of parameters you can define in Swakka are the same as those defined in the Swagger specification. Namely,
-```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParamter[T]``` and ```BodyParameter[T]```.
+```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParamter[T]``` and ```BodyParameter[T]``` (form parameters
+are on the way).
 
 QueryParameter, PathParameter and HeaderParameter all work in the same way. Note that Swagger limits the type T to
 the following
@@ -625,6 +626,7 @@ Once you get a feel for those, here is a checklist of the implicit values (and o
 import net.jtownson.swakka.OpenApiJsonProtocol._
 ```
 where N is 1, 2, 3, according to the number of fields in the case class.
+
 * For a custom case class, T, the SchemaWriter needed to write T's json schema into the swagger file
 ```scala
 import net.jtownson.swakka.jsonschema.SchemaWriter._
