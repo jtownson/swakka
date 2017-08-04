@@ -1,12 +1,23 @@
-# _Swakka - Swagger for Akka-Http_
+Swakka - Swagger for Akka-Http
+==============================
+
+Quickstart
+
+```sbtshell
+libraryDependencies += "net.jtownson" %% "swakka" % "0.1a-SNAPSHOT" 
+```
 
 Swakka is
 
 1. A Scala library for creating Swagger definitions with Akka Http.
-2. A nice DSL for creating webapps. 
+2. A nice DSL for creating webapps with Akka Http. 
 
-It _adds_ to Akka Http rather than competes and dovetails cleanly with Akka Http routing concepts.
  
+Swakka is not
+
+1. A web runtime. That is handled by Akka Http. Swakka generates Akka Http Routes from OpenApi definitions.
+It _adds_ to Akka Http rather than competes and dovetails cleanly with Akka Http concepts.
+
 Here's how it works...
 
 ### Swakka in five key points:

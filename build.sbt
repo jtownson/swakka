@@ -2,7 +2,7 @@ import sbt.Keys.scalaVersion
 
 lazy val commonSettings = Seq(
   organization := "net.jtownson",
-  version := "0.1a",
+  version := "0.1a-SNAPSHOT",
   scalaVersion := "2.12.1",
   scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 )
@@ -12,8 +12,19 @@ lazy val sonatypeSettings = Seq(
   scmInfo := Some(ScmInfo(url("https://bitbucket.org/jtownson/swakka"), "git@bitbucket.org:jtownson/swakka.git")),
   developers := List(Developer("jtownson", "Jeremy Townson", "jeremy dot townson at gmail dot com", url("https://bitbucket.org/jtownson"))),
   licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
-  pomIncludeRepository := (_ => false)
+  pomIncludeRepository := (_ => false),
+
+  publishMavenStyle := true,
+  publishArtifact in Test := false,
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+  }
 )
+
 
 val akka = Seq(
   "com.typesafe.akka" %% "akka-http-core" % "10.0.5",
@@ -62,10 +73,13 @@ lazy val library = project
 lazy val examples = project
   .settings(
     name := "swakka-examples",
+    publishArtifact := false,
     commonSettings)
   .dependsOn(library)
 
 lazy val root = (project in file("."))
   .settings(
-    name := "swakka-build")
+    name := "swakka-build",
+    publishArtifact := false,
+    commonSettings)
   .aggregate(library, examples)
