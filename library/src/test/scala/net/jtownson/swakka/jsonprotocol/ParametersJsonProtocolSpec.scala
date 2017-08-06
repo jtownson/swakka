@@ -182,4 +182,22 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
     params.toJson shouldBe expectedJson
   }
+
+  it should "serialize single-field, string form params" in {
+
+    implicit val formFormat = requiredFormParameterFormat(Pet)
+
+    val params = FormParameter[String, Pet](
+      'f, Some("form description"),
+      construct = Pet) :: HNil
+
+    params.toJson shouldBe JsArray(
+      JsObject(
+        "name" -> JsString("petName"),
+        "in"-> JsString("formData"),
+        "required" -> JsBoolean(true),
+        "type" -> JsString("string")
+      )
+    )
+  }
 }
