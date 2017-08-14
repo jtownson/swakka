@@ -136,18 +136,19 @@ trait ParametersJsonProtocol {
 
   import FormParameterType._
 
-  implicit def requiredFormParameterFormat[F1, T <: Product : TypeTag](constructor: (F1) => T)
-                                                                      (implicit ef1: FormParameterType[F1]): ParameterJsonFormat[FormParameter[T]] =
-    func2Format((_: FormParameter[T]) => {
-      val tDictionary: Map[String, ApiModelPropertyEntry] = apiModelDictionary[T]
-      val fields: Seq[String] = tDictionary.keys.toSeq
+  implicit def requiredFormParameter1Format[P1, T <: Product : TypeTag]
+    (implicit ef1: FormParameterType[P1]): ParameterJsonFormat[FormParameter1[P1, T]] =
+      func2Format((_: FormParameter1[P1, T]) => {
 
-      val fieldName = fields(0)
+        val tDictionary: Map[String, ApiModelPropertyEntry] = apiModelDictionary[T]
+        val fields: Seq[String] = tDictionary.keys.toSeq
 
-      val f1Entry = tDictionary(fieldName)
+        val fieldName = fields(0)
 
-      formDataItem(fieldName, f1Entry.value, f1Entry.required, ef1.swaggerType, ef1.swaggerFormat)
-  })
+        val f1Entry = tDictionary(fieldName)
+
+        formDataItem(fieldName, f1Entry.value, f1Entry.required, ef1.swaggerType, ef1.swaggerFormat)
+      })
 
   private def formDataItem(name: String, description: Option[String], required: Boolean, `type`: String, format: Option[String]): JsValue = {
     jsObject(
