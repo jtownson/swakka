@@ -1,6 +1,7 @@
 package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
@@ -9,7 +10,7 @@ import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server.{Directive1, Route}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiJsonProtocol._
-import net.jtownson.swakka.jsonschema.SchemaWriter.schemaWriter
+import net.jtownson.swakka.jsonschema.SchemaWriter._
 import net.jtownson.swakka.model.Parameters._
 import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import org.scalatest.FlatSpec
@@ -141,7 +142,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
     val pet = Pet(1, "tiddles").toJson.compactPrint
 
-    val route: Route = bodyParamConverter[Pet].convertToDirective("", BodyParameter[Pet]('p)) { bp =>
+    val route: Route = ev.convertToDirective("", BodyParameter[Pet]('p)) { bp =>
       complete(bp.value)
     }
     converterTest[Pet, BodyParameter[Pet]](post("/p", pet), pet, route)
@@ -188,6 +189,24 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Long, PathParameter[Long]](get("/a/2"), "2", PathParameter[Long]('p), "/a/{p}")
   }
 
+  it should "convert a form parameter" in {
+    // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
+    implicit val petFormat = jsonFormat2(Pet)
+    implicit val petSchemaWriter = schemaWriter(Pet)
+    implicit val formParamConverter = formParamConverter2(Pet)
+
+    val pet = Pet(1, "tiddles").toJson.compactPrint
+
+    val formParameter = FormParameter2(name = 'f, construct = Pet)
+
+    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+      fp => complete(fp.value)
+    }
+
+    val f = FormData(Map("id" -> "1", "name" -> "tiddles")).toString()
+
+    converterTest[Pet, FormParameter2[Int, String, Pet]](post("/p", f), pet, route)
+  }
 
   "HNil converter" should "match paths without parameter tokens" in {
 

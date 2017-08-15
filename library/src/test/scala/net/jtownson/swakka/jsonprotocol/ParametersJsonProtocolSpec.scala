@@ -183,19 +183,43 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     params.toJson shouldBe expectedJson
   }
 
-  it should "serialize a form parameters" in {
+  it should "serialize single-field, string form params" in {
 
-    val params = FormParameter[String, Pet](name = 'f, description = Some("description text"), construct = Pet)
+//    implicit val formFormat = requiredFormParameterFormat(Pet)
 
-    val expectedJson = JsArray(
+    val params = FormParameter1[String, Pet](
+      'f, Some("form description"),
+      construct = Pet) :: HNil
+
+    params.toJson shouldBe JsArray(
       JsObject(
         "name" -> JsString("petName"),
-        "in" -> JsString("formData"),
+        "in"-> JsString("formData"),
         "required" -> JsBoolean(true),
         "type" -> JsString("string")
       )
     )
-
-    params.toJson shouldBe expectedJson
   }
+
+  case class BigPet(id: Int, petName: String, weight: Float)
+
+  //implicit val bgPetSchemaWriter = schemaWriter(BigPet)
+
+//  it should "serialize multi-field, form params" in {
+//
+//    implicit val formFormat = requiredFormParameterFormat(BigPet)
+//
+//    val params = FormParameter(
+//      'f, Some("form description"),
+//      construct = BigPet) :: HNil
+//
+//    params.toJson shouldBe JsArray(
+//      JsObject(
+//        "name" -> JsString("petName"),
+//        "in"-> JsString("formData"),
+//        "required" -> JsBoolean(true),
+//        "type" -> JsString("string")
+//      )
+//    )
+//  }
 }

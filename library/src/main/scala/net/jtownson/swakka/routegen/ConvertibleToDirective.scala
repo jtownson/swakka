@@ -2,8 +2,16 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.directives.FormFieldDirectives.FieldMagnet._
+import akka.http.scaladsl.server.directives.FormFieldDirectives.FieldMagnet
+import akka.http.scaladsl.unmarshalling.PredefinedFromStringUnmarshallers._
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
+
+import akka.http.scaladsl.unmarshalling._
+
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
+import net.jtownson.swakka.model.Parameters.FormParameter1.OpenFormParameter1
+import net.jtownson.swakka.model.Parameters.FormParameter2.OpenFormParameter2
 import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
 import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
 import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
@@ -213,6 +221,17 @@ object ConvertibleToDirective {
       }
     }
 
+  def formParamConverter1[P1 : FromStringUnmarshaller, T](constructor: (P1) => T): ConvertibleToDirective[FormParameter1[P1, T]] =
+    (_: String, fp: FormParameter1[P1, T]) => {
+      val value: Directive1[P1] = formFields('f1.as[P1])
+      value.map(f => close(fp)(constructor.apply(f)))
+    }
+
+  def formParamConverter2[P1 : FromStringUnmarshaller, P2 : FromStringUnmarshaller, T](constructor: (P1, P2) => T): ConvertibleToDirective[FormParameter2[P1, P2, T]] =
+    (_: String, fp: FormParameter2[P1, P2, T]) => {
+      val value: Directive[(P1, P2)] = formFields('f1.as[P1], 'f2.as[P2])
+      value.tmap( {case (f1, f2) => close(fp)(constructor.apply(f1, f2))})
+    }
 
   implicit val hNilConverter: ConvertibleToDirective[HNil] =
     (modelPath: String, _: HNil) => {
@@ -275,6 +294,12 @@ object ConvertibleToDirective {
 
   private def close[T](hp: HeaderParameter[T]): T => HeaderParameter[T] =
     t => hp.asInstanceOf[OpenHeaderParameter[T]].closeWith(t)
+
+  private def close[P1, T](fp: FormParameter1[P1, T]): T => FormParameter1[P1, T] =
+    t => fp.asInstanceOf[OpenFormParameter1[P1, T]].closeWith(t)
+
+  private def close[P1, P2, T](fp: FormParameter2[P1, P2, T]): T => FormParameter2[P1, P2, T] =
+    t => fp.asInstanceOf[OpenFormParameter2[P1, P2, T]].closeWith(t)
 
   private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
     (modelPath: String, pp: PathParameter[T]) =>

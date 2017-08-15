@@ -93,8 +93,7 @@ object SchemaWriter {
   implicit def schemaWriter[T <: Product : TypeTag](constructor: () => T): SchemaWriter[T] =
     (s: JsonSchema[T]) => objectSchema(s.description, Nil, Nil)
 
-  implicit def schemaWriter[T <: Product : TypeTag,
-  F1: SchemaWriter : TypeTag]
+  implicit def schemaWriter[T <: Product : TypeTag, F1: SchemaWriter]
   (constructor: (F1) => T): SchemaWriter[T] =
     (s: JsonSchema[T]) => {
 
@@ -162,10 +161,10 @@ object SchemaWriter {
   SchemaWriter[ResponseValue[T, Headers]] =
     (_: JsonSchema[ResponseValue[T, Headers]]) => ev.write(JsonSchema[T]())
 
-  implicit val hNilWriter: SchemaWriter[HNil] =
+  implicit val hNilSchemaWriter: SchemaWriter[HNil] =
     _ => JsNull
 
-  private def writeSchema[T: SchemaWriter](description: Option[String]): JsValue = {
+  def writeSchema[T: SchemaWriter](description: Option[String]): JsValue = {
     jsonSchemaJsonWriter[T].write(JsonSchema[T](description))
   }
 }

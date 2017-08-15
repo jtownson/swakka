@@ -1,7 +1,7 @@
 package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.jsonschema.ApiModelDictionary._
-import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
+import net.jtownson.swakka.jsonschema.{ApiModelPropertyEntry, JsonSchema, SchemaWriter}
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsBoolean, JsString, JsValue}
 import ParameterJsonFormat.func2Format
@@ -134,9 +134,33 @@ trait ParametersJsonProtocol {
     func2Format((bp: BodyParameter[Option[T]]) => bodyParameter(ev, bp.name, bp.description, false))
   }
 
-  implicit def requiredFormParamFormat[T]: ParameterJsonFormat[FormParameter[T]] = {
-    ???
+  import FormParameterType._
+
+  implicit def requiredFormParameter1Format[P1, T <: Product : TypeTag]
+    (implicit ef1: FormParameterType[P1]): ParameterJsonFormat[FormParameter1[P1, T]] =
+      func2Format((_: FormParameter1[P1, T]) => {
+
+        val tDictionary: Map[String, ApiModelPropertyEntry] = apiModelDictionary[T]
+        val fields: Seq[String] = tDictionary.keys.toSeq
+
+        val fieldName = fields(0)
+
+        val f1Entry = tDictionary(fieldName)
+
+        formDataItem(fieldName, f1Entry.value, f1Entry.required, ef1.swaggerType, ef1.swaggerFormat)
+      })
+
+  private def formDataItem(name: String, description: Option[String], required: Boolean, `type`: String, format: Option[String]): JsValue = {
+    jsObject(
+      Some("name" -> JsString(name)),
+      Some("type" -> JsString(`type`)),
+      format.map("format" -> JsString(_)),
+      Some("in" -> JsString("formData")),
+      description.map("description" -> JsString(_)),
+      Some("required" -> JsBoolean(required))
+    )
   }
+
 
   private def bodyParameter[T: TypeTag](ev: SchemaWriter[T], name: Symbol,
                                         description: Option[String], required: Boolean) = {
