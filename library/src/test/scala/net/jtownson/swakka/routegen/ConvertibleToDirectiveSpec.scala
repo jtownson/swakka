@@ -203,9 +203,9 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
       fp => complete(fp.value)
     }
 
-    val f = FormData(Map("id" -> "1", "name" -> "tiddles")).toString()
-
-    converterTest[Pet, FormParameter2[Int, String, Pet]](post("/p", f), pet, route)
+    converterTest[Pet, FormParameter2[Int, String, Pet]](
+      Post("http://example.com/p", FormData(Map("id" -> "1", "name" -> "tiddles"))),
+      pet, route)
   }
 
   "HNil converter" should "match paths without parameter tokens" in {

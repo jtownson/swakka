@@ -120,19 +120,12 @@ trait ParametersJsonProtocol {
   implicit val longOptHeaderParamFormat: ParameterJsonFormat[HeaderParameter[Option[Long]]] =
     (hp: HeaderParameter[Option[Long]]) => simpleParam(hp.name, "header", hp.description, false, "integer", Some("int64"))
 
-  implicit def requiredBodyParamFormat[T: TypeTag](implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[T]] = {
-
-    implicit val dict = apiModelDictionary[T]
-
+  implicit def requiredBodyParamFormat[T: TypeTag](implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[T]] =
     func2Format((bp: BodyParameter[T]) => bodyParameter(ev, bp.name, bp.description, true))
-  }
 
-  implicit def optionalBodyParamFormat[T: TypeTag](implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[Option[T]]] = {
-
-    implicit val dict = apiModelDictionary[T]
-
+  implicit def optionalBodyParamFormat[T: TypeTag](implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[Option[T]]] =
     func2Format((bp: BodyParameter[Option[T]]) => bodyParameter(ev, bp.name, bp.description, false))
-  }
+
 
   import FormParameterType._
 
@@ -141,7 +134,7 @@ trait ParametersJsonProtocol {
       func2Format((_: FormParameter1[P1, T]) => {
 
         val tDictionary: Map[String, ApiModelPropertyEntry] = apiModelDictionary[T]
-        val fields: Seq[String] = tDictionary.keys.toSeq
+        val fields: Seq[String] = apiModelKeys[T]
 
         val fieldName = fields(0)
 

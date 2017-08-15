@@ -3,12 +3,10 @@ package net.jtownson.swakka.routegen
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.FormFieldDirectives.FieldMagnet._
-import akka.http.scaladsl.server.directives.FormFieldDirectives.FieldMagnet
 import akka.http.scaladsl.unmarshalling.PredefinedFromStringUnmarshallers._
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-
 import akka.http.scaladsl.unmarshalling._
-
+import net.jtownson.swakka.jsonschema.ApiModelDictionary.apiModelKeys
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
 import net.jtownson.swakka.model.Parameters.FormParameter1.OpenFormParameter1
 import net.jtownson.swakka.model.Parameters.FormParameter2.OpenFormParameter2
@@ -18,6 +16,7 @@ import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
 import net.jtownson.swakka.model.Parameters._
 import net.jtownson.swakka.routegen.PathHandling.{containsParamToken, pathWithParamMatcher}
 import shapeless.{::, HList, HNil}
+import scala.reflect.runtime.universe.TypeTag
 
 trait ConvertibleToDirective[T] {
   def convertToDirective(modelPath: String, t: T): Directive1[T]
@@ -221,16 +220,19 @@ object ConvertibleToDirective {
       }
     }
 
-  def formParamConverter1[P1 : FromStringUnmarshaller, T](constructor: (P1) => T): ConvertibleToDirective[FormParameter1[P1, T]] =
+  def formParamConverter1[P1 : FromStringUnmarshaller, T : TypeTag](constructor: (P1) => T): ConvertibleToDirective[FormParameter1[P1, T]] =
     (_: String, fp: FormParameter1[P1, T]) => {
-      val value: Directive1[P1] = formFields('f1.as[P1])
-      value.map(f => close(fp)(constructor.apply(f)))
+      val fields: Seq[String] = apiModelKeys[T]
+
+      formFields(Symbol(fields(0)).as[P1]).map(f => close(fp)(constructor.apply(f)))
     }
 
-  def formParamConverter2[P1 : FromStringUnmarshaller, P2 : FromStringUnmarshaller, T](constructor: (P1, P2) => T): ConvertibleToDirective[FormParameter2[P1, P2, T]] =
+  def formParamConverter2[P1 : FromStringUnmarshaller, P2 : FromStringUnmarshaller, T : TypeTag]
+  (constructor: (P1, P2) => T): ConvertibleToDirective[FormParameter2[P1, P2, T]] =
     (_: String, fp: FormParameter2[P1, P2, T]) => {
-      val value: Directive[(P1, P2)] = formFields('f1.as[P1], 'f2.as[P2])
-      value.tmap( {case (f1, f2) => close(fp)(constructor.apply(f1, f2))})
+      val fields: Seq[String] = apiModelKeys[T]
+
+      formFields(Symbol(fields(0)).as[P1], Symbol(fields(1)).as[P2]).tmap( {case (f1, f2) => close(fp)(constructor.apply(f1, f2))})
     }
 
   implicit val hNilConverter: ConvertibleToDirective[HNil] =
