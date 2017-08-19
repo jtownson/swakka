@@ -1,18 +1,18 @@
 package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route.seal
-import akka.http.scaladsl.server.{Directive1, Route}
+import akka.http.scaladsl.server.{Directive1, MalformedRequestContentRejection, MissingFormFieldRejection, Route}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import net.jtownson.swakka.model.Parameters._
 import net.jtownson.swakka.routegen.ConvertibleToDirective._
+import org.scalatest.Inside._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.HNil
@@ -189,7 +189,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Long, PathParameter[Long]](get("/a/2"), "2", PathParameter[Long]('p), "/a/{p}")
   }
 
-  it should "convert a form parameter" in {
+  it should "convert a form with non-optional parameters" in {
     // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
     implicit val petFormat = jsonFormat2(Pet)
     implicit val petSchemaWriter = schemaWriter(Pet)
@@ -203,9 +203,68 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
       fp => complete(fp.value)
     }
 
-    val f = FormData(Map("id" -> "1", "name" -> "tiddles")).toString()
+    converterTest[Pet, FormParameter2[Int, String, Pet]](
+      Post("http://example.com/p", FormData(Map("id" -> "1", "name" -> "tiddles"))),
+      pet, route)
+  }
 
-    converterTest[Pet, FormParameter2[Int, String, Pet]](post("/p", f), pet, route)
+  case class StrayPet(id: Int, name: Option[String])
+
+  it should "convert a form with optional parameters" in {
+
+    // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
+    implicit val petFormat = jsonFormat2(StrayPet)
+    implicit val petSchemaWriter = schemaWriter(StrayPet)
+    implicit val formParamConverter = formParamConverter2(StrayPet)
+
+    val pet = StrayPet(1, None).toJson.compactPrint
+
+    val formParameter = FormParameter2(name = 'f, construct = StrayPet)
+
+    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+      fp => complete(fp.value)
+    }
+
+    converterTest[StrayPet, FormParameter2[Int, String, StrayPet]](
+      Post("http://example.com/p", FormData("id" -> "1")),
+      pet, route)
+  }
+
+  it should "reject a form with missing mandatory parameters" in {
+
+    implicit val petFormat = jsonFormat2(StrayPet)
+    implicit val petSchemaWriter = schemaWriter(StrayPet)
+    implicit val formParamConverter = formParamConverter2(StrayPet)
+
+    val formParameter = FormParameter2(name = 'f, construct = StrayPet)
+
+    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+      fp => complete(fp.value)
+    }
+
+    Post("http://example.com/p", FormData()) ~> route ~> check {
+      rejection shouldBe MissingFormFieldRejection("id")
+    }
+  }
+
+  it should "reject a form with parameters of unmarshallable type" in {
+
+    implicit val petFormat = jsonFormat2(StrayPet)
+    implicit val petSchemaWriter = schemaWriter(StrayPet)
+    implicit val formParamConverter = formParamConverter2(StrayPet)
+
+    val formParameter = FormParameter2(name = 'f, construct = StrayPet)
+
+    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+      fp => complete(fp.value)
+    }
+
+    Post("http://example.com/p", FormData("id" -> "not-an-int")) ~> route ~> check {
+      inside(rejection) { case MalformedRequestContentRejection(message, cause) =>
+        message shouldBe "Error unmarshalling form fields to the types declared."
+        cause shouldBe an[IllegalArgumentException]
+      }
+    }
   }
 
   "HNil converter" should "match paths without parameter tokens" in {

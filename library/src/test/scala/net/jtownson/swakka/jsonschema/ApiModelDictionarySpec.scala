@@ -1,7 +1,7 @@
 package net.jtownson.swakka.jsonschema
 
 import io.swagger.annotations.ApiModelProperty
-import net.jtownson.swakka.jsonschema.ApiModelDictionary.apiModelDictionary
+import net.jtownson.swakka.jsonschema.ApiModelDictionary._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
@@ -28,5 +28,9 @@ class ApiModelDictionarySpec extends FlatSpec {
 
   it should "maintain field ordering" in {
     dictionary.keys.toList shouldBe List("foo", "bar", "baz")
+  }
+
+  "ApiModelKeys" should "maintain field ordering" in {
+    apiModelKeys[A] shouldBe Seq("foo", "bar", "baz")
   }
 }

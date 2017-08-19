@@ -13,7 +13,7 @@ import scala.reflect.runtime.universe._
 
 object ApiModelDictionary {
 
-  implicit def apiModelDictionary[T: TypeTag]: Map[String, ApiModelPropertyEntry] = {
+  def apiModelDictionary[T: TypeTag]: Map[String, ApiModelPropertyEntry] = {
 
     val annotationEntries: Map[String, ApiModelPropertyEntry] =
       constructorAnnotations[T](classOf[ApiModelProperty]).map(kv => (kv._1, tuples2Property(kv._2)))
@@ -27,6 +27,9 @@ object ApiModelDictionary {
 
     ListMap(allEntries: _*)
   }
+
+  def apiModelKeys[T: TypeTag]: Seq[String] =
+    apiModelDictionary[T].keys.toSeq
 
   private def isRequired(fieldType: String): Boolean = fieldType != "Option"
 
