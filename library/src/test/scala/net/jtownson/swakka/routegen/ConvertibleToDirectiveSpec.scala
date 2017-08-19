@@ -6,7 +6,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route.seal
-import akka.http.scaladsl.server.{Directive1, Route}
+import akka.http.scaladsl.server.{Directive1, MissingFormFieldRejection, Route}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
@@ -227,6 +227,23 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[StrayPet, FormParameter2[Int, String, StrayPet]](
       Post("http://example.com/p", FormData("id" -> "1")),
       pet, route)
+  }
+
+  it should "reject a form with missing mandatory parameters" in {
+
+    implicit val petFormat = jsonFormat2(StrayPet)
+    implicit val petSchemaWriter = schemaWriter(StrayPet)
+    implicit val formParamConverter = formParamConverter2(StrayPet)
+
+    val formParameter = FormParameter2(name = 'f, construct = StrayPet)
+
+    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+      fp => complete(fp.value)
+    }
+
+    Post("http://example.com/p", FormData()) ~> route ~> check {
+      rejection shouldBe MissingFormFieldRejection("id")
+    }
   }
 
   "HNil converter" should "match paths without parameter tokens" in {
