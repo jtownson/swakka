@@ -1,12 +1,15 @@
 package net.jtownson.swakka.routegen
 
+import akka.http.scaladsl.model.FormData
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.FormFieldDirectives.FieldMagnet._
+import akka.http.scaladsl.server.directives.FutureDirectives.onComplete
+import akka.http.scaladsl.server.directives.RouteDirectives.reject
 import akka.http.scaladsl.unmarshalling.PredefinedFromStringUnmarshallers._
-import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import akka.http.scaladsl.unmarshalling._
-import net.jtownson.swakka.jsonschema.ApiModelDictionary.apiModelKeys
+import akka.http.scaladsl.unmarshalling.{FromRequestUnmarshaller, Unmarshal, _}
+import akka.stream.ActorMaterializer
+import net.jtownson.swakka.jsonschema.ApiModelDictionary._
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
 import net.jtownson.swakka.model.Parameters.FormParameter1.OpenFormParameter1
 import net.jtownson.swakka.model.Parameters.FormParameter2.OpenFormParameter2
@@ -16,7 +19,10 @@ import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
 import net.jtownson.swakka.model.Parameters._
 import net.jtownson.swakka.routegen.PathHandling.{containsParamToken, pathWithParamMatcher}
 import shapeless.{::, HList, HNil}
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.runtime.universe.TypeTag
+import scala.util.{Failure, Success, Try}
 
 trait ConvertibleToDirective[T] {
   def convertToDirective(modelPath: String, t: T): Directive1[T]
@@ -227,12 +233,160 @@ object ConvertibleToDirective {
       formFields(Symbol(fields(0)).as[P1]).map(f => close(fp)(constructor.apply(f)))
     }
 
-  def formParamConverter2[P1 : FromStringUnmarshaller, P2 : FromStringUnmarshaller, T : TypeTag]
-  (constructor: (P1, P2) => T): ConvertibleToDirective[FormParameter2[P1, P2, T]] =
+
+  sealed trait Defaulter[T] {
+    def name: String
+    def getWithDefault: T
+  }
+
+  implicit def nonOptionDefaulter[T]: Defaulter[T] = new Defaulter[T] {
+    def name = "NonOptionDefaulter"
+    override def getWithDefault = throw new IllegalStateException()
+  }
+
+  implicit def optionDefaulter[U]: Defaulter[Option[U]] = new Defaulter[Option[U]] {
+    def name = "OptionDefaulter"
+    override def getWithDefault = None
+  }
+
+  def formParamConverter2[P1: FromStringUnmarshaller, P2: FromStringUnmarshaller, T : TypeTag]
+  (constructor: (P1, P2) => T)
+  (implicit p1Default: Defaulter[P1], p2Default: Defaulter[P2], materializer: ActorMaterializer, ec: ExecutionContext):
+  ConvertibleToDirective[FormParameter2[P1, P2, T]] =
     (_: String, fp: FormParameter2[P1, P2, T]) => {
+
+      val dictionary = apiModelDictionary[T]
       val fields: Seq[String] = apiModelKeys[T]
 
-      formFields(Symbol(fields(0)).as[P1], Symbol(fields(1)).as[P2]).tmap( {case (f1, f2) => close(fp)(constructor.apply(f1, f2))})
+      entity(as[FormData]).flatMap((formData: FormData) => {
+        val of1: Option[String] = formData.fields.get(fields(0))
+        val of2: Option[String] = formData.fields.get(fields(1))
+
+        val xf: Future[Option[P1]] = swap(of1.map(f1 => Unmarshal(f1).to[P1]))
+        val yf: Future[Option[P2]] = swap(of2.map(f2 => Unmarshal(f2).to[P2]))
+
+        val v: Future[(Option[P1], Option[P2])] = for {
+          x <- xf
+          y <- yf
+        } yield (x, y)
+
+        onComplete(v).flatMap({
+          case Success((Some(p1), Some(p2))) =>
+            provide(close(fp)(constructor.apply(p1, p2)))
+          case Success((None, Some(p2))) if !dictionary(fields(0)).required =>
+            provide(close(fp)(constructor.apply(p1Default.getWithDefault, p2)))
+          case Success((Some(p1), None)) if !dictionary(fields(1)).required =>
+            provide(close(fp)(constructor.apply(p1, p2Default.getWithDefault)))
+          case Success((None, None)) if !(dictionary(fields(0)).required && dictionary(fields(1)).required) =>
+            provide(close(fp)(constructor.apply(p1Default.getWithDefault, p2Default.getWithDefault)))
+          case Success((_, _)) =>
+            reject(MissingFormFieldRejection("One of our fields is missing"))
+          case Failure(_) => ???
+            reject(MalformedFormFieldRejection("some field", "did not load"))
+        })
+
+//        val oo2: Option[Option[Future[(P1, P2)]]] = of1.map(f1 => {
+//
+//          val oo1: Option[Future[(P1, P2)]] = of2.map(f2 => {
+//
+//            val eventualP1: Future[P1] = Unmarshal(f1).to[P1]
+//            val eventualP2: Future[P2] = Unmarshal(f2).to[P2]
+//
+//            val ps: Future[(P1, P2)] = for {
+//              p1 <- eventualP1
+//              p2 <- eventualP2
+//            } yield (p1Default.getWithDefault(p1), p2Default.getWithDefault(p2))
+//
+//            ps
+//          })
+//          oo1
+//        })
+//        val os: Option[Future[(P1, P2)]] = oo2.flatten
+//
+//
+//        os match {
+//          case Some(future) =>
+//            onComplete(future).flatMap({
+//              case Success((p1, p2)) =>
+//                provide(close(fp)(constructor.apply(p1, p2)))
+//              case Failure(_) => reject(MalformedFormFieldRejection("some field", "did not load"))
+//            })
+//          case None =>
+//            reject(MissingFormFieldRejection("One of our fields is missing"))
+//        }
+//        val ps: Future[(P1, P2)] = for {
+//          f1: String <- of1
+//          f2: String <- of2
+//          p1 <- Unmarshal(f1).to[P1]
+//          p2 <- Unmarshal(f2).to[P2]
+//        } yield (p1, p2)
+//
+//        onComplete(ps).flatMap({
+//          case Success((p1, p2)) => provide(close(fp)(constructor.apply(p1, p2)))
+//          case Failure(x) => reject(MissingFormFieldRejection("One of our fields is missing"))
+//        })
+//        ps match {
+//          case Some((p1, p2)) =>
+//            provide(close(fp)(constructor.apply(p1, p2)))
+//          case _ =>
+//            reject(MissingFormFieldRejection("One of our fields is missing"))
+//        }
+////        val ll: List[Option[_]] = List(of1, of2)
+////        val missingFields = ll.zipWithIndex.map({
+////          case (of, i) => {
+////            val fNotMissing = (dictionary(fields(i)).required && of.isDefined) || !dictionary(fields(i)).required
+////            if (fNotMissing)
+////              None
+////            else
+////              Some(fields(i))
+////          }
+////        }).filter(_.isDefined)
+////
+////        val p1: P1 = null.asInstanceOf[P1]
+////        val p2: P2 = null.asInstanceOf[P2]
+//
+//        if (missingFields.isEmpty)
+//          provide(close(fp)(constructor.apply(p1, p2)))
+//        else
+//          reject(MissingFormFieldRejection(missingFields.mkString(",")))
+      })
+
+//      formFields(fields(0).as[P1].?, fields(1).as[P2].?).tflatMap(
+//        {
+//          case (of1, of2) => {
+//            val ll: List[Option[_]] = List(of1, of2)
+//            val missingFields = ll.zipWithIndex.map({
+//              case (of, i) => {
+//                val fNotMissing = (dictionary(fields(i)).required && of.isDefined) || !dictionary(fields(i)).required
+//                if (fNotMissing)
+//                  None
+//                else
+//                  Some(fields(i))
+//              }
+//            }).filter(_.isDefined)
+//
+//            //
+//            if (missingFields.isEmpty) {
+//              val p11: P1 = if (dictionary(fields(0)).required || of1.isDefined) of1.get else Option(None): P1
+//
+//              val p1 = if (! dictionary(fields(0)).required && !of1.isDefined) None: P2 else of1.get
+//              val p1: P1 = if (dictionary(fields(0)).required) of1.get else of1
+//              val p2 = if (dictionary(fields(1)).required || of2.isDefined) of2.get else None
+//
+//              provide(close(fp)(constructor.apply(p1, p2)))
+//            }
+//            else {
+//              reject(MissingFormFieldRejection(missingFields.mkString(",")))
+//            }
+//          }
+//        }
+//      )
+    }
+
+  private def swap[T](x: Option[Future[T]])(implicit ec: ExecutionContext): Future[Option[T]] =
+    x match {
+      case Some(f) => f.map(Some(_))
+      case None    => Future.successful(None)
     }
 
   implicit val hNilConverter: ConvertibleToDirective[HNil] =

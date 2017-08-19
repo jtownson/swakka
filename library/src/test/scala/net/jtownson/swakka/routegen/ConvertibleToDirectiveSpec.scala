@@ -1,7 +1,6 @@
 package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
@@ -189,7 +188,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Long, PathParameter[Long]](get("/a/2"), "2", PathParameter[Long]('p), "/a/{p}")
   }
 
-  it should "convert a form parameter" in {
+  it should "convert a form with non-optional parameters" in {
     // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
     implicit val petFormat = jsonFormat2(Pet)
     implicit val petSchemaWriter = schemaWriter(Pet)
@@ -205,6 +204,28 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
     converterTest[Pet, FormParameter2[Int, String, Pet]](
       Post("http://example.com/p", FormData(Map("id" -> "1", "name" -> "tiddles"))),
+      pet, route)
+  }
+
+  case class StrayPet(id: Int, name: Option[String])
+
+  it should "convert a form with optional parameters" in {
+
+    // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
+    implicit val petFormat = jsonFormat2(StrayPet)
+    implicit val petSchemaWriter = schemaWriter(StrayPet)
+    implicit val formParamConverter = formParamConverter2(StrayPet)
+
+    val pet = StrayPet(1, None).toJson.compactPrint
+
+    val formParameter = FormParameter2(name = 'f, construct = StrayPet)
+
+    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+      fp => complete(fp.value)
+    }
+
+    converterTest[StrayPet, FormParameter2[Int, String, StrayPet]](
+      Post("http://example.com/p", FormData("id" -> "1")),
       pet, route)
   }
 
