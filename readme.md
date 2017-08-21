@@ -661,6 +661,20 @@ implicit val jsonFormat = jsonFormatN(T) // where N is 1, 2, 3, according to the
 
 ```
 
+### I'd like to create my Swagger in Scala, but I don't need the Akka bit
+
+If you want just the serialization to Swagger JSON, you can write code like this
+```scala
+import net.jtownson.swakka.jsonschema.SchemaWriter._
+import net.jtownson.swakka.OpenApiModel._
+
+val api = OpenApi(...)
+
+val json: JsValue = api.toJson
+
+println(json.prettyPrint)
+```
+
 ### Examples and testcases
 
 If you need some working code to help get started or debug a particular problem, you can look in
