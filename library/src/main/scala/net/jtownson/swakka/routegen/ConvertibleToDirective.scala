@@ -332,12 +332,6 @@ object ConvertibleToDirective {
   private def closeSingle[P, T](fp: FormParameter[P, T]): T => FormParameter[P, T] =
     t => fp.asInstanceOf[OpenFormParameter1[P, T]].closeWith(t)
 
-//  private def close[P1, P2, T](fp: FormParameter2[P1, P2, T]): T => FormParameter2[P1, P2, T] =
-//    t => fp.asInstanceOf[OpenFormParameter2[P1, P2, T]].closeWith(t)
-
-//  private def close[P1, P2, T](fp: FormParameter1[P1, P2, T]): T => FormParameter2[P1, P2, T] =
-//    t => fp.asInstanceOf[OpenFormParameter2[P1, P2, T]].closeWith(t)
-
   private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
     (modelPath: String, pp: PathParameter[T]) =>
       rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).map(close(pp))
