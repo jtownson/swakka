@@ -1,18 +1,15 @@
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.model.FormData
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.FormFieldDirectives.FieldMagnet._
-import akka.http.scaladsl.server.directives.FutureDirectives.onComplete
 import akka.http.scaladsl.server.directives.RouteDirectives.reject
 import akka.http.scaladsl.unmarshalling.PredefinedFromStringUnmarshallers._
-import akka.http.scaladsl.unmarshalling.{FromRequestUnmarshaller, Unmarshal, _}
-import akka.stream.ActorMaterializer
+import akka.http.scaladsl.unmarshalling.{FromRequestUnmarshaller, _}
 import net.jtownson.swakka.jsonschema.ApiModelDictionary._
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
+import net.jtownson.swakka.model.Parameters.FormParameter.OpenFormParameter
 import net.jtownson.swakka.model.Parameters.FormParameter1.OpenFormParameter1
-import net.jtownson.swakka.model.Parameters.FormParameter2.OpenFormParameter2
 import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
 import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
 import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
@@ -20,9 +17,7 @@ import net.jtownson.swakka.model.Parameters._
 import net.jtownson.swakka.routegen.PathHandling.{containsParamToken, pathWithParamMatcher}
 import shapeless.{::, HList, HNil}
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.runtime.universe.TypeTag
-import scala.util.{Failure, Success, Try}
 
 trait ConvertibleToDirective[T] {
   def convertToDirective(modelPath: String, t: T): Directive1[T]
@@ -226,65 +221,48 @@ object ConvertibleToDirective {
       }
     }
 
-  def formParamConverter1[P1 : FromStringUnmarshaller, T : TypeTag](constructor: (P1) => T): ConvertibleToDirective[FormParameter1[P1, T]] =
-    (_: String, fp: FormParameter1[P1, T]) => {
-      val fields: Seq[String] = apiModelKeys[T]
-
-      formFields(Symbol(fields(0)).as[P1]).map(f => close(fp)(constructor.apply(f)))
-    }
-
   sealed trait FormFieldDefaults[T] {
-    def getOrDefault(fieldName: String, t: Option[T]): T
+    def getOrDefault(fieldName: String, t: Option[T]): Directive1[T]
   }
 
   implicit def mandatoryFormFieldDefaults[T]: FormFieldDefaults[T] = new FormFieldDefaults[T] {
-    override def getOrDefault(fieldName: String, t: Option[T]): T =
-      t.getOrElse { throw RejectionError(MissingFormFieldRejection(fieldName)) }
+    override def getOrDefault(fieldName: String, t: Option[T]): Directive1[T] =
+      if (t.isDefined)
+        provide(t.get)
+      else
+        reject(MissingFormFieldRejection(fieldName))
   }
 
   implicit def optionalFormFieldDefaults[U]: FormFieldDefaults[Option[U]] = new FormFieldDefaults[Option[U]] {
-    override def getOrDefault(fieldName: String, t: Option[Option[U]]): Option[U] = t.flatten
+    override def getOrDefault(fieldName: String, t: Option[Option[U]]): Directive1[Option[U]] =
+      provide(t.flatten)
   }
 
-  def formParamConverter2[P1: FromStringUnmarshaller, P2: FromStringUnmarshaller, T : TypeTag]
+  def formParamConverter1[P : FromStringUnmarshaller, T: TypeTag]
+  (constructor: (P) => T)
+  (implicit p1Default: FormFieldDefaults[P]): ConvertibleToDirective[FormParameter[Tuple1[P], T]] = {
+
+    val fields: Seq[String] = apiModelKeys[T]
+
+    (_: String, fp: FormParameter[Tuple1[P], T]) => {
+      fieldDirective[P](fields(0)).map((p: P) => closeSingle(fp)(constructor.apply(p)))
+    }
+  }
+
+  def formParamConverter[P1: FromStringUnmarshaller, P2: FromStringUnmarshaller, T: TypeTag]
   (constructor: (P1, P2) => T)
-  (implicit p1Default: FormFieldDefaults[P1], p2Default: FormFieldDefaults[P2], materializer: ActorMaterializer, ec: ExecutionContext):
-  ConvertibleToDirective[FormParameter2[P1, P2, T]] =
-    (_: String, fp: FormParameter2[P1, P2, T]) => {
+  (implicit p1Default: FormFieldDefaults[P1], p2Default: FormFieldDefaults[P2]): ConvertibleToDirective[FormParameter[(P1, P2), T]] = {
 
-      val fields: Seq[String] = apiModelKeys[T]
+    val fields: Seq[String] = apiModelKeys[T]
 
-      entity(as[FormData]).flatMap((formData: FormData) => {
-        val of1: Option[String] = formData.fields.get(fields(0))
-        val of2: Option[String] = formData.fields.get(fields(1))
-
-        val xf: Future[Option[P1]] = swap(of1.map(f1 => Unmarshal(f1).to[P1]))
-        val yf: Future[Option[P2]] = swap(of2.map(f2 => Unmarshal(f2).to[P2]))
-
-        val marshalling: Future[(Option[P1], Option[P2])] = for {
-          x <- xf
-          y <- yf
-        } yield (x, y)
-
-        onComplete(marshalling).flatMap({
-          case Success((op1, op2)) =>
-            try {
-              provide(close(fp)(constructor.apply(p1Default.getOrDefault(fields(0), op1), p2Default.getOrDefault(fields(1), op2))))
-            } catch {
-              case RejectionError(rejection) =>
-                reject(rejection)
-            }
-          case Failure(x) =>
-            reject(MalformedRequestContentRejection("Error unmarshalling form fields to the types declared.", x))
-        })
-      })
+    (_: String, fp: FormParameter[(P1, P2), T]) => {
+      (fieldDirective[P1](fields(0)) & fieldDirective[P2](fields(1))).tmap(t => close(fp)(constructor.tupled(t)))
     }
+  }
 
-  private def swap[T](x: Option[Future[T]])(implicit ec: ExecutionContext): Future[Option[T]] =
-    x match {
-      case Some(f) => f.map(Some(_))
-      case None    => Future.successful(None)
-    }
+  private def fieldDirective[T: FromStringUnmarshaller](fieldName: String)(implicit defaults: FormFieldDefaults[T]): Directive1[T] = {
+    formField(fieldName.as[T].?).flatMap(ot => defaults.getOrDefault(fieldName, ot))
+  }
 
   implicit val hNilConverter: ConvertibleToDirective[HNil] =
     (modelPath: String, _: HNil) => {
@@ -331,9 +309,9 @@ object ConvertibleToDirective {
     }
   }
 
-
   private def instance[T](f: T => Directive1[T]): ConvertibleToDirective[T] =
     (_: String, t: T) => f(t)
+
 
   private def close[T](qp: QueryParameter[T]): T => QueryParameter[T] =
     t => qp.asInstanceOf[OpenQueryParameter[T]].closeWith(t)
@@ -348,11 +326,17 @@ object ConvertibleToDirective {
   private def close[T](hp: HeaderParameter[T]): T => HeaderParameter[T] =
     t => hp.asInstanceOf[OpenHeaderParameter[T]].closeWith(t)
 
-  private def close[P1, T](fp: FormParameter1[P1, T]): T => FormParameter1[P1, T] =
-    t => fp.asInstanceOf[OpenFormParameter1[P1, T]].closeWith(t)
+  private def close[P <: Product, T](fp: FormParameter[P, T]): T => FormParameter[P, T] =
+    t => fp.asInstanceOf[OpenFormParameter[P, T]].closeWith(t)
 
-  private def close[P1, P2, T](fp: FormParameter2[P1, P2, T]): T => FormParameter2[P1, P2, T] =
-    t => fp.asInstanceOf[OpenFormParameter2[P1, P2, T]].closeWith(t)
+  private def closeSingle[P, T](fp: FormParameter[P, T]): T => FormParameter[P, T] =
+    t => fp.asInstanceOf[OpenFormParameter1[P, T]].closeWith(t)
+
+//  private def close[P1, P2, T](fp: FormParameter2[P1, P2, T]): T => FormParameter2[P1, P2, T] =
+//    t => fp.asInstanceOf[OpenFormParameter2[P1, P2, T]].closeWith(t)
+
+//  private def close[P1, P2, T](fp: FormParameter1[P1, P2, T]): T => FormParameter2[P1, P2, T] =
+//    t => fp.asInstanceOf[OpenFormParameter2[P1, P2, T]].closeWith(t)
 
   private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
     (modelPath: String, pp: PathParameter[T]) =>

@@ -1,6 +1,7 @@
 package net.jtownson.swakka.model
 
-import spray.json.JsonFormat
+import net.jtownson.swakka.model.Parameters.FormParameter.OpenFormParameter
+import net.jtownson.swakka.model.Parameters.FormParameter1.OpenFormParameter1
 
 object Parameters {
 
@@ -26,71 +27,74 @@ object Parameters {
     def closeWith(t: T): U
   }
 
-  sealed trait FormParameter1[P1, T] extends Parameter[T]
+  sealed trait FormParameter[P, T] extends Parameter[T]
 
   object FormParameter1 {
 
-    def apply[P1, T](name: Symbol, description: Option[String] = None, default: Option[T] = None,
-                            construct: (P1) => T): FormParameter1[P1, T] =
+    def apply[P, T](name: Symbol, description: Option[String] = None, default: Option[T] = None,
+                            construct: P => T): FormParameter[P, T] =
       OpenFormParameter1(name, description, default, construct)
 
-    def unapply[P1, T](fp: FormParameter1[P1, T]): Option[T] = fp match {
+    def unapply[P, T](fp: FormParameter[P, T]): Option[T] = fp match {
       case OpenFormParameter1(_, _, default, _) => default
+      case OpenFormParameter(_, _, _, _) => None
       case ClosedFormParameter1(_, _, _, _, value) => Some(value)
+      case _ => None
     }
 
-    case class OpenFormParameter1[P1, T](
+    case class OpenFormParameter1[P, T](
                                   name: Symbol,
                                   description: Option[String],
                                   default: Option[T],
-                                  construct: (P1) => T)
-      extends FormParameter1[P1, T] with OpenParameter[T, ClosedFormParameter1[P1, T]] {
+                                  construct: (P) => T)
+      extends FormParameter[P, T] with OpenParameter[T, ClosedFormParameter1[P, T]] {
 
-      override def closeWith(t: T): ClosedFormParameter1[P1, T] =
+      override def closeWith(t: T): ClosedFormParameter1[P, T] =
         ClosedFormParameter1(name, description, default, construct, t)
     }
 
-    case class ClosedFormParameter1[P1, T](
+    case class ClosedFormParameter1[P, T](
                                       name: Symbol,
                                       description: Option[String],
                                       default: Option[T],
-                                      construct: (P1) => T,
+                                      construct: (P) => T,
                                       value: T)
-      extends FormParameter1[P1, T] with ClosedParameter[T, ClosedFormParameter1[P1, T]]
+      extends FormParameter[P, T] with ClosedParameter[T, ClosedFormParameter1[P, T]]
   }
 
-  sealed trait FormParameter2[P1, P2, T] extends Parameter[T]
+  object FormParameter {
 
-  object FormParameter2 {
+    def apply[P1 <: Product, T](name: Symbol, description: Option[String] = None, default: Option[T] = None,
+                                construct: P1 => T): FormParameter[P1, T] =
+      OpenFormParameter(name, description, default, construct)
 
-    def apply[P1, P2, T](name: Symbol, description: Option[String] = None, default: Option[T] = None,
-                            construct: (P1, P2) => T): FormParameter2[P1, P2, T] =
-      OpenFormParameter2(name, description, default, construct)
-
-    def unapply[P1, P2, T](fp: FormParameter2[P1, P2, T]): Option[T] = fp match {
-      case OpenFormParameter2(_, _, default, _) => default
-      case ClosedFormParameter2(_, _, _, _, value) => Some(value)
+    def unapply[P1 <: Product, T](fp: FormParameter[P1, T]): Option[T] = fp match {
+      case OpenFormParameter1(_, _, _, _) => None
+      case OpenFormParameter(_, _, default, _) => default
+      case ClosedFormParameter(_, _, _, _, value) => Some(value)
+      case _ => None
     }
 
-    case class OpenFormParameter2[P1, P2, T](
-                                  name: Symbol,
-                                  description: Option[String],
-                                  default: Option[T],
-                                  construct: (P1, P2) => T)
-      extends FormParameter2[P1, P2, T] with OpenParameter[T, ClosedFormParameter2[P1, P2, T]] {
+    case class OpenFormParameter[P1 <: Product, T](
+                                                     name: Symbol,
+                                                     description: Option[String],
+                                                     default: Option[T],
+                                                     construct: P1 => T)
+      extends FormParameter[P1, T] with OpenParameter[T, ClosedFormParameter[P1, T]] {
 
-      override def closeWith(t: T): ClosedFormParameter2[P1, P2, T] =
-        ClosedFormParameter2(name, description, default, construct, t)
+      override def closeWith(t: T): ClosedFormParameter[P1, T] =
+        ClosedFormParameter(name, description, default, construct, t)
     }
 
-    case class ClosedFormParameter2[P1, P2, T](
-                                      name: Symbol,
-                                      description: Option[String],
-                                      default: Option[T],
-                                      construct: (P1, P2) => T,
-                                      value: T)
-      extends FormParameter2[P1, P2, T] with ClosedParameter[T, ClosedFormParameter2[P1, P2, T]]
+    case class ClosedFormParameter[P <: Product, T](
+                                                       name: Symbol,
+                                                       description: Option[String],
+                                                       default: Option[T],
+                                                       construct: (P) => T,
+                                                       value: T)
+      extends FormParameter[P, T] with ClosedParameter[T, ClosedFormParameter[P, T]]
   }
+
 
   sealed trait QueryParameter[T] extends Parameter[T]
 
