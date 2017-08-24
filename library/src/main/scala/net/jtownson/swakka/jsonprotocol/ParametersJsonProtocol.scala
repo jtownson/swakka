@@ -130,8 +130,8 @@ trait ParametersJsonProtocol {
   import FormParameterType._
 
   implicit def requiredFormParameter1Format[P1, T <: Product : TypeTag]
-    (implicit ef1: FormParameterType[P1]): ParameterJsonFormat[FormParameter1[P1, T]] =
-      func2Format((_: FormParameter1[P1, T]) => {
+    (implicit ef1: FormParameterType[P1]): ParameterJsonFormat[FormParameter[P1, T]] =
+      func2Format((_: FormParameter[P1, T]) => {
 
         val tDictionary: Map[String, ApiModelPropertyEntry] = apiModelDictionary[T]
         val fields: Seq[String] = apiModelKeys[T]

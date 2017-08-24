@@ -6,7 +6,7 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route.seal
-import akka.http.scaladsl.server.{Directive1, MalformedRequestContentRejection, MissingFormFieldRejection, Route}
+import akka.http.scaladsl.server._
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
@@ -193,17 +193,17 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
     implicit val petFormat = jsonFormat2(Pet)
     implicit val petSchemaWriter = schemaWriter(Pet)
-    implicit val formParamConverter = formParamConverter2(Pet)
+    implicit val formConverter = formParamConverter(Pet)
 
     val pet = Pet(1, "tiddles").toJson.compactPrint
 
-    val formParameter = FormParameter2(name = 'f, construct = Pet)
+    val formParameter = FormParameter[(Int, String), Pet](name = 'f, construct = Pet.tupled)
 
-    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+    val route: Route = formConverter.convertToDirective("", formParameter) {
       fp => complete(fp.value)
     }
 
-    converterTest[Pet, FormParameter2[Int, String, Pet]](
+    converterTest[Pet, FormParameter[(Int, String), Pet]](
       Post("http://example.com/p", FormData(Map("id" -> "1", "name" -> "tiddles"))),
       pet, route)
   }
@@ -215,17 +215,17 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
     implicit val petFormat = jsonFormat2(StrayPet)
     implicit val petSchemaWriter = schemaWriter(StrayPet)
-    implicit val formParamConverter = formParamConverter2(StrayPet)
+    implicit val formConverter = formParamConverter(StrayPet)
 
     val pet = StrayPet(1, None).toJson.compactPrint
 
-    val formParameter = FormParameter2(name = 'f, construct = StrayPet)
+    val formParameter = FormParameter(name = 'f, construct = StrayPet.tupled)
 
-    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+    val route: Route = formConverter.convertToDirective("", formParameter) {
       fp => complete(fp.value)
     }
 
-    converterTest[StrayPet, FormParameter2[Int, String, StrayPet]](
+    converterTest[StrayPet, FormParameter[(Int, String), StrayPet]](
       Post("http://example.com/p", FormData("id" -> "1")),
       pet, route)
   }
@@ -234,11 +234,11 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
     implicit val petFormat = jsonFormat2(StrayPet)
     implicit val petSchemaWriter = schemaWriter(StrayPet)
-    implicit val formParamConverter = formParamConverter2(StrayPet)
+    implicit val formConverter = formParamConverter(StrayPet)
 
-    val formParameter = FormParameter2(name = 'f, construct = StrayPet)
+    val formParameter = FormParameter(name = 'f, construct = StrayPet.tupled)
 
-    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+    val route: Route = formConverter.convertToDirective("", formParameter) {
       fp => complete(fp.value)
     }
 
@@ -251,18 +251,20 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
     implicit val petFormat = jsonFormat2(StrayPet)
     implicit val petSchemaWriter = schemaWriter(StrayPet)
-    implicit val formParamConverter = formParamConverter2(StrayPet)
+    implicit val formConverter = formParamConverter(StrayPet)
 
-    val formParameter = FormParameter2(name = 'f, construct = StrayPet)
+    val formParameter = FormParameter(name = 'f, construct = StrayPet.tupled)
 
-    val route: Route = formParamConverter.convertToDirective("", formParameter) {
+    val route: Route = formConverter.convertToDirective("", formParameter) {
       fp => complete(fp.value)
     }
 
     Post("http://example.com/p", FormData("id" -> "not-an-int")) ~> route ~> check {
-      inside(rejection) { case MalformedRequestContentRejection(message, cause) =>
-        message shouldBe "Error unmarshalling form fields to the types declared."
-        cause shouldBe an[IllegalArgumentException]
+      inside(rejection) {
+        case MalformedFormFieldRejection(fieldName, _, Some(cause)) =>
+          fieldName shouldBe "id"
+          cause shouldBe a[NumberFormatException]
+        case x => println(x)
       }
     }
   }
