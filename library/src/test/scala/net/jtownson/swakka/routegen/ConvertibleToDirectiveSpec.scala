@@ -189,6 +189,28 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     converterTest[Long, PathParameter[Long]](get("/a/2"), "2", PathParameter[Long]('p), "/a/{p}")
   }
 
+
+  import Tuplers._
+
+  case class A(f: Int)
+
+  it should "convert a single-field form" in {
+    implicit val aJsonFormat = jsonFormat1(A)
+    implicit val aSchemaWriter = schemaWriter(A)
+    implicit val aFormConverter = formParamConverter(A)
+
+    val a = A(1).toJson.compactPrint
+
+    val formParameter = FormParameter(name = 'f, construct = A)
+
+    val route: Route = aFormConverter.convertToDirective("", formParameter) {
+      fp => complete(fp.value)
+    }
+
+    converterTest[A, FormParameter[(Int), A]](
+      Post("http://example.com/p", FormData(Map("f" -> "1"))), a, route)
+  }
+
   it should "convert a form with non-optional parameters" in {
     // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
     implicit val petFormat = jsonFormat2(Pet)
@@ -197,7 +219,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
     val pet = Pet(1, "tiddles").toJson.compactPrint
 
-    val formParameter = FormParameter[(Int, String), Pet](name = 'f, construct = Pet.tupled)
+    val formParameter = FormParameter[(Int, String), Pet](name = 'f, construct = Pet)
 
     val route: Route = formConverter.convertToDirective("", formParameter) {
       fp => complete(fp.value)
@@ -219,7 +241,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
     val pet = StrayPet(1, None).toJson.compactPrint
 
-    val formParameter = FormParameter(name = 'f, construct = StrayPet.tupled)
+    val formParameter = FormParameter(name = 'f, construct = StrayPet)
 
     val route: Route = formConverter.convertToDirective("", formParameter) {
       fp => complete(fp.value)
@@ -236,7 +258,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     implicit val petSchemaWriter = schemaWriter(StrayPet)
     implicit val formConverter = formParamConverter(StrayPet)
 
-    val formParameter = FormParameter(name = 'f, construct = StrayPet.tupled)
+    val formParameter = FormParameter(name = 'f, construct = StrayPet)
 
     val route: Route = formConverter.convertToDirective("", formParameter) {
       fp => complete(fp.value)
@@ -253,7 +275,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     implicit val petSchemaWriter = schemaWriter(StrayPet)
     implicit val formConverter = formParamConverter(StrayPet)
 
-    val formParameter = FormParameter(name = 'f, construct = StrayPet.tupled)
+    val formParameter = FormParameter(name = 'f, construct = StrayPet)
 
     val route: Route = formConverter.convertToDirective("", formParameter) {
       fp => complete(fp.value)

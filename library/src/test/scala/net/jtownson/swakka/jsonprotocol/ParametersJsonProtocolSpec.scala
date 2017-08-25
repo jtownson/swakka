@@ -185,9 +185,7 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
   it should "serialize single-field, string form params" in {
 
-//    implicit val formFormat = requiredFormParameterFormat(Pet)
-
-    val params = FormParameter1[String, Pet](
+    val params = FormParameter[String, Pet](
       'f, Some("form description"),
       construct = Pet) :: HNil
 

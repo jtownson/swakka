@@ -9,7 +9,6 @@ import akka.http.scaladsl.unmarshalling.{FromRequestUnmarshaller, _}
 import net.jtownson.swakka.jsonschema.ApiModelDictionary._
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
 import net.jtownson.swakka.model.Parameters.FormParameter.OpenFormParameter
-import net.jtownson.swakka.model.Parameters.FormParameter1.OpenFormParameter1
 import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
 import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
 import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
@@ -238,13 +237,13 @@ object ConvertibleToDirective {
       provide(t.flatten)
   }
 
-  def formParamConverter1[P : FromStringUnmarshaller, T: TypeTag]
-  (constructor: (P) => T)
-  (implicit p1Default: FormFieldDefaults[P]): ConvertibleToDirective[FormParameter[Tuple1[P], T]] = {
+  def formParamConverter[P : FromStringUnmarshaller, T: TypeTag]
+  (constructor: P => T)
+  (implicit p1Default: FormFieldDefaults[P]): ConvertibleToDirective[FormParameter[P, T]] = {
 
     val fields: Seq[String] = apiModelKeys[T]
 
-    (_: String, fp: FormParameter[Tuple1[P], T]) => {
+    (_: String, fp: FormParameter[P, T]) => {
       fieldDirective[P](fields(0)).map((p: P) => closeSingle(fp)(constructor.apply(p)))
     }
   }
@@ -330,7 +329,7 @@ object ConvertibleToDirective {
     t => fp.asInstanceOf[OpenFormParameter[P, T]].closeWith(t)
 
   private def closeSingle[P, T](fp: FormParameter[P, T]): T => FormParameter[P, T] =
-    t => fp.asInstanceOf[OpenFormParameter1[P, T]].closeWith(t)
+    t => fp.asInstanceOf[OpenFormParameter[P, T]].closeWith(t)
 
   private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
     (modelPath: String, pp: PathParameter[T]) =>
