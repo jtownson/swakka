@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class ProductExercise extends FlatSpec with Matchers {
 
-  // here is a function that takes two Tuple2 parameters.
+  // Here is a function that takes two Tuple2 parameters.
   // The first parameter is a Tuple2 of data such as ("A", 1)
   // The second parameter is a Tuple2 of functions (f1, f2).
   // Each function (f1, f2), maps from the corresponding data element in (a1, a2), to some other type (r1, r2).
@@ -85,4 +85,37 @@ class ProductExercise extends FlatSpec with Matchers {
     tmap4("a", 1, 3)((_: String) => "b", (_: Int) * 2, (i: Int) => i*i) shouldBe ("b", 2, 9)
   }
 
+  // Typeclasses for a tree of objects...
+  // In the context of the typeclass pattern,
+  // we have a type T for which there is a Decorator[T]
+  // This allows definition of useful methods like
+  trait Decorator[T] {
+    def funkyStuff(t: T): String
+  }
+
+  def doFunkyStuff[T](t: T)(implicit decorator: Decorator[T]) = {
+    decorator.funkyStuff(t)
+  }
+
+  // Somebody suggests a decorator for any Tuple2
+  // which combines the Decorator for each field of the tuple
+  def tuple2Decorator[P1, P2]
+  (implicit p1Decorator: Decorator[P1], p2Decorator: Decorator[P2]): Decorator[(P1, P2)] =
+  (t: (P1, P2)) => p1Decorator.funkyStuff(t._1) + p2Decorator.funkyStuff(t._2)
+
+  // which allows cool looking code like
+  implicit val stringDecorator: Decorator[String] = (s: String) => s
+  implicit val intDecorator: Decorator[Int] = (i: Int) => i.toString
+
+  "decorator for 2-field tuple" should "combine result from decorating fields" in {
+    val c = ("a", 1)
+    tuple2Decorator[String, Int].funkyStuff(c) shouldBe "a1"
+  }
+
+  // Now we would like to write this code for all tuples from Tuple1 to Tuple22.
+  // Can you do it in a single method, without simply copying and pasting the tuple2Decorator
+  // 21 times?
+
+  // 1. define hnil and hcons decorator instances
+  // 2. convert the tuple into a hlist
 }
