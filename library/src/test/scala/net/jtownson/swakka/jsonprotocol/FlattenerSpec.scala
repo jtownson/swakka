@@ -4,7 +4,7 @@ import net.jtownson.swakka.jsonprotocol.Flattener.{flattenToArray, flattenToObje
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
-import spray.json.{JsArray, JsObject, JsString}
+import spray.json.{JsArray, JsBoolean, JsObject, JsString}
 
 class FlattenerSpec extends FlatSpec {
 
@@ -51,13 +51,58 @@ class FlattenerSpec extends FlatSpec {
   val `do` = JsArray(
     JsObject("name" -> JsString("r")))
 
+  val ei = JsArray(
+    JsArray(
+      JsObject(
+        "format" -> JsString("int32"),
+        "name" -> JsString("id"),
+        "in" -> JsString("formData"),
+        "type" -> JsString("integer"),
+        "required" -> JsBoolean(true)),
+      JsObject(
+        "name" -> JsString("petName"),
+        "type" -> JsString("string"),
+        "in" -> JsString("formData"),
+        "required" -> JsBoolean(true)),
+      JsObject(
+        "format" -> JsString("float"),
+        "name" -> JsString("weight"),
+        "in" -> JsString("formData"),
+        "type" -> JsString("number"),
+        "required" -> JsBoolean(true)
+      )),
+    JsArray())
+
+  val eo = JsArray(
+    JsObject(
+      "name" -> JsString("id"),
+      "in" -> JsString("formData"),
+      "required" -> JsBoolean(true),
+      "type" -> JsString("integer"),
+      "format" -> JsString("int32")
+    ),
+    JsObject(
+      "name" -> JsString("petName"),
+      "in" -> JsString("formData"),
+      "required" -> JsBoolean(true),
+      "type" -> JsString("string")
+    ),
+    JsObject(
+      "name" -> JsString("weight"),
+      "in" -> JsString("formData"),
+      "required" -> JsBoolean(true),
+      "type" -> JsString("number"),
+      "format" -> JsString("float")
+    )
+  )
 
   val samples = Table(
     ("name", "input", "expected output"),
     ("a", ai, ao),
     ("b", bi, bo),
     ("c", ci, co),
-    ("d", di, `do`)
+    ("d", di, `do`),
+    ("e", ei, eo)
   )
 
   forAll(samples) { (name, input, expectedOutput) =>

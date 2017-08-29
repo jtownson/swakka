@@ -1,7 +1,6 @@
 package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.jsonschema.ApiModelDictionary._
-import net.jtownson.swakka.jsonschema.{ApiModelPropertyEntry, JsonSchema, SchemaWriter}
+import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsBoolean, JsString, JsValue}
 import ParameterJsonFormat.func2Format
@@ -10,7 +9,7 @@ import net.jtownson.swakka.model.Parameters._
 
 import scala.reflect.runtime.universe.TypeTag
 
-trait ParametersJsonProtocol {
+trait ParametersJsonProtocol extends FormParametersJsonProtocol {
 
   implicit val strReqQueryParamFormat: ParameterJsonFormat[QueryParameter[String]] =
     (qp: QueryParameter[String]) => simpleParam(qp.name, "query", qp.description, true, "string", None)
@@ -125,34 +124,6 @@ trait ParametersJsonProtocol {
 
   implicit def optionalBodyParamFormat[T: TypeTag](implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[Option[T]]] =
     func2Format((bp: BodyParameter[Option[T]]) => bodyParameter(ev, bp.name, bp.description, false))
-
-
-  import FormParameterType._
-
-  implicit def requiredFormParameter1Format[P1, T <: Product : TypeTag]
-    (implicit ef1: FormParameterType[P1]): ParameterJsonFormat[FormParameter[P1, T]] =
-      func2Format((_: FormParameter[P1, T]) => {
-
-        val tDictionary: Map[String, ApiModelPropertyEntry] = apiModelDictionary[T]
-        val fields: Seq[String] = apiModelKeys[T]
-
-        val fieldName = fields(0)
-
-        val f1Entry = tDictionary(fieldName)
-
-        formDataItem(fieldName, f1Entry.value, f1Entry.required, ef1.swaggerType, ef1.swaggerFormat)
-      })
-
-  private def formDataItem(name: String, description: Option[String], required: Boolean, `type`: String, format: Option[String]): JsValue = {
-    jsObject(
-      Some("name" -> JsString(name)),
-      Some("type" -> JsString(`type`)),
-      format.map("format" -> JsString(_)),
-      Some("in" -> JsString("formData")),
-      description.map("description" -> JsString(_)),
-      Some("required" -> JsBoolean(required))
-    )
-  }
 
 
   private def bodyParameter[T: TypeTag](ev: SchemaWriter[T], name: Symbol,

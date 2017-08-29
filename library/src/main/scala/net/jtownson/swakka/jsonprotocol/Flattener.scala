@@ -2,11 +2,16 @@ package net.jtownson.swakka.jsonprotocol
 
 import spray.json.{JsArray, JsObject, JsValue}
 
+
 object Flattener {
 
   def flattenToArray(jsValue: JsArray): JsArray = jsValue match {
     case JsArray(Vector(head, JsArray(tail: Seq[JsValue]))) =>
-      JsArray(head :: tail.toList: _*)
+      head match {
+        case JsArray(headFields: Seq[JsValue]) =>
+          JsArray(headFields.toList ++ tail.toList: _*)
+        case _ => JsArray(head :: tail.toList: _*)
+      }
     case _: JsValue =>
       jsValue
   }

@@ -8,6 +8,9 @@ trait Tuplers {
   implicit def tupler[P1, P2, T](f: (P1, P2) => T): ((P1, P2)) => T =
     f.tupled
 
+  implicit def tupler[P1, P2, P3, T](f: (P1, P2, P3) => T): ((P1, P2, P3)) => T =
+    f.tupled
+
   implicit def untupler[P1, P2, T](f: ((P1, P2)) => T): (P1, P2) => T =
     (p1, p2) => f(Tuple2(p1, p2))
 

@@ -33,7 +33,7 @@ object FormParameterType {
     override def swaggerFormat: Option[String] = None
   }
 
-  implicit val integerFormParam = new FormParameterType[Integer] {
+  implicit val integerFormParam = new FormParameterType[Int] {
     override def swaggerType: String = "integer"
 
     override def swaggerFormat: Option[String] = Some("int32")

@@ -26,19 +26,6 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     params.toJson shouldBe queryParamJson(false)
   }
 
-  private def queryParamJson(required: Boolean) = {
-    val expectedJson = JsArray(
-      JsObject(
-        "name" -> JsString("qp"),
-        "in" -> JsString("query"),
-        "description" -> JsString("a description"),
-        "required" -> JsBoolean(required),
-        "type" -> JsString("string")
-      )
-    )
-    expectedJson
-  }
-
   it should "serialize required header parameters" in {
 
     val headers = HeaderParameter[String](Symbol("x-my-header"), Some("a header")) :: HNil
@@ -53,19 +40,6 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     headers.toJson shouldBe headerParamJson(false)
   }
 
-  private def headerParamJson(required: Boolean) = {
-    val expectedJson = JsArray(
-      JsObject(
-        "name" -> JsString("x-my-header"),
-        "in" -> JsString("header"),
-        "description" -> JsString("a header"),
-        "required" -> JsBoolean(required),
-        "type" -> JsString("string")
-      )
-    )
-    expectedJson
-  }
-
   it should "serialize required path parameters" in {
 
     val params = PathParameter[String]('petId) :: HNil
@@ -78,18 +52,6 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     val params = PathParameter[Option[String]]('petId) :: HNil
 
     params.toJson shouldBe pathParameterJson(false)
-  }
-
-  private def pathParameterJson(required: Boolean) = {
-    val expectedJson = JsArray(
-      JsObject(
-        "name" -> JsString("petId"),
-        "in" -> JsString("path"),
-        "required" -> JsBoolean(required),
-        "type" -> JsString("string")
-      )
-    )
-    expectedJson
   }
 
   case class Pet(petName: String)
@@ -108,27 +70,6 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     val params = BodyParameter[Option[Pet]]('pet, Some("a description")) :: HNil
 
     params.toJson shouldBe bodyParameterJson(false)
-  }
-
-  private def bodyParameterJson(required: Boolean) = {
-    val expectedJson = JsArray(
-      JsObject(
-        "name" -> JsString("pet"),
-        "in" -> JsString("body"),
-        "description" -> JsString("a description"),
-        "required" -> JsBoolean(required),
-        "schema" -> JsObject(
-          "type" -> JsString("object"),
-          "required" -> JsArray(JsString("petName")),
-          "properties" -> JsObject(
-            "petName" -> JsObject(
-              "type" -> JsString("string")
-            )
-          )
-        )
-      )
-    )
-    expectedJson
   }
 
   it should "implicitly serialize hnil" in {
@@ -183,9 +124,14 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     params.toJson shouldBe expectedJson
   }
 
+  import net.jtownson.swakka.routegen.Tuplers._
+  import FormParameterType._
+
   it should "serialize single-field, string form params" in {
 
-    val params = FormParameter[String, Pet](
+    implicit val formParamFormat = requiredFormParameterFormat(Pet)
+
+    val params = FormParameter[(String), Pet](
       'f, Some("form description"),
       construct = Pet) :: HNil
 
@@ -201,23 +147,88 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
   case class BigPet(id: Int, petName: String, weight: Float)
 
-  //implicit val bgPetSchemaWriter = schemaWriter(BigPet)
+  it should "serialize multi-field, form params" in {
 
-//  it should "serialize multi-field, form params" in {
-//
-//    implicit val formFormat = requiredFormParameterFormat(BigPet)
-//
-//    val params = FormParameter(
-//      'f, Some("form description"),
-//      construct = BigPet) :: HNil
-//
-//    params.toJson shouldBe JsArray(
-//      JsObject(
-//        "name" -> JsString("petName"),
-//        "in"-> JsString("formData"),
-//        "required" -> JsBoolean(true),
-//        "type" -> JsString("string")
-//      )
-//    )
-//  }
+    implicit val formParamFormat = requiredFormParameterFormat(BigPet)
+
+    val params = FormParameter[(Int, String, Float), BigPet](
+      'f, Some("form description"),
+      construct = BigPet) :: HNil
+
+    params.toJson shouldBe JsArray(
+      JsObject(
+        "name" -> JsString("id"),
+        "in"-> JsString("formData"),
+        "required" -> JsBoolean(true),
+        "type" -> JsString("integer"),
+        "format" -> JsString("int32")
+      ),
+      JsObject(
+        "name" -> JsString("petName"),
+        "in"-> JsString("formData"),
+        "required" -> JsBoolean(true),
+        "type" -> JsString("string")
+      ),
+      JsObject(
+        "name" -> JsString("weight"),
+        "in"-> JsString("formData"),
+        "required" -> JsBoolean(true),
+        "type" -> JsString("number"),
+        "format" -> JsString("float")
+      )
+    )
+  }
+
+  private def queryParamJson(required: Boolean) =
+    JsArray(
+      JsObject(
+        "name" -> JsString("qp"),
+        "in" -> JsString("query"),
+        "description" -> JsString("a description"),
+        "required" -> JsBoolean(required),
+        "type" -> JsString("string")
+      )
+    )
+
+  private def pathParameterJson(required: Boolean) = {
+    val expectedJson = JsArray(
+      JsObject(
+        "name" -> JsString("petId"),
+        "in" -> JsString("path"),
+        "required" -> JsBoolean(required),
+        "type" -> JsString("string")
+      )
+    )
+    expectedJson
+  }
+
+  private def bodyParameterJson(required: Boolean) =
+    JsArray(
+      JsObject(
+        "name" -> JsString("pet"),
+        "in" -> JsString("body"),
+        "description" -> JsString("a description"),
+        "required" -> JsBoolean(required),
+        "schema" -> JsObject(
+          "type" -> JsString("object"),
+          "required" -> JsArray(JsString("petName")),
+          "properties" -> JsObject(
+            "petName" -> JsObject(
+              "type" -> JsString("string")
+            )
+          )
+        )
+      )
+    )
+
+  private def headerParamJson(required: Boolean) =
+    JsArray(
+      JsObject(
+        "name" -> JsString("x-my-header"),
+        "in" -> JsString("header"),
+        "description" -> JsString("a header"),
+        "required" -> JsBoolean(required),
+        "type" -> JsString("string")
+      )
+    )
 }
