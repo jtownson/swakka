@@ -43,8 +43,11 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
 
   "Swakka" should "support the petstore v2 example, which includes auth" in {
 
-    type ListPetsParams = QueryParameter[Int] :: HNil
-    type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
+//    type ListPetsParams = QueryParameter[Int] :: HNil
+//    type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
+
+    //    type ShowPetParams = PathParameter[String] :: HNil
+    //    type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
 
     type CreatePetParams = BodyParameter[Pet] :: HNil
     type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
@@ -52,8 +55,7 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
     type UpdatePetParams = BodyParameter[Pet] :: HNil
     type UpdatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: HNil
 
-    type ShowPetParams = PathParameter[String] :: HNil
-    type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
+//    type FindByStatusParams = QueryParameter[] :: HNil
 
     type Paths = PathItem[CreatePetParams, CreatePetResponses] :: PathItem[UpdatePetParams, UpdatePetResponses] :: HNil
     //      PathItem[HNil, CreatePetResponses] :: PathItem[ShowPetParams, ShowPetResponses] :: HNil
@@ -155,48 +157,6 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
       securityDefinitions = Some(securityDefinitions)
     )
 
-    //          PathItem[ListPetsParams, ListPetsResponses](
-    //          path = "/pets",
-    //          method = GET,
-    //          operation = Operation(
-    //            summary = Some("List all pets"),
-    //            operationId = Some("listPets"),
-    //            tags = Some(Seq("pets")),
-    //            parameters =
-    //              QueryParameter[Int](
-    //                name = 'limit,
-    //                description = Some("How many items to return at one time (max 100)")) ::
-    //                HNil,
-    //            responses =
-    //              ResponseValue[Pets, Header[String]](
-    //                responseCode = "200",
-    //                description = "An paged array of pets",
-    //                headers = Header[String](Symbol("x-next"), Some("A link to the next page of responses"))) ::
-    //                ResponseValue[Error, HNil](
-    //                  responseCode = "default",
-    //                  description = "unexpected error"
-    //                ) :: HNil,
-    //            endpointImplementation = _ => ???)) ::
-    //          PathItem[ShowPetParams, ShowPetResponses](
-    //            path = "/pets/{petId}",
-    //            method = GET,
-    //            operation = Operation(
-    //              summary = Some("Info for a specific pet"),
-    //              operationId = Some("showPetById"),
-    //              tags = Some(Seq("pets")),
-    //              parameters =
-    //                PathParameter[String]('petId, Some("The id of the pet to retrieve")) ::
-    //                  HNil,
-    //              responses =
-    //                ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
-    //                ResponseValue[Error, HNil]("default", "unexpected error") ::
-    //                HNil,
-    //              endpointImplementation = _ => ???
-    //            )
-    //          ) ::
-    //          HNil
-    //    )
-
     val apiRoutes = openApiRoute(petstoreApi, Some(SwaggerRouteSettings()))
 
     val expectedJson = JsObject(
@@ -216,66 +176,6 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
       "schemes" -> JsArray(JsString("http")),
       "paths" -> JsObject(
         "/pets" -> JsObject(
-          //          "get" -> JsObject(
-          //            "summary" -> JsString("List all pets"),
-          //            "operationId" -> JsString("listPets"),
-          //            "tags" -> JsArray(
-          //              JsString("pets")
-          //            ),
-          //            "parameters" -> JsArray(
-          //              JsObject(
-          //                "name" -> JsString("limit"),
-          //                "in" -> JsString("query"),
-          //                "description" -> JsString("How many items to return at one time (max 100)"),
-          //                "required" -> JsBoolean(true),
-          //                "type" -> JsString("integer"),
-          //                "format" -> JsString("int32")
-          //              )
-          //            ),
-          //            "responses" -> JsObject(
-          //              "200" -> JsObject(
-          //                "description" -> JsString("An paged array of pets"),
-          //                "headers" -> JsObject(
-          //                  "x-next" -> JsObject(
-          //                    "type" -> JsString("string"),
-          //                    "description" -> JsString("A link to the next page of responses")
-          //                  )
-          //                ),
-          //                "schema" -> JsObject(
-          //                  "type" -> JsString("array"),
-          //                  "items" -> JsObject(
-          //                    "type" -> JsString("object"),
-          //                    "required" -> JsArray(JsString("id"), JsString("name")),
-          //                    "properties" -> JsObject(
-          //                      "id" -> JsObject(
-          //                        "type" -> JsString("integer"),
-          //                        "format" -> JsString("int64")),
-          //                      "name" -> JsObject(
-          //                        "type" -> JsString("string")),
-          //                      "tag" -> JsObject(
-          //                        "type" -> JsString("string"))
-          //                    )
-          //                  )
-          //                )
-          //              ),
-          //              "default" -> JsObject(
-          //                "description" -> JsString("unexpected error"),
-          //                "schema" -> JsObject(
-          //                  "type" -> JsString("object"),
-          //                  "required" -> JsArray(JsString("id"), JsString("message")),
-          //                  "properties" -> JsObject(
-          //                    "id" -> JsObject(
-          //                      "type" -> JsString("integer"),
-          //                      "format" -> JsString("int32")
-          //                    ),
-          //                    "message" -> JsObject(
-          //                      "type" -> JsString("string")
-          //                    )
-          //                  )
-          //                )
-          //              )
-          //            )
-          //          ),
           "post" -> JsObject(
             "summary" -> JsString("Add a new pet to the store"),
             "description" -> JsString(""),
@@ -381,66 +281,59 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
               )
             )
           )
+        )/* TODO enable after enum support added
+        ,
+        "/pet/findByStatus" -> JsObject(
+          "get" -> JsObject(
+            "tags" -> JsArray(JsString("pet")),
+            "summary" -> JsString("Finds Pets by status"),
+            "description" -> JsString("Multiple status values can be provided with comma separated strings"),
+            "operationId" -> JsString("findPetsByStatus"),
+            "produces" -> JsArray(
+              JsString("application/xml"),
+              JsString("application/json")),
+            "parameters" -> JsArray(
+              JsObject(
+                "name" -> JsString("status"),
+                "in" -> JsString("query"),
+                "description" -> JsString("Status values that need to be considered for filter"),
+                "required" -> JsBoolean(true),
+                "type" -> JsString("array"),
+                "items" -> JsObject(
+                  "type" -> JsString("string"),
+                  "enum" -> JsArray(
+                    JsString("available"),
+                    JsString("pending"),
+                    JsString("sold")
+                  ),
+                  "default" -> JsString("available")
+                ),
+                "collectionFormat" -> JsString("multi")
+              )
+            ),
+            "responses" -> JsObject(
+              "200" -> JsObject(
+                "description" -> JsString("successful operation"),
+                "schema" -> JsObject(
+                  "type" -> JsString("array"),
+                  "items" -> JsObject(
+                    "$ref" -> JsString("#/definitions/Pet"))
+                )
+              ),
+              "400" -> JsObject(
+                "description" -> JsString("Invalid status value")
+              )
+            ),
+            "security" -> JsArray(
+              JsObject(
+                "petstore_auth" -> JsArray(JsString("write:pets"), JsString("read:pets"))
+              )
+            )
+          )
+          */
         )
-
-        //,
-        //        "/pets/{petId}" -> JsObject(
-        //          "get" -> JsObject(
-        //            "summary" -> JsString("Info for a specific pet"),
-        //            "operationId" -> JsString("showPetById"),
-        //            "tags" -> JsArray(
-        //              JsString("pets")
-        //            ),
-        //            "parameters" -> JsArray(
-        //              JsObject(
-        //                "name" -> JsString("petId"),
-        //                "in" -> JsString("path"),
-        //                "required" -> JsBoolean(true),
-        //                "description" -> JsString("The id of the pet to retrieve"),
-        //                "type" -> JsString("string")
-        //              )
-        //            ),
-        //            "responses" -> JsObject(
-        //              "200" -> JsObject(
-        //                "description" -> JsString("Expected response to a valid request"),
-        //                "schema" -> JsObject(
-        //                  "type" -> JsString("array"),
-        //                  "items" -> JsObject(
-        //                    "type" -> JsString("object"),
-        //                    "required" -> JsArray(JsString("id"), JsString("name")),
-        //                    "properties" -> JsObject(
-        //                      "id" -> JsObject(
-        //                        "type" -> JsString("integer"),
-        //                        "format" -> JsString("int64")),
-        //                      "name" -> JsObject(
-        //                        "type" -> JsString("string")),
-        //                      "tag" -> JsObject(
-        //                        "type" -> JsString("string"))
-        //                    )
-        //                  )
-        //                )
-        //              ),
-        //              "default" -> JsObject(
-        //                "description" -> JsString("unexpected error"),
-        //                "schema" -> JsObject(
-        //                  "type" -> JsString("object"),
-        //                  "required" -> JsArray(JsString("id"), JsString("message")),
-        //                  "properties" -> JsObject(
-        //                    "id" -> JsObject(
-        //                      "type" -> JsString("integer"),
-        //                      "format" -> JsString("int32")
-        //                    ),
-        //                    "message" -> JsObject(
-        //                      "type" -> JsString("string")
-        //                    )
-        //                  )
-        //                )
-        //              )
-        //            )
-        //          )
-        //        )
       )
-    )
+
     //
     Get("http://petstore.swagger.io/v2/swagger.json") ~> apiRoutes ~> check {
       JsonParser(responseAs[String]) shouldBe expectedJson
