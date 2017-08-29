@@ -5,9 +5,10 @@ import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.func2Format
 import net.jtownson.swakka.model.{Contact, Info, License}
+import net.jtownson.swakka.jsonprotocol.SecurityDefinitionsJsonProtocol.securityRequirementJsonFormat
 import shapeless.{::, HList, HNil}
+import spray.json._
 import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonWriter, RootJsonFormat, RootJsonWriter}
-
 
 // A JsonProtocol supporting OpenApi paths
 trait PathsJsonProtocol extends DefaultJsonProtocol {
@@ -19,21 +20,25 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
       val parameters: JsValue = ev1.write(operation.parameters)
       val responses = ev2.write(operation.responses)
 
-      val tags: Option[JsArray] = operation.tags.
-        map(tags => tags.map(JsString(_))).
-        map(_.toList).
-        map(JsArray(_: _*))
-
       val fields: Seq[(String, JsValue)] = List(
         operation.summary.map("summary" -> JsString(_)),
         operation.operationId.map("operationId" -> JsString(_)),
-        tags.map("tags" -> _),
+        optionalArrayField("tags", operation.tags),
+        optionalArrayField("consumes", operation.consumes),
+        optionalArrayField("produces", operation.produces),
+        operation.description.map("description" -> JsString(_)),
         optionalArrayField("parameters", parameters),
-        optionalObjectField("responses", responses)).
-        flatten
+        optionalObjectField("responses", responses),
+        operation.security.map("security" -> _.toJson)
+      ).flatten
 
       JsObject(fields: _*)
     }
+
+  private def optionalArrayField(s: String, f: Option[Seq[String]]): Option[(String, JsArray)] =
+    f.map(tags => tags.map(JsString(_))).
+      map(_.toList).
+      map(JsArray(_: _*)).map(s -> _)
 
   private def optionalArrayField(s: String, j: JsValue): Option[(String, JsValue)] = j match {
     case (JsArray(elements)) =>

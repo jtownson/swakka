@@ -7,10 +7,11 @@ import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.model.Parameters.QueryParameter
 import net.jtownson.swakka.model.Responses.ResponseValue
+import net.jtownson.swakka.model.SecurityDefinitions.SecurityRequirement
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}
-import spray.json.{JsArray, JsFalse, JsObject, JsString, _}
+import spray.json.{JsArray, JsObject, JsString, _}
 
 class PathsJsonProtocolSpec extends FlatSpec {
 
@@ -200,6 +201,61 @@ class PathsJsonProtocolSpec extends FlatSpec {
     )
 
     apiFormat[HNil, HNil].write(api) shouldBe expectedJson
+  }
+
+  it should "write a swagger security definition with a security requirement" in {
+
+    val api = OpenApi(
+      paths =
+        PathItem(
+          path = "/app/e1",
+          method = GET,
+          operation = Operation(
+            parameters = QueryParameter[Int]('q) :: HNil,
+            responses = ResponseValue[String, HNil]("200", "ok"),
+            security = Some(Seq(SecurityRequirement('auth, Seq("grant1", "grant2")))),
+            endpointImplementation = endpointImpl
+          )
+        ) :: HNil
+      )
+
+    val expectedJson = JsObject(
+      "swagger" -> JsString("2.0"),
+      "info" -> JsObject(
+        "title" -> JsString(""),
+        "version" -> JsString("")
+      ),
+      "paths" -> JsObject(
+        "/app/e1" -> JsObject(
+          "get" -> JsObject(
+            "parameters" -> JsArray(
+              JsObject(
+                "name" -> JsString("q"),
+                "in" -> JsString("query"),
+                "required" -> JsTrue,
+                "type" -> JsString("integer"),
+                "format" -> JsString("int32")
+              )),
+            "responses" -> JsObject(
+              "200" -> JsObject(
+                "description" -> JsString("ok"),
+                "schema" -> JsObject(
+                  "type" -> JsString("string")
+                )
+              )
+            ),
+            "security" -> JsArray(
+              JsObject(
+                "auth" -> JsArray(JsString("grant1"), JsString("grant2")
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+
+    api.toJson shouldBe expectedJson
   }
 
   it should "combine path items where the path is equal" in {

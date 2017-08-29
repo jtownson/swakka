@@ -149,4 +149,15 @@ class SecurityDefinitionsJsonProtocolSpec extends FlatSpec {
     )
   }
 
+  it should "serialize a security requirement" in {
+
+    val securityRequirement = SecurityRequirement('auth, Seq("grant1", "grant2"))
+
+    val expectedJson = JsObject(
+      "auth" -> JsArray(JsString("grant1"), JsString("grant2")
+      )
+    )
+
+    securityRequirement.toJson shouldBe expectedJson
+  }
 }

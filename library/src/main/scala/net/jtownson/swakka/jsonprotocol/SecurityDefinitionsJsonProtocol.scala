@@ -71,6 +71,11 @@ trait SecurityDefinitionsJsonProtocol {
       security.description.map("description" -> JsString(_))
     ))
 
+  implicit val securityRequirementJsonFormat: SecurityDefinitionsJsonFormat[SecurityRequirement] =
+    (securityRequirement: SecurityRequirement) => {
+      JsObject(securityRequirement.name.name -> JsArray(securityRequirement.refs.map(JsString(_)).toList: _*))
+    }
+
   implicit val hnilWriterRecord: SecurityDefinitionsJsonFormat[HNil] =
     func2Format(_ => JsObject())
 
@@ -82,8 +87,8 @@ trait SecurityDefinitionsJsonProtocol {
       JsObject(
         JsObject(witness.value.name -> hWriter.value.write(hl.head)).fields ++
           tWriter.write(hl.tail).asInstanceOf[JsObject].fields
-        )
-      }
+      )
+    }
     )
 }
 
