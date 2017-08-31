@@ -1,0 +1,9 @@
+image: bitbucketpipelines/scala-sbt:scala-2.12
+
+pipelines:
+  default:
+    - step:
+        script:
+          - openssl enc -d -pass pass:$OPENSSL_PASSWORD -aes-256-cbc -in secring.asc.enc -out secring.asc
+          - gpg --import secring.asc
+          - sbt test publish
