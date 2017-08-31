@@ -17,6 +17,9 @@ image: bitbucketpipelines/scala-sbt:scala-2.12
 pipelines:
   master:
     - step:
+        caches:
+          - sbt
+          - ivy2
         script:
           - openssl enc -d -pass pass:$OPENSSL_PASSWORD -aes-256-cbc -in secring.asc.enc -out secring.asc
           - gpg --import secring.asc
