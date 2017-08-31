@@ -59,28 +59,31 @@ object Parameters {
   }
 
 
-  sealed trait QueryParameter[T] extends Parameter[T]
+  sealed trait QueryParameter[T] extends Parameter[T] {
+    def name: Symbol
+    def enum: Option[Seq[T]]
+  }
 
   object QueryParameter {
 
     def apply[T](name: Symbol, description: Option[String] = None,
-                 default: Option[T] = None): QueryParameter[T] =
-        OpenQueryParameter(name, description, default)
+                 default: Option[T] = None, enum: Option[Seq[T]] = None): QueryParameter[T] =
+        OpenQueryParameter(name, description, default, enum)
 
     def unapply[T](qp: QueryParameter[T]): Option[T] = qp match {
-      case OpenQueryParameter(_, _, default) => default
-      case ClosedQueryParameter(_, _, _, value) => Some(value)
+      case OpenQueryParameter(_, _, default, _) => default
+      case ClosedQueryParameter(_, _, _, _, value) => Some(value)
     }
 
     case class OpenQueryParameter[T](name: Symbol, description: Option[String],
-                                     default: Option[T])
+                                     default: Option[T], enum: Option[Seq[T]])
       extends QueryParameter[T] with OpenParameter[T, ClosedQueryParameter[T]] {
       override def closeWith(t: T): ClosedQueryParameter[T] =
-        ClosedQueryParameter(name, description, default, t)
+        ClosedQueryParameter(name, description, default, enum, t)
     }
 
     case class ClosedQueryParameter[T](name: Symbol, description: Option[String],
-                                       default: Option[T], value: T)
+                                       default: Option[T], enum: Option[Seq[T]], value: T)
       extends QueryParameter[T] with ClosedParameter[T, ClosedQueryParameter[T]]
 
   }

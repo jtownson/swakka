@@ -16,7 +16,7 @@ class ParametersSpec extends FlatSpec {
 
   val openParams = Table[String, Parameter[String]](
     ("test case", "parameter"),
-    ("qp", OpenQueryParameter[String]('qp, None, None)),
+    ("qp", OpenQueryParameter[String]('qp, None, None, None)),
     ("pp", OpenPathParameter[String]('pp, None, None)),
     ("hp", OpenHeaderParameter[String]('hp, None, None)),
     ("bp", OpenBodyParameter[String]('bp, None, None))
@@ -40,7 +40,7 @@ class ParametersSpec extends FlatSpec {
   "A query parameter" should "provide values to a pattern match" in {
     val expectedValue = "foo"
 
-    val param = OpenQueryParameter[String]('p, None, None).closeWith(expectedValue)
+    val param = OpenQueryParameter[String]('p, None, None, None).closeWith(expectedValue)
 
     param match {
       case QueryParameter(actualValue) => actualValue shouldBe expectedValue

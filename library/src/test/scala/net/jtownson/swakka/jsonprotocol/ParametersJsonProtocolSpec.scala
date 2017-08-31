@@ -2,6 +2,7 @@ package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.jsonprotocol.ParametersJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
+import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.model.Parameters._
 import org.scalatest.Matchers._
 import org.scalatest._
@@ -10,6 +11,7 @@ import spray.json.{JsArray, JsBoolean, JsObject, JsString, _}
 
 class ParametersJsonProtocolSpec extends FlatSpec {
 
+  // TODO: testcases for non-string types
   // TODO: is there a way of generating table driven tests over type params??
 
   "ParametersJsonProtocol" should "serialize required query parameters" in {
@@ -21,9 +23,9 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
   it should "serialize optional query parameters" in {
 
-    val params = QueryParameter[Option[String]]('qp, Some("a description")) :: HNil
+    val params = QueryParameter[Option[String]]('qp, Some("a description"), Some(Some("default-value"))) :: HNil
 
-    params.toJson shouldBe queryParamJson(false)
+    params.toJson shouldBe queryParamJson(false, Some("default-value"))
   }
 
   it should "serialize required header parameters" in {
@@ -35,9 +37,9 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
   it should "serialize optional header parameters" in {
 
-    val headers = HeaderParameter[Option[String]](Symbol("x-my-header"), Some("a header")) :: HNil
+    val headers = HeaderParameter[Option[String]](Symbol("x-my-header"), Some("a header"), Some(Some("default-value"))) :: HNil
 
-    headers.toJson shouldBe headerParamJson(false)
+    headers.toJson shouldBe headerParamJson(false, Some("default-value"))
   }
 
   it should "serialize required path parameters" in {
@@ -47,15 +49,8 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     params.toJson shouldBe pathParameterJson(true)
   }
 
-  it should "serialize optional path parameters" in {
-
-    val params = PathParameter[Option[String]]('petId) :: HNil
-
-    params.toJson shouldBe pathParameterJson(false)
-  }
-
   case class Pet(petName: String)
-
+  implicit val petJsonWriter = jsonFormat1(Pet)
   implicit val petSchemaWriter = schemaWriter(Pet)
 
   it should "serialize required body parameters" in {
@@ -66,10 +61,10 @@ class ParametersJsonProtocolSpec extends FlatSpec {
   }
 
   it should "serialize optional body parameters" in {
+    val defaultPet = Pet("I'm a default. Boo!")
+    val params = BodyParameter[Option[Pet]]('pet, Some("a description"), Some(Some(defaultPet))) :: HNil
 
-    val params = BodyParameter[Option[Pet]]('pet, Some("a description")) :: HNil
-
-    params.toJson shouldBe bodyParameterJson(false)
+    params.toJson shouldBe bodyParameterJson(false, Some(defaultPet.toJson))
   }
 
   it should "implicitly serialize hnil" in {
@@ -179,14 +174,43 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     )
   }
 
-  private def queryParamJson(required: Boolean) =
-    JsArray(
+  object Statuses extends Enumeration {
+    val placed, approved, delivered = Value
+  }
+
+  it should "serialize query params for scala enums without getting involved in the world of scala enums" in {
+
+    import Statuses._
+    val params = QueryParameter[Option[String]](
+      name = 'status,
+      description = Some("order status"),
+      default = Some(Some(placed.toString)),
+      enum = Some(Statuses.values.toList.map(value => Some(value.toString)))) :: HNil
+
+    val expectedJson = JsArray(
       JsObject(
-        "name" -> JsString("qp"),
+        "name" -> JsString("status"),
         "in" -> JsString("query"),
-        "description" -> JsString("a description"),
-        "required" -> JsBoolean(required),
-        "type" -> JsString("string")
+        "description" -> JsString("order status"),
+        "required" -> JsBoolean(false),
+        "type" -> JsString("string"),
+        "default" -> JsString("placed"),
+        "enum" -> JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))
+      )
+    )
+
+    params.toJson shouldBe expectedJson
+  }
+
+  private def queryParamJson(required: Boolean, default: Option[String] = None) =
+    JsArray(
+      jsObject(
+        Some("name" -> JsString("qp")),
+        Some("in" -> JsString("query")),
+        Some("description" -> JsString("a description")),
+        Some("required" -> JsBoolean(required)),
+        Some("type" -> JsString("string")),
+        default.map("default" -> JsString(_))
       )
     )
 
@@ -202,14 +226,15 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     expectedJson
   }
 
-  private def bodyParameterJson(required: Boolean) =
+  private def bodyParameterJson(required: Boolean, default: Option[JsValue] = None) =
     JsArray(
-      JsObject(
-        "name" -> JsString("pet"),
-        "in" -> JsString("body"),
-        "description" -> JsString("a description"),
-        "required" -> JsBoolean(required),
-        "schema" -> JsObject(
+      jsObject(
+        Some("name" -> JsString("pet")),
+        Some("in" -> JsString("body")),
+        Some("description" -> JsString("a description")),
+        Some("required" -> JsBoolean(required)),
+        default.map("default" -> _),
+        Some("schema" -> JsObject(
           "type" -> JsString("object"),
           "required" -> JsArray(JsString("petName")),
           "properties" -> JsObject(
@@ -217,18 +242,19 @@ class ParametersJsonProtocolSpec extends FlatSpec {
               "type" -> JsString("string")
             )
           )
-        )
+        ))
       )
     )
 
-  private def headerParamJson(required: Boolean) =
+  private def headerParamJson(required: Boolean, default: Option[String] = None) =
     JsArray(
-      JsObject(
-        "name" -> JsString("x-my-header"),
-        "in" -> JsString("header"),
-        "description" -> JsString("a header"),
-        "required" -> JsBoolean(required),
-        "type" -> JsString("string")
+      jsObject(
+        Some("name" -> JsString("x-my-header")),
+        Some("in" -> JsString("header")),
+        Some("description" -> JsString("a header")),
+        Some("required" -> JsBoolean(required)),
+        Some("type" -> JsString("string")),
+        default.map("default" -> JsString(_))
       )
     )
 }
