@@ -28,11 +28,21 @@ import org.scalatest.prop.TableDrivenPropertyChecks._
 
 class ParametersJsonProtocolSpec extends FlatSpec {
 
-  object Statuses extends Enumeration {
-    val placed, approved, delivered = Value
+  object UserStuff {
+
+    case class Pet(petName: String)
+
+    val defaultPet = Pet("I'm a default. Boo!")
+
+    implicit val petJsonWriter = jsonFormat1(Pet)
+    implicit val petSchemaWriter = schemaWriter(Pet)
+
+    object Statuses extends Enumeration {
+      val placed, approved, delivered = Value
+    }
   }
 
-  import Statuses._
+  import UserStuff._
 
   val parameters = Table(
     ("testcase", "parameter", "expected json"),
@@ -162,8 +172,19 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       HeaderParameter[Option[Double]](Symbol("x-my-header"), Some("a header"), Some(Some(3.1415))).toJson,
       headerParamJson(false, "number", Some("double"), Some(JsNumber(3.1415)))),
 
+    // Body parameters
+    ("Required body parameter",
+      BodyParameter[Pet]('pet, Some("a description")).toJson,
+      bodyParameterJson(true)),
+
+    ("Optional body parameter",
+      BodyParameter[Option[Pet]]('pet, Some("a description"), Some(Some(defaultPet))).toJson,
+      bodyParameterJson(false, Some(defaultPet.toJson))
+    ),
+
+    // Enum usage
     ("Enum example query parameter",
-      QueryParameter[Option[String]]('qp, description = Some("a description"), Some(Some(placed.toString)), Some(Statuses.values.toList.map(value => Some(value.toString)))).toJson,
+      QueryParameter[Option[String]]('qp, description = Some("a description"), Some(Some(Statuses.placed.toString)), Some(Statuses.values.toList.map(value => Some(value.toString)))).toJson,
       queryParamJson(false, "string", None, Some(JsString("placed")), Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
     ),
 
@@ -175,7 +196,11 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     ("Enum example header parameter",
       HeaderParameter[String](Symbol("x-my-header"), Some("a header"), None, Some(Statuses.values.toList.map(value => value.toString))).toJson,
       headerParamJson(true, "string", None, None, Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
-    )
+    ),
+
+    ("HNil",
+      (HNil: HNil).toJson,
+      JsArray())
   )
 
   forAll(parameters) { (testcase, parameter, expectedJson) =>
@@ -184,46 +209,15 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     }
   }
 
-
-  case class Pet(petName: String)
-
-  implicit val petJsonWriter = jsonFormat1(Pet)
-  implicit val petSchemaWriter = schemaWriter(Pet)
-
-  it should "serialize required body parameters" in {
-
-    val params = BodyParameter[Pet]('pet, Some("a description"))
-
-    params.toJson shouldBe bodyParameterJson(true)
-  }
-
-  it should "serialize optional body parameters" in {
-    val defaultPet = Pet("I'm a default. Boo!")
-    val params = BodyParameter[Option[Pet]]('pet, Some("a description"), Some(Some(defaultPet)))
-
-    params.toJson shouldBe bodyParameterJson(false, Some(defaultPet.toJson))
-  }
-
-  it should "implicitly serialize hnil" in {
-
-    type Params = HNil
-
-    val params: Params = HNil
-
-    val expectedJson = JsArray()
-
-    params.toJson shouldBe expectedJson
-  }
-
   it should "serialize an hlist of query params" in {
 
     type Params =
-      QueryParameter[Int] :: QueryParameter[String] ::
-        QueryParameter[Int] :: QueryParameter[String] :: HNil
+      QueryParameter[Int] :: PathParameter[String] ::
+        HeaderParameter[Int] :: BodyParameter[String] :: HNil
 
     val params =
-      QueryParameter[Int]('r) :: QueryParameter[String]('s) ::
-        QueryParameter[Int]('t) :: QueryParameter[String]('u) :: HNil
+      QueryParameter[Int]('r) :: PathParameter[String]('s) ::
+        HeaderParameter[Int]('t) :: BodyParameter[String]('u) :: HNil
 
     val expectedJson = JsArray(
       JsObject(
@@ -235,22 +229,24 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       ),
       JsObject(
         "name" -> JsString("s"),
-        "in" -> JsString("query"),
+        "in" -> JsString("path"),
         "required" -> JsBoolean(true),
         "type" -> JsString("string")
       ),
       JsObject(
         "name" -> JsString("t"),
-        "in" -> JsString("query"),
+        "in" -> JsString("header"),
         "required" -> JsBoolean(true),
         "type" -> JsString("integer"),
         "format" -> JsString("int32")
       ),
       JsObject(
         "name" -> JsString("u"),
-        "in" -> JsString("query"),
+        "in" -> JsString("body"),
         "required" -> JsBoolean(true),
-        "type" -> JsString("string")
+        "schema" -> JsObject(
+          "type" -> JsString("string")
+        )
       ))
 
     params.toJson shouldBe expectedJson
@@ -353,15 +349,16 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       Some("description" -> JsString("a description")),
       Some("required" -> JsBoolean(required)),
       default.map("default" -> _),
-      Some("schema" -> JsObject(
-        "type" -> JsString("object"),
-        "required" -> JsArray(JsString("petName")),
-        "properties" -> JsObject(
-          "petName" -> JsObject(
-            "type" -> JsString("string")
+      Some(
+        "schema" -> JsObject(
+          "type" -> JsString("object"),
+          "required" -> JsArray(JsString("petName")),
+          "properties" -> JsObject(
+            "petName" -> JsObject(
+              "type" -> JsString("string")
+            )
           )
         )
-      )
       )
     )
 }
