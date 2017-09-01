@@ -33,9 +33,9 @@ class ParametersSpec extends FlatSpec {
   val openParams = Table[String, Parameter[String]](
     ("test case", "parameter"),
     ("qp", OpenQueryParameter[String]('qp, None, None, None)),
-    ("pp", OpenPathParameter[String]('pp, None, None)),
-    ("hp", OpenHeaderParameter[String]('hp, None, None)),
-    ("bp", OpenBodyParameter[String]('bp, None, None))
+    ("pp", OpenPathParameter[String]('pp, None, None, None)),
+    ("hp", OpenHeaderParameter[String]('hp, None, None, None)),
+    ("bp", OpenBodyParameter[String]('bp, None, None, None))
   )
 
   "An OpenParameter" should "throw when trying to obtain its value" in {
@@ -67,7 +67,7 @@ class ParametersSpec extends FlatSpec {
   "A path parameter" should "provide values to a pattern match" in {
     val expectedValue = "foo"
 
-    val param = OpenPathParameter[String]('p, None, None).closeWith(expectedValue)
+    val param = OpenPathParameter[String]('p, None, None, None).closeWith(expectedValue)
 
     param match {
       case PathParameter(actualValue) => actualValue shouldBe expectedValue
@@ -78,7 +78,7 @@ class ParametersSpec extends FlatSpec {
   "A header parameter" should "provide values to a pattern match" in {
     val expectedValue = "foo"
 
-    val param = OpenHeaderParameter[String]('p, None, None).closeWith(expectedValue)
+    val param = OpenHeaderParameter[String]('p, None, None, None).closeWith(expectedValue)
 
     param match {
       case HeaderParameter(actualValue) => actualValue shouldBe expectedValue
@@ -89,7 +89,7 @@ class ParametersSpec extends FlatSpec {
   "A body parameter" should "provide values to a pattern match" in {
     val expectedValue = "foo"
 
-    val param = OpenBodyParameter[String]('p, None, None).closeWith(expectedValue)
+    val param = OpenBodyParameter[String]('p, None, None, None).closeWith(expectedValue)
 
     param match {
       case BodyParameter(actualValue) => actualValue shouldBe expectedValue

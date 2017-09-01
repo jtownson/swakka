@@ -19,13 +19,15 @@ package net.jtownson.swakka.model
 object Parameters {
 
   sealed trait Parameter[T] {
-    def name: Symbol
-
     def description: Option[String]
 
     def value: T
 
     def default: Option[T]
+  }
+
+  sealed trait Named {
+    def name: Symbol
   }
 
   sealed trait ClosedParameter[T, U] extends Parameter[T]
@@ -54,11 +56,10 @@ object Parameters {
       case _ => None
     }
 
-    case class OpenFormParameter[P, T](
-                                                     name: Symbol,
-                                                     description: Option[String],
-                                                     default: Option[T],
-                                                     construct: P => T)
+    case class OpenFormParameter[P, T](name: Symbol,
+                                       description: Option[String],
+                                       default: Option[T],
+                                       construct: P => T)
       extends FormParameter[P, T] with OpenParameter[T, ClosedFormParameter[P, T]] {
 
       override def closeWith(t: T): ClosedFormParameter[P, T] =
@@ -75,8 +76,7 @@ object Parameters {
   }
 
 
-  sealed trait QueryParameter[T] extends Parameter[T] {
-    def name: Symbol
+  sealed trait QueryParameter[T] extends Parameter[T] with Named {
     def enum: Option[Seq[T]]
   }
 
@@ -104,83 +104,89 @@ object Parameters {
 
   }
 
-  sealed trait PathParameter[T] extends Parameter[T]
+  sealed trait PathParameter[T] extends Parameter[T] with Named {
+    def enum: Option[Seq[T]]
+  }
 
   object PathParameter {
 
     def apply[T](name: Symbol, description: Option[String] = None,
-                 default: Option[T] = None): PathParameter[T] =
-      OpenPathParameter(name, description, default)
+                 default: Option[T] = None, enum: Option[Seq[T]] = None): PathParameter[T] =
+      OpenPathParameter(name, description, default, enum)
 
     def unapply[T](pp: PathParameter[T]): Option[T] = pp match {
-      case OpenPathParameter(_, _, default) => default
-      case ClosedPathParameter(_, _, _, value) => Some(value)
+      case OpenPathParameter(_, _, default, _) => default
+      case ClosedPathParameter(_, _, _, _, value) => Some(value)
     }
 
     case class OpenPathParameter[T](name: Symbol, description: Option[String],
-                                    default: Option[T])
+                                    default: Option[T], enum: Option[Seq[T]])
       extends PathParameter[T] with OpenParameter[T, ClosedPathParameter[T]] {
 
       override def closeWith(t: T): ClosedPathParameter[T] =
-        ClosedPathParameter(name, description, default, t)
+        ClosedPathParameter(name, description, default, enum, t)
     }
 
     case class ClosedPathParameter[T](name: Symbol, description: Option[String],
-                                      default: Option[T], value: T)
+                                      default: Option[T], enum: Option[Seq[T]], value: T)
       extends PathParameter[T] with ClosedParameter[T, ClosedPathParameter[T]]
 
   }
 
-  sealed trait BodyParameter[T] extends Parameter[T]
+  sealed trait BodyParameter[T] extends Parameter[T] with Named {
+    def enum: Option[Seq[T]]
+  }
 
   object BodyParameter {
 
     def apply[T](name: Symbol, description: Option[String] = None,
-                 default: Option[T] = None): BodyParameter[T] =
-      OpenBodyParameter(name, description, default)
+                 default: Option[T] = None, enum: Option[Seq[T]] = None): BodyParameter[T] =
+      OpenBodyParameter(name, description, default, enum)
 
     def unapply[T](bp: BodyParameter[T]): Option[T] = bp match {
-      case OpenBodyParameter(_, _, default) => default
-      case ClosedBodyParameter(_, _, _, value) => Some(value)
+      case OpenBodyParameter(_, _, default, _) => default
+      case ClosedBodyParameter(_, _, _, _, value) => Some(value)
     }
 
     case class OpenBodyParameter[T](name: Symbol, description: Option[String],
-                                    default: Option[T])
+                                    default: Option[T], enum: Option[Seq[T]])
       extends BodyParameter[T] with OpenParameter[T, ClosedBodyParameter[T]] {
 
       override def closeWith(t: T): ClosedBodyParameter[T] =
-        ClosedBodyParameter(name, description, default, t)
+        ClosedBodyParameter(name, description, default, enum, t)
     }
 
     case class ClosedBodyParameter[T](name: Symbol, description: Option[String],
-                                      default: Option[T], value: T)
+                                      default: Option[T], enum: Option[Seq[T]], value: T)
       extends BodyParameter[T] with ClosedParameter[T, ClosedBodyParameter[T]]
 
   }
 
-  sealed trait HeaderParameter[T] extends Parameter[T]
+  sealed trait HeaderParameter[T] extends Parameter[T] with Named {
+    def enum: Option[Seq[T]]
+  }
 
   object HeaderParameter {
 
     def apply[T](name: Symbol, description: Option[String] = None,
-                 default: Option[T] = None):
-      HeaderParameter[T] = OpenHeaderParameter(name, description, default)
+                 default: Option[T] = None, enum: Option[Seq[T]] = None):
+      HeaderParameter[T] = OpenHeaderParameter(name, description, default, enum)
 
     def unapply[T](hp: HeaderParameter[T]): Option[T] = hp match {
-      case OpenHeaderParameter(_, _, default) => default
-      case ClosedHeaderParameter(_, _, _, value) => Some(value)
+      case OpenHeaderParameter(_, _, default, _) => default
+      case ClosedHeaderParameter(_, _, _, _, value) => Some(value)
     }
 
     case class OpenHeaderParameter[T](name: Symbol, description: Option[String],
-                                      default: Option[T])
+                                      default: Option[T], enum: Option[Seq[T]])
       extends HeaderParameter[T] with OpenParameter[T, ClosedHeaderParameter[T]] {
 
       override def closeWith(t: T): ClosedHeaderParameter[T] =
-        ClosedHeaderParameter(name, description, default, t)
+        ClosedHeaderParameter(name, description, default, enum, t)
     }
 
     case class ClosedHeaderParameter[T](name: Symbol, description: Option[String],
-                                        default: Option[T], value: T)
+                                        default: Option[T], enum: Option[Seq[T]], value: T)
       extends HeaderParameter[T] with ClosedParameter[T, ClosedHeaderParameter[T]]
   }
 }

@@ -23,62 +23,183 @@ import net.jtownson.swakka.model.Parameters._
 import org.scalatest.Matchers._
 import org.scalatest._
 import shapeless.{::, HNil}
-import spray.json.{JsArray, JsBoolean, JsObject, JsString, _}
+import spray.json.{JsValue, JsArray, JsBoolean, JsObject, JsString, _}
+import org.scalatest.prop.TableDrivenPropertyChecks._
 
 class ParametersJsonProtocolSpec extends FlatSpec {
 
-  // TODO: testcases for non-string types
-  // TODO: is there a way of generating table driven tests over type params??
-
-  "ParametersJsonProtocol" should "serialize required query parameters" in {
-
-    val params = QueryParameter[String]('qp, Some("a description")) :: HNil
-
-    params.toJson shouldBe queryParamJson(true)
+  object Statuses extends Enumeration {
+    val placed, approved, delivered = Value
   }
 
-  it should "serialize optional query parameters" in {
+  import Statuses._
 
-    val params = QueryParameter[Option[String]]('qp, Some("a description"), Some(Some("default-value"))) :: HNil
+  val parameters = Table(
+    ("testcase", "parameter", "expected json"),
 
-    params.toJson shouldBe queryParamJson(false, Some("default-value"))
+    // Required query parameter types
+    ("Required string query",
+      QueryParameter[String]('qp, Some("a description")).toJson,
+      queryParamJson(true, "string")),
+
+    ("Required boolean query",
+      QueryParameter[Boolean]('qp, Some("a description")).toJson,
+      queryParamJson(true, "boolean")),
+
+    ("Required int query",
+      QueryParameter[Int]('qp, Some("a description")).toJson,
+      queryParamJson(true, "integer", Some("int32"))),
+
+    ("Required long query",
+      QueryParameter[Long]('qp, Some("a description")).toJson,
+      queryParamJson(true, "integer", Some("int64"))),
+
+    ("Required float query",
+      QueryParameter[Float]('qp, Some("a description")).toJson,
+      queryParamJson(true, "number", Some("float"))),
+
+    ("Required double query",
+      QueryParameter[Double]('qp, Some("a description")).toJson,
+      queryParamJson(true, "number", Some("double"))),
+
+    // (Required) path parameter types
+    ("Required string path",
+      PathParameter[String]('petId, Some("a description")).toJson,
+      pathParameterJson(true, "string")),
+
+    ("Required boolean path",
+      PathParameter[Boolean]('petId, Some("a description")).toJson,
+      pathParameterJson(true, "boolean")),
+
+    ("Required int path",
+      PathParameter[Int]('petId, Some("a description")).toJson,
+      pathParameterJson(true, "integer", Some("int32"))),
+
+    ("Required long path",
+      PathParameter[Long]('petId, Some("a description")).toJson,
+      pathParameterJson(true, "integer", Some("int64"))),
+
+    ("Required float path",
+      PathParameter[Float]('petId, Some("a description")).toJson,
+      pathParameterJson(true, "number", Some("float"))),
+
+    ("Required double path",
+      PathParameter[Double]('petId, Some("a description")).toJson,
+      pathParameterJson(true, "number", Some("double"))),
+
+    // Required header parameter types
+    ("Required string header",
+      HeaderParameter[String](Symbol("x-my-header"), Some("a header")).toJson,
+      headerParamJson(true, "string")),
+
+    ("Required boolean header",
+      HeaderParameter[Boolean](Symbol("x-my-header"), Some("a header")).toJson,
+      headerParamJson(true, "boolean")),
+
+    ("Required int header",
+      HeaderParameter[Int](Symbol("x-my-header"), Some("a header")).toJson,
+      headerParamJson(true, "integer", Some("int32"))),
+
+    ("Required long header",
+      HeaderParameter[Long](Symbol("x-my-header"), Some("a header")).toJson,
+      headerParamJson(true, "integer", Some("int64"))),
+
+    ("Required float header",
+      HeaderParameter[Float](Symbol("x-my-header"), Some("a header")).toJson,
+      headerParamJson(true, "number", Some("float"))),
+
+    ("Required double header",
+      HeaderParameter[Double](Symbol("x-my-header"), Some("a header")).toJson,
+      headerParamJson(true, "number", Some("double"))),
+
+    // Optional query parameter types
+    ("Optional string query",
+      QueryParameter[Option[String]]('qp, Some("a description"), Some(Some("default-value"))).toJson,
+      queryParamJson(false, "string", None, Some(JsString("default-value")))),
+
+    ("Optional boolean query",
+      QueryParameter[Option[Boolean]]('qp, Some("a description"), Some(Some(true))).toJson,
+      queryParamJson(false, "boolean", None, Some(JsTrue))),
+
+    ("Optional int query",
+      QueryParameter[Option[Int]]('qp, Some("a description"), Some(Some(3))).toJson,
+      queryParamJson(false, "integer", Some("int32"), Some(JsNumber(3)))),
+
+    ("Optional long query",
+      QueryParameter[Option[Long]]('qp, Some("a description"), Some(Some(3))).toJson,
+      queryParamJson(false, "integer", Some("int64"), Some(JsNumber(3)))),
+
+    ("Optional float query",
+      QueryParameter[Option[Float]]('qp, Some("a description"), Some(Some(0.0f))).toJson,
+      queryParamJson(false, "number", Some("float"), Some(JsNumber(0)))),
+
+    ("Optional double query",
+      QueryParameter[Option[Double]]('qp, Some("a description"), Some(Some(3.1415))).toJson,
+      queryParamJson(false, "number", Some("double"), Some(JsNumber(3.1415)))),
+
+    // Optional header parameter types
+    ("Optional string header",
+      HeaderParameter[Option[String]](Symbol("x-my-header"), Some("a header"), Some(Some("default-value"))).toJson,
+      headerParamJson(false, "string", None, Some(JsString("default-value")))),
+
+    ("Optional boolean header",
+      HeaderParameter[Option[Boolean]](Symbol("x-my-header"), Some("a header"), Some(Some(true))).toJson,
+      headerParamJson(false, "boolean", None, Some(JsTrue))),
+
+    ("Optional int header",
+      HeaderParameter[Option[Int]](Symbol("x-my-header"), Some("a header"), Some(Some(3))).toJson,
+      headerParamJson(false, "integer", Some("int32"), Some(JsNumber(3)))),
+
+    ("Optional long header",
+      HeaderParameter[Option[Long]](Symbol("x-my-header"), Some("a header"), Some(Some(3))).toJson,
+      headerParamJson(false, "integer", Some("int64"), Some(JsNumber(3)))),
+
+    ("Optional float header",
+      HeaderParameter[Option[Float]](Symbol("x-my-header"), Some("a header"), Some(Some(0.0f))).toJson,
+      headerParamJson(false, "number", Some("float"), Some(JsNumber(0)))),
+
+    ("Optional double header",
+      HeaderParameter[Option[Double]](Symbol("x-my-header"), Some("a header"), Some(Some(3.1415))).toJson,
+      headerParamJson(false, "number", Some("double"), Some(JsNumber(3.1415)))),
+
+    ("Enum example query parameter",
+      QueryParameter[Option[String]]('qp, description = Some("a description"), Some(Some(placed.toString)), Some(Statuses.values.toList.map(value => Some(value.toString)))).toJson,
+      queryParamJson(false, "string", None, Some(JsString("placed")), Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
+    ),
+
+    ("Enum example path parameter",
+      PathParameter[String]('petId, Some("a description"), None, Some(Statuses.values.toList.map(value => value.toString))).toJson,
+      pathParameterJson(true, "string", None, None, Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
+    ),
+
+    ("Enum example header parameter",
+      HeaderParameter[String](Symbol("x-my-header"), Some("a header"), None, Some(Statuses.values.toList.map(value => value.toString))).toJson,
+      headerParamJson(true, "string", None, None, Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
+    )
+  )
+
+  forAll(parameters) { (testcase, parameter, expectedJson) =>
+    "ParametersJsonProtocol" should s"serialize $testcase according to the swagger schema" in {
+      parameter shouldBe expectedJson
+    }
   }
 
-  it should "serialize required header parameters" in {
-
-    val headers = HeaderParameter[String](Symbol("x-my-header"), Some("a header")) :: HNil
-
-    headers.toJson shouldBe headerParamJson(true)
-  }
-
-  it should "serialize optional header parameters" in {
-
-    val headers = HeaderParameter[Option[String]](Symbol("x-my-header"), Some("a header"), Some(Some("default-value"))) :: HNil
-
-    headers.toJson shouldBe headerParamJson(false, Some("default-value"))
-  }
-
-  it should "serialize required path parameters" in {
-
-    val params = PathParameter[String]('petId) :: HNil
-
-    params.toJson shouldBe pathParameterJson(true)
-  }
 
   case class Pet(petName: String)
+
   implicit val petJsonWriter = jsonFormat1(Pet)
   implicit val petSchemaWriter = schemaWriter(Pet)
 
   it should "serialize required body parameters" in {
 
-    val params = BodyParameter[Pet]('pet, Some("a description")) :: HNil
+    val params = BodyParameter[Pet]('pet, Some("a description"))
 
     params.toJson shouldBe bodyParameterJson(true)
   }
 
   it should "serialize optional body parameters" in {
     val defaultPet = Pet("I'm a default. Boo!")
-    val params = BodyParameter[Option[Pet]]('pet, Some("a description"), Some(Some(defaultPet))) :: HNil
+    val params = BodyParameter[Option[Pet]]('pet, Some("a description"), Some(Some(defaultPet)))
 
     params.toJson shouldBe bodyParameterJson(false, Some(defaultPet.toJson))
   }
@@ -144,16 +265,15 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
     val params = FormParameter[(String), Pet](
       'f, Some("form description"),
-      construct = Pet) :: HNil
+      construct = Pet)
 
-    params.toJson shouldBe JsArray(
+    params.toJson shouldBe
       JsObject(
         "name" -> JsString("petName"),
-        "in"-> JsString("formData"),
+        "in" -> JsString("formData"),
         "required" -> JsBoolean(true),
         "type" -> JsString("string")
       )
-    )
   }
 
   case class BigPet(id: Int, petName: String, weight: Float)
@@ -164,25 +284,25 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
     val params = FormParameter[(Int, String, Float), BigPet](
       'f, Some("form description"),
-      construct = BigPet) :: HNil
+      construct = BigPet)
 
     params.toJson shouldBe JsArray(
       JsObject(
         "name" -> JsString("id"),
-        "in"-> JsString("formData"),
+        "in" -> JsString("formData"),
         "required" -> JsBoolean(true),
         "type" -> JsString("integer"),
         "format" -> JsString("int32")
       ),
       JsObject(
         "name" -> JsString("petName"),
-        "in"-> JsString("formData"),
+        "in" -> JsString("formData"),
         "required" -> JsBoolean(true),
         "type" -> JsString("string")
       ),
       JsObject(
         "name" -> JsString("weight"),
-        "in"-> JsString("formData"),
+        "in" -> JsString("formData"),
         "required" -> JsBoolean(true),
         "type" -> JsString("number"),
         "format" -> JsString("float")
@@ -190,87 +310,58 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     )
   }
 
-  object Statuses extends Enumeration {
-    val placed, approved, delivered = Value
-  }
-
-  it should "serialize query params for scala enums without getting involved in the world of scala enums" in {
-
-    import Statuses._
-    val params = QueryParameter[Option[String]](
-      name = 'status,
-      description = Some("order status"),
-      default = Some(Some(placed.toString)),
-      enum = Some(Statuses.values.toList.map(value => Some(value.toString)))) :: HNil
-
-    val expectedJson = JsArray(
-      JsObject(
-        "name" -> JsString("status"),
-        "in" -> JsString("query"),
-        "description" -> JsString("order status"),
-        "required" -> JsBoolean(false),
-        "type" -> JsString("string"),
-        "default" -> JsString("placed"),
-        "enum" -> JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))
-      )
+  private def queryParamJson(required: Boolean, `type`: String, format: Option[String] = None, default: Option[JsValue] = None, enum: Option[JsValue] = None) =
+    jsObject(
+      Some("name" -> JsString("qp")),
+      Some("in" -> JsString("query")),
+      Some("description" -> JsString("a description")),
+      Some("required" -> JsBoolean(required)),
+      Some("type" -> JsString(`type`)),
+      format.map("format" -> JsString(_)),
+      default.map("default" -> _),
+      enum.map("enum" -> _)
     )
 
-    params.toJson shouldBe expectedJson
-  }
-
-  private def queryParamJson(required: Boolean, default: Option[String] = None) =
-    JsArray(
-      jsObject(
-        Some("name" -> JsString("qp")),
-        Some("in" -> JsString("query")),
-        Some("description" -> JsString("a description")),
-        Some("required" -> JsBoolean(required)),
-        Some("type" -> JsString("string")),
-        default.map("default" -> JsString(_))
-      )
+  private def headerParamJson(required: Boolean, `type`: String, format: Option[String] = None, default: Option[JsValue] = None, enum: Option[JsValue] = None) =
+    jsObject(
+      Some("name" -> JsString("x-my-header")),
+      Some("in" -> JsString("header")),
+      Some("description" -> JsString("a header")),
+      Some("required" -> JsBoolean(required)),
+      Some("type" -> JsString(`type`)),
+      format.map("format" -> JsString(_)),
+      default.map("default" -> _),
+      enum.map("enum" -> _)
     )
 
-  private def pathParameterJson(required: Boolean) = {
-    val expectedJson = JsArray(
-      JsObject(
-        "name" -> JsString("petId"),
-        "in" -> JsString("path"),
-        "required" -> JsBoolean(required),
-        "type" -> JsString("string")
-      )
+  private def pathParameterJson(required: Boolean, `type`: String, format: Option[String] = None, default: Option[JsValue] = None, enum: Option[JsValue] = None) =
+    jsObject(
+      Some("name" -> JsString("petId")),
+      Some("in" -> JsString("path")),
+      Some("description" -> JsString("a description")),
+      Some("required" -> JsBoolean(required)),
+      Some("type" -> JsString(`type`)),
+      format.map("format" -> JsString(_)),
+      default.map("default" -> _),
+      enum.map("enum" -> _)
     )
-    expectedJson
-  }
 
   private def bodyParameterJson(required: Boolean, default: Option[JsValue] = None) =
-    JsArray(
-      jsObject(
-        Some("name" -> JsString("pet")),
-        Some("in" -> JsString("body")),
-        Some("description" -> JsString("a description")),
-        Some("required" -> JsBoolean(required)),
-        default.map("default" -> _),
-        Some("schema" -> JsObject(
-          "type" -> JsString("object"),
-          "required" -> JsArray(JsString("petName")),
-          "properties" -> JsObject(
-            "petName" -> JsObject(
-              "type" -> JsString("string")
-            )
+    jsObject(
+      Some("name" -> JsString("pet")),
+      Some("in" -> JsString("body")),
+      Some("description" -> JsString("a description")),
+      Some("required" -> JsBoolean(required)),
+      default.map("default" -> _),
+      Some("schema" -> JsObject(
+        "type" -> JsString("object"),
+        "required" -> JsArray(JsString("petName")),
+        "properties" -> JsObject(
+          "petName" -> JsObject(
+            "type" -> JsString("string")
           )
-        ))
+        )
       )
-    )
-
-  private def headerParamJson(required: Boolean, default: Option[String] = None) =
-    JsArray(
-      jsObject(
-        Some("name" -> JsString("x-my-header")),
-        Some("in" -> JsString("header")),
-        Some("description" -> JsString("a header")),
-        Some("required" -> JsBoolean(required)),
-        Some("type" -> JsString("string")),
-        default.map("default" -> JsString(_))
       )
     )
 }
