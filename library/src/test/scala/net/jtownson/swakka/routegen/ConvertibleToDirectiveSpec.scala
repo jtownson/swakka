@@ -228,7 +228,6 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
   }
 
   it should "convert a form with non-optional parameters" in {
-    // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
     implicit val petFormat = jsonFormat2(Pet)
     implicit val petSchemaWriter = schemaWriter(Pet)
     implicit val formConverter = formParamConverter(Pet)
@@ -250,7 +249,6 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
 
   it should "convert a form with optional parameters" in {
 
-    // TODO consider creating a wrapper that creates the SchemaWriter and ConvertibleToDirective instances as one object.
     implicit val petFormat = jsonFormat2(StrayPet)
     implicit val petSchemaWriter = schemaWriter(StrayPet)
     implicit val formConverter = formParamConverter(StrayPet)
@@ -307,7 +305,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     }
   }
 
-  "HNil converter" should "match paths without parameter tokens" in {
+  it should "pass HNil" in {
 
     val toDirective: Directive1[HNil] = hNilConverter.convertToDirective("/a/b", HNil)
 
@@ -339,7 +337,7 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     }
   }
 
-  "Query parameters" should "be case sensitive" in {
+  it should "pass QueryParameters iff their case is correct" in {
 
     val route = stringReqQueryConverter.convertToDirective("/", QueryParameter('q)) { _ =>
       complete("ok")
@@ -348,6 +346,27 @@ class ConvertibleToDirectiveSpec extends FlatSpec with RouteTest with TestFramew
     Get("http://localhost/?Q") ~> seal(route) ~> check {
       status shouldBe NotFound
     }
+  }
+
+  it should "pass enumerated query parameters iff the request provides a valid enum value" in {
+
+    val qp = QueryParameter[String]('qp, None, None, Some(Seq("value1", "value2", "value3")))
+
+    val toDirective: Directive1[QueryParameter[String]] = stringReqQueryConverter.convertToDirective("/a/b", qp)
+
+    val route = toDirective { _ =>
+      complete("matched")
+    }
+
+    Get("http://localhost?qp=value1") ~> route ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe "matched"
+    }
+
+    Get("http://localhost?qp=NoNoNo") ~> seal(route) ~> check {
+      status shouldBe NotFound
+    }
+
   }
 
   private def converterTest[T, U <: Parameter[T]]
