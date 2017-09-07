@@ -17,21 +17,22 @@
 package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives.{parameter, _}
+import akka.http.scaladsl.server.{Directive1, MissingQueryParamRejection, Rejection}
 import akka.http.scaladsl.unmarshalling.PredefinedFromStringUnmarshallers._
 import net.jtownson.swakka.model.Parameters.QueryParameter
 import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
 
 trait QueryParamConverters {
 
-  private def close[T](qp: QueryParameter[T]): T => QueryParameter[T] =
-    t => qp.asInstanceOf[OpenQueryParameter[T]].closeWith(t)
 
   implicit val stringReqQueryConverter: ConvertibleToDirective[QueryParameter[String]] =
     (_: String, qp: QueryParameter[String]) => {
-      qp.default match {
-        case Some(default) => parameter(qp.name.?(default)).map(close(qp))
-        case None => parameter(qp.name).map(close(qp))
-      }
+      parameterTemplate(
+        () => parameter(qp.name),
+        (default: String) => parameter(qp.name.?(default)),
+        (value: String) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        qp
+      )
     }
 
   implicit val stringOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[String]]] =
@@ -121,4 +122,30 @@ trait QueryParamConverters {
         case _ => parameter(qp.name.as[Long].?).map(close(qp))
       }
     }
+
+  private def parameterTemplate[T](fNoDefault: () => Directive1[T],
+                                   fDefault: T => Directive1[T],
+                                   fEnum: T => Directive1[T],
+                                   qp: QueryParameter[T]): Directive1[QueryParameter[T]] = {
+
+    val extraction: Directive1[T] = qp.default match {
+      case Some(default) =>
+        fDefault(default).flatMap(fEnum)
+      case None =>
+        fNoDefault().flatMap(fEnum)
+    }
+
+    extraction.map(close(qp))
+  }
+
+  private def close[T](qp: QueryParameter[T]): T => QueryParameter[T] =
+    t => qp.asInstanceOf[OpenQueryParameter[T]].closeWith(t)
+
+  private def enumCase[T](rejection: Rejection, qp: QueryParameter[T], value: T): Directive1[T] = {
+    qp.enum match {
+      case None => provide(value)
+      case Some(seq) if seq.contains(value) => provide(value)
+      case _ => reject(rejection)
+    }
+  }
 }
