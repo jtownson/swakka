@@ -17,8 +17,9 @@
 package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives.{headerValueByName, optionalHeaderValueByName}
+import akka.http.scaladsl.server.MissingHeaderRejection
 import net.jtownson.swakka.model.Parameters.HeaderParameter
-import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
+import net.jtownson.swakka.routegen.RouteGenTemplates._
 
 trait HeaderParamConverters {
 
@@ -60,33 +61,34 @@ trait HeaderParamConverters {
 
   private def requiredHeaderParamDirective[T](valueParser: String => T):
   ConvertibleToDirective[HeaderParameter[T]] = (_: String, hp: HeaderParameter[T]) => {
-    hp.default match {
-      case Some(default) => optionalHeaderValueByName(hp.name).map {
-        case Some(header) => close(hp)(valueParser(header))
-        case None => close(hp)(default)
-      }
-      case None => headerValueByName(hp.name).map(value => close(hp)(valueParser(value)))
-    }
+    headerTemplate(
+      () => headerValueByName(hp.name).map(valueParser(_)),
+      (default: T) => optionalHeaderValueByName(hp.name).map(extractIfPresent(valueParser, default)),
+      (value: T) => enumCase(MissingHeaderRejection(hp.name.name), hp, value),
+      hp
+    )
   }
 
   private def optionalHeaderParamDirective[T](valueParser: String => T):
   ConvertibleToDirective[HeaderParameter[Option[T]]] = (_: String, hp: HeaderParameter[Option[T]]) => {
 
-    hp.default match {
-      case Some(default) =>
-        optionalHeaderValueByName(hp.name).map {
-          case Some(header) => close(hp)(Some(valueParser(header)))
-          case None => close(hp)(default)
-        }
-      case None =>
-        optionalHeaderValueByName(hp.name).map {
-          case Some(value) => close(hp)(Some(valueParser(value)))
-          case None => close(hp)(None)
-        }
-    }
+    headerTemplate(
+      () => optionalHeaderValueByName(hp.name).map(os => os.map(valueParser(_))),
+      (default: Option[T]) => optionalHeaderValueByName(hp.name.name).map(extractIfPresent(valueParser, default)),
+      (value: Option[T]) => enumCase(MissingHeaderRejection(hp.name.name), hp, value),
+      hp)
   }
 
-  private def close[T](hp: HeaderParameter[T]): T => HeaderParameter[T] =
-    t => hp.asInstanceOf[OpenHeaderParameter[T]].closeWith(t)
+  private def extractIfPresent[T](valueParser: String => T, default: T)(maybeHeader: Option[String]): T =
+    maybeHeader match {
+      case Some(header) => valueParser(header)
+      case None => default
+    }
+
+  private def extractIfPresent[T](valueParser: String => T, default: Option[T])(maybeHeader: Option[String]): Option[T] =
+    maybeHeader match {
+      case Some(header) => Some(valueParser(header))
+      case None => default
+    }
 
 }
