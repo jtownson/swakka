@@ -16,8 +16,8 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server.Directives.{DoubleNumber, rawPathPrefixTest}
-import akka.http.scaladsl.server.{PathMatcher, PathMatcher1}
+import akka.http.scaladsl.server.Directives.{reject, provide, DoubleNumber, rawPathPrefixTest}
+import akka.http.scaladsl.server.{Directive1, PathMatcher, PathMatcher1, ValidationRejection}
 import net.jtownson.swakka.model.Parameters.PathParameter
 import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
 import net.jtownson.swakka.routegen.PathHandling.pathWithParamMatcher
@@ -59,6 +59,14 @@ trait PathParamConverters {
 
   private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
     (modelPath: String, pp: PathParameter[T]) =>
-      rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).map(close(pp))
+      rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).
+        flatMap(enumCase(pp)).
+        map(close(pp))
+  }
+
+  private def enumCase[T](pp: PathParameter[T])(value: T): Directive1[T] = pp.enum match {
+    case None => provide(value)
+    case Some(seq) if seq.contains(value) => provide(value)
+    case _ => reject(ValidationRejection(s"The path value $value is not allowed by this request. They are limited to ${pp.enum}"))
   }
 }

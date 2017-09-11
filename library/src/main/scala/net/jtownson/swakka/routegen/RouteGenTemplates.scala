@@ -1,6 +1,6 @@
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server.{Directive1, Rejection}
+import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, Rejection}
 import akka.http.scaladsl.server.Directives.{provide, reject}
 import net.jtownson.swakka.model.Parameters.{HeaderParameter, QueryParameter}
 import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
@@ -49,13 +49,16 @@ object RouteGenTemplates {
     extraction.map(close(qp))
   }
 
-  def enumCase[T](rejection: Rejection, qp: QueryParameter[T], value: T): Directive1[T] = {
+  def enumCase[T](qp: QueryParameter[T], value: T): Directive1[T] = {
     qp.enum match {
       case None => provide(value)
       case Some(seq) if seq.contains(value) => provide(value)
-      case _ => reject(rejection)
+      case _ => reject(MalformedQueryParamRejection(qp.name.name, enumErrMsg(value, qp)))
     }
   }
+
+  private def enumErrMsg[T](value: T, qp: QueryParameter[T]): String =
+    s"The parameter value $value is not allowed by this request. They are limited to ${qp.enum}."
 
   private def close[T](qp: QueryParameter[T]): T => QueryParameter[T] =
     t => qp.asInstanceOf[OpenQueryParameter[T]].closeWith(t)

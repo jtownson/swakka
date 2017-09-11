@@ -27,8 +27,13 @@ trait ConverterTest extends RouteTest with TestFrameworkInterface {
 
   def converterTest[T, U <: Parameter[T]]
   (request: HttpRequest, param: U, expectedStatus: StatusCode)
+  (implicit ev: ConvertibleToDirective[U]): Unit =
+    converterTest[T, U](request, param, expectedStatus, "")
+
+  def converterTest[T, U <: Parameter[T]]
+  (request: HttpRequest, param: U, expectedStatus: StatusCode, modelPath: String)
   (implicit ev: ConvertibleToDirective[U]): Unit = {
-    request ~> seal(route[T, U]("", param)) ~> check {
+    request ~> seal(route[T, U](modelPath, param)) ~> check {
       status shouldBe expectedStatus
     }
   }

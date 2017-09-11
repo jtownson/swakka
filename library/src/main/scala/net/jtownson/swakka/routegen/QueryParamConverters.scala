@@ -17,7 +17,6 @@
 package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives.{parameter, _}
-import akka.http.scaladsl.server.MissingQueryParamRejection
 import akka.http.scaladsl.unmarshalling.PredefinedFromStringUnmarshallers._
 import net.jtownson.swakka.model.Parameters.QueryParameter
 import RouteGenTemplates._
@@ -29,7 +28,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name),
         (default: String) => parameter(qp.name.?(default)),
-        (value: String) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: String) => enumCase(qp, value),
         qp
       )
     }
@@ -39,7 +38,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.?),
         (default: Option[String]) => parameter(qp.name.?(default.get)).map(Option(_)),
-        (value: Option[String]) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Option[String]) => enumCase(qp, value),
         qp
       )
     }
@@ -50,7 +49,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Float]),
         (default: Float) => parameter(qp.name.as[Float].?(default)),
-        (value: Float) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Float) => enumCase(qp, value),
         qp
       )
     }
@@ -60,7 +59,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Float].?),
         (default: Option[Float]) => parameter(qp.name.as[Float].?(default.get)).map(Option(_)),
-        (value: Option[Float]) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Option[Float]) => enumCase(qp, value),
         qp
       )
     }
@@ -70,7 +69,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Double]),
         (default: Double) => parameter(qp.name.as[Double].?(default)),
-        (value: Double) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Double) => enumCase(qp, value),
         qp
       )
     }
@@ -80,7 +79,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Double].?),
         (default: Option[Double]) => parameter(qp.name.as[Double].?(default.get)).map(Option(_)),
-        (value: Option[Double]) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Option[Double]) => enumCase(qp, value),
         qp
       )
     }
@@ -90,7 +89,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Boolean]),
         (default: Boolean) => parameter(qp.name.as[Boolean].?(default)),
-        (value: Boolean) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Boolean) => enumCase(qp, value),
         qp
       )
     }
@@ -100,7 +99,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Boolean].?),
         (default: Option[Boolean]) => parameter(qp.name.as[Boolean].?(default.get)).map(Option(_)),
-        (value: Option[Boolean]) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Option[Boolean]) => enumCase(qp, value),
         qp
       )
     }
@@ -110,7 +109,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Int]),
         (default: Int) => parameter(qp.name.as[Int].?(default)),
-        (value: Int) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Int) => enumCase(qp, value),
         qp
       )
     }
@@ -120,7 +119,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Int].?),
         (default: Option[Int]) => parameter(qp.name.as[Int].?(default.get)).map(Option(_)),
-        (value: Option[Int]) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Option[Int]) => enumCase(qp, value),
         qp
       )
     }
@@ -130,7 +129,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Long]),
         (default: Long) => parameter(qp.name.as[Long].?(default)),
-        (value: Long) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Long) => enumCase(qp, value),
         qp
       )
     }
@@ -140,7 +139,7 @@ trait QueryParamConverters {
       parameterTemplate(
         () => parameter(qp.name.as[Long].?),
         (default: Option[Long]) => parameter(qp.name.as[Long].?(default.get)).map(Option(_)),
-        (value: Option[Long]) => enumCase(MissingQueryParamRejection(qp.name.name), qp, value),
+        (value: Option[Long]) => enumCase(qp, value),
         qp
       )
     }
