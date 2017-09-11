@@ -16,8 +16,8 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server.Directive1
-import akka.http.scaladsl.server.Directives.{as, entity, provide}
+import akka.http.scaladsl.server.{Directive1, ValidationRejection}
+import akka.http.scaladsl.server.Directives.{as, entity, provide, reject}
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import net.jtownson.swakka.model.Parameters.BodyParameter
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
@@ -27,26 +27,29 @@ trait BodyParamConverters {
   implicit def bodyParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[T]] =
     (_: String, bp: BodyParameter[T]) => {
       bp.default match {
-        case None => entity(as[T]).map(close(bp))
-        case Some(default) => optionalEntity[T](as[T]).map {
-          case Some(value) => close(bp)(value)
-          case None => close(bp)(default)
-        }
+        case None =>
+          entity(as[T]).flatMap(enumCase(bp)).map(close(bp))
+        case Some(default) =>
+          optionalEntity[T](as[T]).map(_.getOrElse(default)).flatMap(enumCase(bp)).map(close(bp))
       }
     }
 
   implicit def bodyOptParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[Option[T]]] =
     (_: String, bp: BodyParameter[Option[T]]) => {
       bp.default match {
-        case None => optionalEntity[T](as[T]).map(close(bp))
-        case Some(default) => optionalEntity[T](as[T]).map {
-          case v@Some(_) => close(bp)(v)
-          case None => close(bp)(default)
-        }
+        case None =>
+          optionalEntity[T](as[T]).flatMap(enumCase(bp)).map(close(bp))
+        case Some(default) =>
+          optionalEntity[T](as[T]).map(returnOrElse(default)).flatMap(enumCase(bp)).map(close(bp))
       }
     }
 
-  def optionalEntity[T](unmarshaller: FromRequestUnmarshaller[T]): Directive1[Option[T]] =
+  private def returnOrElse[T](default: Option[T])(maybeEntity: Option[T]) = maybeEntity match {
+    case v@Some(_) => v
+    case _ => default
+  }
+
+  private def optionalEntity[T](unmarshaller: FromRequestUnmarshaller[T]): Directive1[Option[T]] =
     entity(as[String]).flatMap { stringEntity =>
       if (stringEntity == null || stringEntity.isEmpty) {
         provide(Option.empty[T])
@@ -58,4 +61,9 @@ trait BodyParamConverters {
   private def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
     t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
 
+  private def enumCase[T](bp: BodyParameter[T])(value: T): Directive1[T] = bp.enum match {
+    case None => provide(value)
+    case Some(seq) if seq.contains(value) => provide(value)
+    case _ => reject(ValidationRejection(s"The request body $value is not allowed by this request. They are limited to ${bp.enum}"))
+  }
 }
