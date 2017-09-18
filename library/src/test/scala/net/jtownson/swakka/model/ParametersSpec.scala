@@ -17,6 +17,7 @@
 package net.jtownson.swakka.model
 
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
+import net.jtownson.swakka.model.Parameters.FormFieldParameter.OpenFormFieldParameter
 import net.jtownson.swakka.model.Parameters.FormParameter.OpenFormParameter
 import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
 import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
@@ -107,6 +108,18 @@ class ParametersSpec extends FlatSpec {
 
     param match {
       case FormParameter(actualValue) => actualValue shouldBe expectedValue
+      case _ => fail("Pattern does not match")
+    }
+  }
+
+  "A form field parameter" should "provide values to a pattern match" in {
+
+    val expectedValue = "foo"
+
+    val param = OpenFormFieldParameter('p, None, None).closeWith(expectedValue)
+
+    param match {
+      case FormFieldParameter(actualValue) => actualValue shouldBe expectedValue
       case _ => fail("Pattern does not match")
     }
   }

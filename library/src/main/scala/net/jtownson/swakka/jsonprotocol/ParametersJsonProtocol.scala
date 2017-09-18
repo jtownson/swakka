@@ -25,7 +25,7 @@ import net.jtownson.swakka.model.Parameters._
 
 import scala.reflect.runtime.universe.TypeTag
 
-trait ParametersJsonProtocol extends FormParametersJsonProtocol with DefaultJsonProtocol {
+trait ParametersJsonProtocol extends FormParametersJsonProtocol with FormFieldParametersJsonProtocol with DefaultJsonProtocol {
 
   implicit val strReqQueryParamFormat: ParameterJsonFormat[QueryParameter[String]] =
     (qp: QueryParameter[String]) => simpleParam(qp.name, "query", qp.description, true, "string", None, None, enumOf(qp))
@@ -173,9 +173,6 @@ trait ParametersJsonProtocol extends FormParametersJsonProtocol with DefaultJson
   private def enumOfOption[T: JsonFormat](param: HeaderParameter[Option[T]]): Option[JsValue] =
     param.enum.map(seq => seq.flatten).map(_.toJson)
 
-//  private def enumOf[T: JsonFormat](param: BodyParameter[Option[T]]): Option[JsValue] =
-//    param.enum.map(seq => seq.flatten).map(_.toJson)
-
   private def enumOf[T: JsonFormat](param: QueryParameter[T]): Option[JsValue] =
     param.enum.map(_.toJson)
 
@@ -184,9 +181,6 @@ trait ParametersJsonProtocol extends FormParametersJsonProtocol with DefaultJson
 
   private def enumOf[T: JsonFormat](param: HeaderParameter[T]): Option[JsValue] =
     param.enum.map(_.toJson)
-
-//  private def enumOf[T: JsonFormat](param: BodyParameter[T]): Option[JsValue] =
-//    param.enum.map(_.toJson)
 }
 
 object ParametersJsonProtocol extends ParametersJsonProtocol

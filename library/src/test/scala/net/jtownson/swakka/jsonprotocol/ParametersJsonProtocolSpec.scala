@@ -16,6 +16,9 @@
 
 package net.jtownson.swakka.jsonprotocol
 
+import akka.http.scaladsl.server.directives.FileInfo
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import net.jtownson.swakka.jsonprotocol.ParametersJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import net.jtownson.swakka.misc.jsObject
@@ -23,7 +26,7 @@ import net.jtownson.swakka.model.Parameters._
 import org.scalatest.Matchers._
 import org.scalatest._
 import shapeless.{::, HNil}
-import spray.json.{JsValue, JsArray, JsBoolean, JsObject, JsString, _}
+import spray.json.{JsArray, JsBoolean, JsObject, JsString, JsValue, _}
 import org.scalatest.prop.TableDrivenPropertyChecks._
 
 class ParametersJsonProtocolSpec extends FlatSpec {
@@ -121,6 +124,64 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     ("Required double header",
       HeaderParameter[Double](Symbol("x-my-header"), Some("a header")).toJson,
       headerParamJson(true, "number", Some("double"))),
+
+    // Required form parameter types
+    ("Required string form param",
+      FormFieldParameter[String]('f, Some("a form field")).toJson,
+      formParamJson(true, "string")),
+
+    ("Required boolean form param",
+      FormFieldParameter[Boolean]('f, Some("a form field")).toJson,
+      formParamJson(true, "boolean")),
+
+    ("Required int form param",
+      FormFieldParameter[Int]('f, Some("a form field")).toJson,
+      formParamJson(true, "integer", Some("int32"))),
+
+    ("Required long form param",
+      FormFieldParameter[Long]('f, Some("a form field")).toJson,
+      formParamJson(true, "integer", Some("int64"))),
+
+    ("Required float form param",
+      FormFieldParameter[Float]('f, Some("a form field")).toJson,
+      formParamJson(true, "number", Some("float"))),
+
+    ("Required double form param",
+      FormFieldParameter[Double]('f, Some("a form field")).toJson,
+      formParamJson(true, "number", Some("double"))),
+
+    ("Required file form param",
+      FormFieldParameter[(FileInfo, Source[ByteString, Any])]('f, Some("a form field")).toJson,
+      formParamJson(true, "file")),
+
+    // Optional form parameter types
+    ("Optional string form param",
+      FormFieldParameter[Option[String]]('f, Some("a form field")).toJson,
+      formParamJson(false, "string")),
+
+    ("Optional boolean form param",
+      FormFieldParameter[Option[Boolean]]('f, Some("a form field")).toJson,
+      formParamJson(false, "boolean")),
+
+    ("Optional int form param",
+      FormFieldParameter[Option[Int]]('f, Some("a form field")).toJson,
+      formParamJson(false, "integer", Some("int32"))),
+
+    ("Optional long form param",
+      FormFieldParameter[Option[Long]]('f, Some("a form field")).toJson,
+      formParamJson(false, "integer", Some("int64"))),
+
+    ("Optional float form param",
+      FormFieldParameter[Option[Float]]('f, Some("a form field")).toJson,
+      formParamJson(false, "number", Some("float"))),
+
+    ("Optional double form param",
+      FormFieldParameter[Option[Double]]('f, Some("a form field")).toJson,
+      formParamJson(false, "number", Some("double"))),
+
+    ("Optional file form param",
+      FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]('f, Some("a form field")).toJson,
+      formParamJson(false, "file")),
 
     // Optional query parameter types
     ("Optional string query",
@@ -323,6 +384,18 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       Some("name" -> JsString("x-my-header")),
       Some("in" -> JsString("header")),
       Some("description" -> JsString("a header")),
+      Some("required" -> JsBoolean(required)),
+      Some("type" -> JsString(`type`)),
+      format.map("format" -> JsString(_)),
+      default.map("default" -> _),
+      enum.map("enum" -> _)
+    )
+
+  private def formParamJson(required: Boolean, `type`: String, format: Option[String] = None, default: Option[JsValue] = None, enum: Option[JsValue] = None) =
+    jsObject(
+      Some("name" -> JsString("f")),
+      Some("in" -> JsString("formData")),
+      Some("description" -> JsString("a form field")),
       Some("required" -> JsBoolean(required)),
       Some("type" -> JsString(`type`)),
       format.map("format" -> JsString(_)),
