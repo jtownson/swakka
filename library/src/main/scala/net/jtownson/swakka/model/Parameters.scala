@@ -42,39 +42,6 @@ object Parameters {
     def closeWith(t: T): U
   }
 
-  sealed trait FormParameter[+P, T] extends Parameter[T]
-
-  object FormParameter {
-
-    def apply[P, T](name: Symbol, description: Option[String] = None, default: Option[T] = None,
-                                construct: P => T): FormParameter[P, T] =
-      OpenFormParameter(name, description, default, construct)
-
-    def unapply[P, T](fp: FormParameter[P, T]): Option[T] = fp match {
-      case OpenFormParameter(_, _, default, _) => default
-      case ClosedFormParameter(_, _, _, _, value) => Some(value)
-      case _ => None
-    }
-
-    case class OpenFormParameter[P, T](name: Symbol,
-                                       description: Option[String],
-                                       default: Option[T],
-                                       construct: P => T)
-      extends FormParameter[P, T] with OpenParameter[T, ClosedFormParameter[P, T]] {
-
-      override def closeWith(t: T): ClosedFormParameter[P, T] =
-        ClosedFormParameter(name, description, default, construct, t)
-    }
-
-    case class ClosedFormParameter[P, T](
-                                                       name: Symbol,
-                                                       description: Option[String],
-                                                       default: Option[T],
-                                                       construct: (P) => T,
-                                                       value: T)
-      extends FormParameter[P, T] with ClosedParameter[T, ClosedFormParameter[P, T]]
-  }
-
 
   sealed trait FormFieldParameter[T] extends Parameter[T] with Named {
     def enum: Option[Seq[T]]

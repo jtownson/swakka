@@ -24,7 +24,6 @@ trait ConvertibleToDirective[T] {
 
 object ConvertibleToDirective
   extends BodyParamConverters
-    with FormParamConverters
     with FormFieldParamConverters
     with HeaderParamConverters
     with HListParamConverters

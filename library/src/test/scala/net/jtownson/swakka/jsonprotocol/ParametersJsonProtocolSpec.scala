@@ -313,60 +313,7 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     params.toJson shouldBe expectedJson
   }
 
-  import net.jtownson.swakka.routegen.Tuplers._
-  import FormParameterType._
-
-  it should "serialize single-field, string form params" in {
-
-    implicit val formParamFormat = requiredFormParameterFormat(Pet)
-
-    val params = FormParameter[(String), Pet](
-      'f, Some("form description"),
-      construct = Pet)
-
-    params.toJson shouldBe
-      JsObject(
-        "name" -> JsString("petName"),
-        "in" -> JsString("formData"),
-        "required" -> JsBoolean(true),
-        "type" -> JsString("string")
-      )
-  }
-
-  case class BigPet(id: Int, petName: String, weight: Float)
-
-  it should "serialize multi-field, form params" in {
-
-    implicit val formParamFormat = requiredFormParameterFormat(BigPet)
-
-    val params = FormParameter[(Int, String, Float), BigPet](
-      'f, Some("form description"),
-      construct = BigPet)
-
-    params.toJson shouldBe JsArray(
-      JsObject(
-        "name" -> JsString("id"),
-        "in" -> JsString("formData"),
-        "required" -> JsBoolean(true),
-        "type" -> JsString("integer"),
-        "format" -> JsString("int32")
-      ),
-      JsObject(
-        "name" -> JsString("petName"),
-        "in" -> JsString("formData"),
-        "required" -> JsBoolean(true),
-        "type" -> JsString("string")
-      ),
-      JsObject(
-        "name" -> JsString("weight"),
-        "in" -> JsString("formData"),
-        "required" -> JsBoolean(true),
-        "type" -> JsString("number"),
-        "format" -> JsString("float")
-      )
-    )
-  }
-
+  
   private def queryParamJson(required: Boolean, `type`: String, format: Option[String] = None, default: Option[JsValue] = None, enum: Option[JsValue] = None) =
     jsObject(
       Some("name" -> JsString("qp")),
