@@ -76,33 +76,37 @@ object Parameters {
   }
 
 
-  sealed trait FormFieldParameter[T] extends Parameter[T] with Named
+  sealed trait FormFieldParameter[T] extends Parameter[T] with Named {
+    def enum: Option[Seq[T]]
+  }
 
   object FormFieldParameter {
 
-    def apply[T](name: Symbol, description: Option[String] = None, default: Option[T] = None): FormFieldParameter[T] =
-      OpenFormFieldParameter(name, description, default)
+    def apply[T](name: Symbol, description: Option[String] = None, default: Option[T] = None,
+                 enum: Option[Seq[T]] = None): FormFieldParameter[T] =
+      OpenFormFieldParameter(name, description, default, enum)
 
     def unapply[T](fp: FormFieldParameter[T]): Option[T] = fp match {
-      case OpenFormFieldParameter(_, _, default) => default
-      case ClosedFormFieldParameter(_, _, _, value) => Some(value)
+      case OpenFormFieldParameter(_, _, default, _) => default
+      case ClosedFormFieldParameter(_, _, _, _, value) => Some(value)
       case _ => None
     }
 
     case class OpenFormFieldParameter[T](name: Symbol,
                                          description: Option[String],
-                                         default: Option[T])
+                                         default: Option[T],
+                                         enum: Option[Seq[T]])
       extends FormFieldParameter[T] with OpenParameter[T, ClosedFormFieldParameter[T]] {
 
       override def closeWith(t: T): ClosedFormFieldParameter[T] =
-        ClosedFormFieldParameter(name, description, default, t)
+        ClosedFormFieldParameter(name, description, default, enum, t)
     }
 
-    case class ClosedFormFieldParameter[T](
-                                                       name: Symbol,
-                                                       description: Option[String],
-                                                       default: Option[T],
-                                                       value: T)
+    case class ClosedFormFieldParameter[T](name: Symbol,
+                                           description: Option[String],
+                                           default: Option[T],
+                                           enum: Option[Seq[T]],
+                                           value: T)
       extends FormFieldParameter[T] with ClosedParameter[T, ClosedFormFieldParameter[T]]
   }
 

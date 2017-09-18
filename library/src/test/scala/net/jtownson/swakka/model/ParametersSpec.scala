@@ -116,7 +116,7 @@ class ParametersSpec extends FlatSpec {
 
     val expectedValue = "foo"
 
-    val param = OpenFormFieldParameter('p, None, None).closeWith(expectedValue)
+    val param = OpenFormFieldParameter('p, None, None, None).closeWith(expectedValue)
 
     param match {
       case FormFieldParameter(actualValue) => actualValue shouldBe expectedValue
