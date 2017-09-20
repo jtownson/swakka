@@ -18,6 +18,7 @@ package net.jtownson.swakka.routegen
 
 import net.jtownson.swakka.model.Parameters.FormFieldParameter
 import RouteGenTemplates._
+import AdditionalDirectives._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.FileInfo
 import akka.stream.scaladsl.Source
@@ -87,6 +88,74 @@ trait FormFieldParamConverters {
 
   implicit val fileReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[(FileInfo, Source[ByteString, Any])]] =
     (_: String, fp: FormFieldParameter[(FileInfo, Source[ByteString, Any])]) => {
-      fileUpload(fp.name.name).map(close(fp))
+      fileUpload(fp.name.name).map({case (fileInfo, source) =>
+        close(fp)((fileInfo, source))
+      })
     }
+
+  implicit val fileOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]] =
+    (_: String, fp: FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]) => {
+      optionalFileUpload(fp.name.name).map(close(fp))
+    }
+
+  implicit val stringOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[String]]] =
+    (_: String, fp: FormFieldParameter[Option[String]]) => {
+      formFieldTemplate(
+        () => formField(fp.name.?),
+        (default: Option[String]) => formField(fp.name.?(default)),
+        (value: Option[String]) => enumCase(fp, value),
+        fp
+      )
+    }
+
+  implicit val booleanOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Boolean]]] =
+    (_: String, fp: FormFieldParameter[Option[Boolean]]) => {
+      formFieldTemplate(
+        () => formField(fp.name.as[Boolean].?),
+        (default: Option[Boolean]) => formField(fp.name.as[Boolean].?(default)),
+        (value: Option[Boolean]) => enumCase(fp, value),
+        fp
+      )
+    }
+
+  implicit val intOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Int]]] =
+    (_: String, fp: FormFieldParameter[Option[Int]]) => {
+      formFieldTemplate(
+        () => formField(fp.name.as[Int].?),
+        (default: Option[Int])=> formField(fp.name.as[Int].?(default)),
+        (value: Option[Int]) => enumCase(fp, value),
+        fp
+      )
+    }
+
+  implicit val longOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Long]]] =
+    (_: String, fp: FormFieldParameter[Option[Long]]) => {
+      formFieldTemplate(
+        () => formField(fp.name.as[Long].?),
+        (default: Option[Long]) => formField(fp.name.as[Long].?(default)),
+        (value: Option[Long]) => enumCase(fp, value),
+        fp
+      )
+    }
+
+  implicit val floatOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Float]]] =
+    (_: String, fp: FormFieldParameter[Option[Float]]) => {
+      formFieldTemplate(
+        () => formField(fp.name.as[Float].?),
+        (default: Option[Float]) => formField(fp.name.as[Float].?(default)),
+        (value: Option[Float]) => enumCase(fp, value),
+        fp
+      )
+    }
+
+  implicit val doubleOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Double]]] =
+    (_: String, fp: FormFieldParameter[Option[Double]]) => {
+      formFieldTemplate(
+        () => formField(fp.name.as[Double].?),
+        (default: Option[Double]) => formField(fp.name.as[Double].?(default)),
+        (value: Option[Double]) => enumCase(fp, value),
+        fp
+      )
+    }
+
 }

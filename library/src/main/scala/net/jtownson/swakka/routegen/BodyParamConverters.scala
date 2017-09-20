@@ -21,6 +21,7 @@ import akka.http.scaladsl.server.Directives.{as, entity, provide, reject}
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import net.jtownson.swakka.model.Parameters.BodyParameter
 import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
+import AdditionalDirectives._
 
 trait BodyParamConverters {
 
@@ -48,15 +49,6 @@ trait BodyParamConverters {
     case v@Some(_) => v
     case _ => default
   }
-
-  private def optionalEntity[T](unmarshaller: FromRequestUnmarshaller[T]): Directive1[Option[T]] =
-    entity(as[String]).flatMap { stringEntity =>
-      if (stringEntity == null || stringEntity.isEmpty) {
-        provide(Option.empty[T])
-      } else {
-        entity(unmarshaller).flatMap(e => provide(Some(e)))
-      }
-    }
 
   private def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
     t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)

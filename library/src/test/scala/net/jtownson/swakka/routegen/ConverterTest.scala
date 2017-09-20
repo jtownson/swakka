@@ -16,15 +16,19 @@
 
 package net.jtownson.swakka.routegen
 
+import akka.http.scaladsl.model.StatusCodes.OK
 import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest, StatusCode}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.model.Parameters.Parameter
 import net.jtownson.swakka.routegen.ConvertibleToDirective.converter
+import org.scalatest.Assertion
 import org.scalatest.Matchers._
+
+import scala.reflect.ClassTag
 
 trait ConverterTest extends RouteTest with TestFrameworkInterface {
 
@@ -54,11 +58,14 @@ trait ConverterTest extends RouteTest with TestFrameworkInterface {
     }
   }
 
-  def converterTest[T, U <: Parameter[T]]
-  (request: HttpRequest, param: U, expectedStatus: StatusCode, expectedResponse: T, modelPath: String)
+  def converterTest[T: ClassTag, U <: Parameter[T]]
+  (request: HttpRequest, param: U, expectedStatus: StatusCode, extractionTest: T => Assertion)
   (implicit ev: ConvertibleToDirective[U]): Unit = {
-    val route = converter(param)(ev).convertToDirective(modelPath, param) {
-      extraction => complete(HttpEntity(ContentTypes.`text/plain(UTF-8)`, extraction.value.toString))
+    val route = converter(param)(ev).convertToDirective("", param) {
+      extraction => {
+        extractionTest(extraction.value)
+        complete(OK)
+      }
     }
     request ~> seal(route) ~> check {
       status shouldBe expectedStatus
