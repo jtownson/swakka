@@ -88,21 +88,29 @@ trait FormFieldParamConverters {
 
   implicit val fileReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[(FileInfo, Source[ByteString, Any])]] =
     (_: String, fp: FormFieldParameter[(FileInfo, Source[ByteString, Any])]) => {
-      fileUpload(fp.name.name).map({case (fileInfo, source) =>
-        close(fp)((fileInfo, source))
-      })
+      formFieldTemplate(
+        () => fileUpload(fp.name.name),
+        (default: (FileInfo, Source[ByteString, Any])) => optionalFileUpload(fp.name.name).flatMap(optionalField => provide(optionalField.getOrElse(default))),
+        (value: (FileInfo, Source[ByteString, Any])) => enumCase(fp, value),
+        fp
+      )
     }
 
   implicit val fileOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]] =
-    (_: String, fp: FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]) => {
-      optionalFileUpload(fp.name.name).map(close(fp))
-    }
+    (_: String, fp: FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]) =>
+      formFieldTemplate(
+        () => optionalFileUpload(fp.name.name),
+        (default: Option[(FileInfo, Source[ByteString, Any])]) => optionalFileUpload(fp.name.name).map(optionalField => if (optionalField.isDefined) optionalField else default),
+        (value: Option[(FileInfo, Source[ByteString, Any])]) => enumCase(fp, value),
+        fp
+      )
+
 
   implicit val stringOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[String]]] =
     (_: String, fp: FormFieldParameter[Option[String]]) => {
       formFieldTemplate(
         () => formField(fp.name.?),
-        (default: Option[String]) => formField(fp.name.?(default)),
+        (default: Option[String]) => formField(fp.name.?(default.get)).map(Option(_)),
         (value: Option[String]) => enumCase(fp, value),
         fp
       )
@@ -112,7 +120,7 @@ trait FormFieldParamConverters {
     (_: String, fp: FormFieldParameter[Option[Boolean]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Boolean].?),
-        (default: Option[Boolean]) => formField(fp.name.as[Boolean].?(default)),
+        (default: Option[Boolean]) => formField(fp.name.as[Boolean].?(default.get)).map(Option(_)),
         (value: Option[Boolean]) => enumCase(fp, value),
         fp
       )
@@ -122,7 +130,7 @@ trait FormFieldParamConverters {
     (_: String, fp: FormFieldParameter[Option[Int]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Int].?),
-        (default: Option[Int])=> formField(fp.name.as[Int].?(default)),
+        (default: Option[Int])=> formField(fp.name.as[Int].?(default.get)).map(Option(_)),
         (value: Option[Int]) => enumCase(fp, value),
         fp
       )
@@ -132,7 +140,7 @@ trait FormFieldParamConverters {
     (_: String, fp: FormFieldParameter[Option[Long]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Long].?),
-        (default: Option[Long]) => formField(fp.name.as[Long].?(default)),
+        (default: Option[Long]) => formField(fp.name.as[Long].?(default.get)).map(Option(_)),
         (value: Option[Long]) => enumCase(fp, value),
         fp
       )
@@ -142,7 +150,7 @@ trait FormFieldParamConverters {
     (_: String, fp: FormFieldParameter[Option[Float]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Float].?),
-        (default: Option[Float]) => formField(fp.name.as[Float].?(default)),
+        (default: Option[Float]) => formField(fp.name.as[Float].?(default.get)).map(Option(_)),
         (value: Option[Float]) => enumCase(fp, value),
         fp
       )
@@ -152,7 +160,7 @@ trait FormFieldParamConverters {
     (_: String, fp: FormFieldParameter[Option[Double]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Double].?),
-        (default: Option[Double]) => formField(fp.name.as[Double].?(default)),
+        (default: Option[Double]) => formField(fp.name.as[Double].?(default.get)).map(Option(_)),
         (value: Option[Double]) => enumCase(fp, value),
         fp
       )
