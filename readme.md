@@ -318,7 +318,7 @@ the generated swagger will list that parameter as required=true:
 
 ```json
         "parameters": [{
-          "name": "name",
+          "name": "q",
           "in": "query",
           "required": true,
           "type": "integer"
@@ -334,7 +334,7 @@ QueryParameter[Option[Int]]('q)
 the generated swagger will be identical except that the parameter will have required=false:
 ```json
         "parameters": [{
-          "name": "name",
+          "name": "q",
           "in": "query",
           "required": false,
           "type": "integer"
@@ -348,10 +348,9 @@ a URL makes sense both with and without some part of the path, you should *defin
 ### Other types of parameters
 
 The sorts of parameters you can define in Swakka are the same as those defined in the Swagger specification. Namely,
-```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParamter[T]``` and ```BodyParameter[T]``` (form parameters
-are on the way).
+```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParamter[T]```,  ```BodyParameter[T]``` and ```FormFieldParameter[T]```.
 
-QueryParameter, PathParameter and HeaderParameter all work in the same way. Note that Swagger limits the type T to
+QueryParameter, PathParameter, HeaderParameter and FormFieldParameter all work in much the same way. Note that Swagger limits the type T to
 the following
 
 * String
