@@ -16,21 +16,10 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.Directives.pass
+import net.jtownson.swakka.model.Parameters.{MultiValued, Parameter}
+trait MultiParamConverters {
 
-trait ConvertibleToDirective[T] {
-  def convertToDirective(modelPath: String, t: T): Directive1[T]
-}
-
-object ConvertibleToDirective
-  extends BodyParamConverters
-    with FormFieldParamConverters
-    with HeaderParamConverters
-    with HListParamConverters
-    with PathParamConverters
-    with QueryParamConverters
-    with MultiParamConverters {
-
-  def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
-
+  implicit def multiValuedConverter[T, U <: Parameter[T]]: ConvertibleToDirective[MultiValued[T, U]] =
+    (_: String, mp: MultiValued[T, U]) => pass.tmap(_ => mp)
 }

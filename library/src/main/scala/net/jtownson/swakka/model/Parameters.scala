@@ -24,9 +24,9 @@ object Parameters {
     def value: T
 
     def default: Option[T]
-  }
 
-  sealed trait Named {
+    def enum: Option[Seq[T]]
+
     def name: Symbol
   }
 
@@ -43,9 +43,35 @@ object Parameters {
   }
 
 
-  sealed trait FormFieldParameter[T] extends Parameter[T] with Named {
-    def enum: Option[Seq[T]]
+  sealed trait MultiValued[T, U <: Parameter[T]] extends Parameter[Seq[T]] {
+    def singleParam: U
+    def enum: Option[Seq[Seq[T]]] = None
   }
+
+  object MultiValued {
+    def apply[T, U <: Parameter[T]](singleParam: U, default: Option[Seq[T]] = None): MultiValued[T, U] =
+      OpenMultiValued(singleParam, singleParam.name, singleParam.description, default)
+
+    case class OpenMultiValued[T, U <: Parameter[T]](
+                                  singleParam: U,
+                                  name: Symbol,
+                                  description: Option[String],
+                                  default: Option[Seq[T]])
+      extends MultiValued[T, U] with OpenParameter[Seq[T], ClosedMultiValued[T, U]] {
+
+      override def closeWith(t: Seq[T]): ClosedMultiValued[T, U] =
+        ClosedMultiValued(singleParam, name, description, default, t)
+    }
+
+    case class ClosedMultiValued[T, U <: Parameter[T]](singleParam: U,
+                                                       name: Symbol,
+                                                       description: Option[String],
+                                                       default: Option[Seq[T]],
+                                                       value: Seq[T])
+      extends MultiValued[T, U] with ClosedParameter[Seq[T], ClosedMultiValued[T, U]]
+  }
+
+  sealed trait FormFieldParameter[T] extends Parameter[T]
 
   object FormFieldParameter {
 
@@ -78,9 +104,7 @@ object Parameters {
   }
 
 
-  sealed trait QueryParameter[T] extends Parameter[T] with Named {
-    def enum: Option[Seq[T]]
-  }
+  sealed trait QueryParameter[T] extends Parameter[T]
 
   object QueryParameter {
 
@@ -106,9 +130,7 @@ object Parameters {
 
   }
 
-  sealed trait PathParameter[T] extends Parameter[T] with Named {
-    def enum: Option[Seq[T]]
-  }
+  sealed trait PathParameter[T] extends Parameter[T]
 
   object PathParameter {
 
@@ -135,9 +157,7 @@ object Parameters {
 
   }
 
-  sealed trait BodyParameter[T] extends Parameter[T] with Named {
-    def enum: Option[Seq[T]]
-  }
+  sealed trait BodyParameter[T] extends Parameter[T]
 
   object BodyParameter {
 
@@ -164,9 +184,7 @@ object Parameters {
 
   }
 
-  sealed trait HeaderParameter[T] extends Parameter[T] with Named {
-    def enum: Option[Seq[T]]
-  }
+  sealed trait HeaderParameter[T] extends Parameter[T]
 
   object HeaderParameter {
 

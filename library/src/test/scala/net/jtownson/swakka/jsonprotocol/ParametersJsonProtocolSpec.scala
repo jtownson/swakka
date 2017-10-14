@@ -313,7 +313,6 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     params.toJson shouldBe expectedJson
   }
 
-  
   private def queryParamJson(required: Boolean, `type`: String, format: Option[String] = None, default: Option[JsValue] = None, enum: Option[JsValue] = None) =
     jsObject(
       Some("name" -> JsString("qp")),

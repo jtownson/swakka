@@ -17,14 +17,14 @@
 package net.jtownson.swakka
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.HttpMethods.{POST, PUT}
+import akka.http.scaladsl.model.HttpMethods.{GET, POST, PUT}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.jsonschema.SchemaWriter._
-import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
-import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
+import net.jtownson.swakka.model.Parameters.{BodyParameter, MultiValued, QueryParameter}
+import net.jtownson.swakka.model.Responses.ResponseValue
 import net.jtownson.swakka.model.SecurityDefinitions.{ApiKeyInHeaderSecurity, Oauth2ImplicitSecurity, SecurityRequirement}
 import net.jtownson.swakka.model.{ExternalDocs, Info, License, Tag}
 import net.jtownson.swakka.routegen.ConvertibleToDirective._
@@ -71,12 +71,19 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
     type UpdatePetParams = BodyParameter[Pet] :: HNil
     type UpdatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: HNil
 
-//    type FindByStatusParams = QueryParameter[] :: HNil
+    type FindByStatusParams = MultiValued[String, QueryParameter[String]] :: HNil
+    type FindByStatusResponses = ResponseValue[Seq[Pet], HNil] :: ResponseValue[HNil, HNil] :: HNil
 
-    type Paths = PathItem[CreatePetParams, CreatePetResponses] :: PathItem[UpdatePetParams, UpdatePetResponses] :: HNil
-    //      PathItem[HNil, CreatePetResponses] :: PathItem[ShowPetParams, ShowPetResponses] :: HNil
+    type Paths =
+      PathItem[CreatePetParams, CreatePetResponses] ::
+      PathItem[UpdatePetParams, UpdatePetResponses] ::
+      PathItem[FindByStatusParams, FindByStatusResponses] ::
+      HNil
 
     type SecurityDefinitions = Record.`'petstore_auth -> Oauth2ImplicitSecurity, 'api_key -> ApiKeyInHeaderSecurity`.T
+
+    // TODO this needs a real value
+//    implicit val cvTemp: ConvertibleToDirective[FindByStatusParams] = (_,_) => ???
 
     val securityDefinitions =
       'petstore_auth ->> Oauth2ImplicitSecurity(
@@ -167,6 +174,30 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
               HNil,
             security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets")))),
             endpointImplementation = _ => ???
+          )
+        ) ::
+        PathItem(
+          path = "/pet/findByStatus",
+          method = GET,
+          operation = Operation[FindByStatusParams, FindByStatusResponses](
+            summary = Some("Finds Pets by status"),
+            description = Some("Multiple status values can be provided with comma separated strings"),
+            operationId = Some("findPetsByStatus"),
+            tags = Some(Seq("pet")),
+            produces = Some(Seq("application/xml", "application/json")),
+            parameters = MultiValued[String, QueryParameter[String]](
+              QueryParameter[String](
+                name = 'status,
+                description = Some("Status values that need to be considered for filter"),
+                default = Some("available"),
+                enum = Some(Seq("available", "pending", "sold"))
+              )) :: HNil,
+            responses =
+              ResponseValue[Seq[Pet], HNil]("200", "successful operation") ::
+                ResponseValue[HNil, HNil]("400", "Invalid status value") ::
+                HNil,
+            endpointImplementation = _ => ???,
+            security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets"))))
           )
         )
         :: HNil,
@@ -297,8 +328,7 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
               )
             )
           )
-        )/* TODO enable after enum support added
-        ,
+        ),
         "/pet/findByStatus" -> JsObject(
           "get" -> JsObject(
             "tags" -> JsArray(JsString("pet")),
@@ -321,8 +351,9 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
                     JsString("available"),
                     JsString("pending"),
                     JsString("sold")
-                  ),
-                  "default" -> JsString("available")
+                  )
+//                  ,
+//                  "default" -> JsString("available")
                 ),
                 "collectionFormat" -> JsString("multi")
               )
@@ -333,7 +364,18 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
                 "schema" -> JsObject(
                   "type" -> JsString("array"),
                   "items" -> JsObject(
-                    "$ref" -> JsString("#/definitions/Pet"))
+                    "type" -> JsString("object"),
+                    "required" -> JsArray(JsString("id"), JsString("name")),
+                    "properties" -> JsObject(
+                      "id" -> JsObject(
+                        "type" -> JsString("integer"),
+                        "format" -> JsString("int64")),
+                      "name" -> JsObject(
+                        "type" -> JsString("string")),
+                      "tag" -> JsObject(
+                        "type" -> JsString("string"))
+                    )
+                  )
                 )
               ),
               "400" -> JsObject(
@@ -346,11 +388,10 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
               )
             )
           )
-          */
         )
       )
+    )
 
-    //
     Get("http://petstore.swagger.io/v2/swagger.json") ~> apiRoutes ~> check {
       JsonParser(responseAs[String]) shouldBe expectedJson
     }
