@@ -26,11 +26,11 @@ class MultiParamConvertersTest extends FlatSpec with ConverterTest {
     val mqp = MultiValued[String, QueryParameter[String]](QueryParameter[String](
       name = 'status,
       description = Some("Status values that need to be considered for filter"),
-      default = Some("available"),
+      default = Some("available"),kkk
       enum = Some(Seq("available", "pending", "sold"))
     ))
 
-    val request = Get(s"http://example.com?x=a1&x=a2")
+    val request = Get(s"http://example.com?status=a1&status=a2")
 
     converterTest(request, mqp, OK, extractionAssertion(Seq("a1", "a2")))
   }
