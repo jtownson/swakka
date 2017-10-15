@@ -91,6 +91,9 @@ trait ConverterTest extends RouteTest with TestFrameworkInterface {
   def get(path: String): HttpRequest =
     Get(s"http://example.com$path")
 
+  def extractionAssertion[T](t: T): T => Assertion =
+    _ shouldBe t
+
   case class Pet(id: Int, name: String)
 
   override def failTest(msg: String): Nothing = throw new AssertionError(msg)

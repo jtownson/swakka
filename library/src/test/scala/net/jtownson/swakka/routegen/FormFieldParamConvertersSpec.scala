@@ -63,8 +63,6 @@ class FormFieldParamConvertersSpec extends FlatSpec with ConverterTest {
   private val optionalFileInfoAssertion: (Option[(FileInfo, Source[ByteString, Any])]) => Assertion =
     _.get._1 shouldBe FileInfo("fp", "primes.csv", ContentTypes.`text/plain(UTF-8)`)
 
-  private def extractionAssertion[T](t: T): T => Assertion =
-    _ shouldBe t
 
   "FormFieldParamConverters" should "accept and marshal mandatory params with data posted (and not accidentally marshal default)" in {
     converterTest(form("fp", "v"), FormFieldParameter[String]('fp, None, Some("default")), OK, extractionAssertion("v"))
