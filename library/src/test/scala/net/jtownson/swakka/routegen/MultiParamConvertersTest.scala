@@ -29,9 +29,9 @@ class MultiParamConvertersTest extends FlatSpec with ConverterTest {
       OK,
       extractionAssertion(Seq("a1", "a2")))
 
-//    converterTest[Seq[String], MultiValued[String, QueryParameter[String]]](
-//      Get(s"http://example.com?status=a1&status=a2"),
-//      MultiValued[String, QueryParameter[String]](QueryParameter[String]('notStatus)),
-//      BadRequest)
+    converterTest[Seq[String], MultiValued[String, QueryParameter[String]]](
+      Get(s"http://example.com?status=a1&status=a2"),
+      MultiValued[String, QueryParameter[String]](QueryParameter[String]('notStatus)),
+      BadRequest)
   }
 }
