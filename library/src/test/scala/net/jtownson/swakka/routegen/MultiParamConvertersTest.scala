@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
+import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import net.jtownson.swakka.model.Parameters.{MultiValued, QueryParameter}
 import org.scalatest.FlatSpec
 
@@ -32,6 +32,6 @@ class MultiParamConvertersTest extends FlatSpec with ConverterTest {
     converterTest[Seq[String], MultiValued[String, QueryParameter[String]]](
       Get(s"http://example.com?status=a1&status=a2"),
       MultiValued[String, QueryParameter[String]](QueryParameter[String]('notStatus)),
-      BadRequest)
+      NotFound)
   }
 }

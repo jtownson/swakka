@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection}
+import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, MissingQueryParamRejection}
 import akka.http.scaladsl.server.Directives.{onComplete, provide, reject}
 import akka.http.scaladsl.server.directives.BasicDirectives.extract
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
@@ -48,8 +48,9 @@ trait MultiParamConverters {
 
   private def queryParamsWithName(name: String): Directive1[Seq[String]] =
     extract(_.request.uri.query().toSeq).
-      map(_.filter( {case (key, _) => name == key} ).map(kv => kv._2))
-
+      map(_.filter( {case (key, _) => name == key} ).
+      map(_._2)).
+      flatMap(params => if (params.isEmpty) reject(MissingQueryParamRejection(name)) else provide(params))
 
   private def close[T, U <: Parameter[T]](mp: MultiValued[T, U]): Seq[T] => MultiValued[T, U] =
     t => mp.asInstanceOf[OpenMultiValued[T, U]].closeWith(t)

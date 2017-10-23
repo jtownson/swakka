@@ -43,7 +43,6 @@ class BodyParamConvertersSpec extends FlatSpec with ConverterTest {
   they should "convert a required body param of a case class" in {
 
     val pet = Pet(1, "tiddles")
-    //val conv = implicitly[ConvertibleToDirective[BodyParameter[Pet]]]
     converterTest[Pet, BodyParameter[Pet]](post("/p", pet.toJson.compactPrint), BodyParameter[Pet]('p), OK, extractionAssertion(pet))
   }
 
