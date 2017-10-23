@@ -33,13 +33,19 @@ import scala.reflect.ClassTag
 trait ConverterTest extends RouteTest with TestFrameworkInterface {
 
   def converterTest[T, U <: Parameter[T]]
-  (request: HttpRequest, expectedResponse: String, param: U, modelPath: String = "")
+  (request: HttpRequest, param: U, expectedResponse: String)
   (implicit ev: ConvertibleToDirective[U]): Unit = {
-    converterTest(request, expectedResponse, route[T, U](modelPath, param))
+    converterTest(request, route[T, U]("", param), expectedResponse)
   }
 
   def converterTest[T, U <: Parameter[T]]
-  (request: HttpRequest, expectedResponse: String, route: Route): Unit = {
+  (request: HttpRequest, param: U, modelPath: String, expectedResponse: String)
+  (implicit ev: ConvertibleToDirective[U]): Unit = {
+    converterTest(request, route[T, U](modelPath, param), expectedResponse)
+  }
+
+  def converterTest[T, U <: Parameter[T]]
+  (request: HttpRequest, route: Route, expectedResponse: String): Unit = {
     request ~> route ~> check {
       responseAs[String] shouldBe expectedResponse
     }

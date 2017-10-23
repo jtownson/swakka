@@ -27,51 +27,51 @@ import org.scalatest.Matchers._
 class QueryParamConvertersSpec extends FlatSpec with ConverterTest {
 
   "QueryParamConverters" should "convert a string query parameter" in {
-    converterTest[String, QueryParameter[String]](get("/path?q=x"), "x", QueryParameter[String]('q))
-    converterTest[Option[String], QueryParameter[Option[String]]](get("/path?q=x"), "Some(x)", QueryParameter[Option[String]]('q))
-    converterTest[Option[String], QueryParameter[Option[String]]](get("/path"), "None", QueryParameter[Option[String]]('q))
-    converterTest[String, QueryParameter[String]](get("/path"), "x", QueryParameter[String]('p, default = Some("x")))
-    converterTest[Option[String], QueryParameter[Option[String]]](get("/path"), "Some(x)", QueryParameter[Option[String]]('p, default = Some(Some("x"))))
+    converterTest[String, QueryParameter[String]](get("/path?q=x"), QueryParameter[String]('q), "x")
+    converterTest[Option[String], QueryParameter[Option[String]]](get("/path?q=x"), QueryParameter[Option[String]]('q), "Some(x)")
+    converterTest[Option[String], QueryParameter[Option[String]]](get("/path"), QueryParameter[Option[String]]('q), "None")
+    converterTest[String, QueryParameter[String]](get("/path"), QueryParameter[String]('p, default = Some("x")), "x")
+    converterTest[Option[String], QueryParameter[Option[String]]](get("/path"), QueryParameter[Option[String]]('p, default = Some(Some("x"))), "Some(x)")
   }
 
   they should "convert a float query parameter" in {
-    converterTest[Float, QueryParameter[Float]](get("/path?q=3.14"), "3.14", QueryParameter[Float]('q))
-    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path?q=3.14"), "Some(3.14)", QueryParameter[Option[Float]]('q))
-    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path"), "None", QueryParameter[Option[Float]]('q))
-    converterTest[Float, QueryParameter[Float]](get("/path"), "3.14", QueryParameter[Float]('p, default = Some(3.14f)))
-    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path"), "Some(3.14)", QueryParameter[Option[Float]]('p, default = Some(Some(3.14f))))
+    converterTest[Float, QueryParameter[Float]](get("/path?q=3.14"), QueryParameter[Float]('q), "3.14")
+    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path?q=3.14"), QueryParameter[Option[Float]]('q), "Some(3.14)")
+    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path"), QueryParameter[Option[Float]]('q), "None")
+    converterTest[Float, QueryParameter[Float]](get("/path"), QueryParameter[Float]('p, default = Some(3.14f)), "3.14")
+    converterTest[Option[Float], QueryParameter[Option[Float]]](get("/path"), QueryParameter[Option[Float]]('p, default = Some(Some(3.14f))), "Some(3.14)")
   }
 
   they should "convert a double query parameter" in {
-    converterTest[Double, QueryParameter[Double]](get("/path?q=3.14"), "3.14", QueryParameter[Double]('q))
-    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path?q=3.14"), "Some(3.14)", QueryParameter[Option[Double]]('q))
-    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path"), "None", QueryParameter[Option[Double]]('q))
-    converterTest[Double, QueryParameter[Double]](get("/path"), "3.14", QueryParameter[Double]('p, default = Some(3.14)))
-    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path"), "Some(3.14)", QueryParameter[Option[Double]]('p, default = Some(Some(3.14))))
+    converterTest[Double, QueryParameter[Double]](get("/path?q=3.14"), QueryParameter[Double]('q), "3.14")
+    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path?q=3.14"), QueryParameter[Option[Double]]('q), "Some(3.14)")
+    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path"), QueryParameter[Option[Double]]('q), "None")
+    converterTest[Double, QueryParameter[Double]](get("/path"), QueryParameter[Double]('p, default = Some(3.14)), "3.14")
+    converterTest[Option[Double], QueryParameter[Option[Double]]](get("/path"), QueryParameter[Option[Double]]('p, default = Some(Some(3.14))), "Some(3.14)")
   }
 
   they should "convert a boolean query parameter" in {
-    converterTest[Boolean, QueryParameter[Boolean]](get("/path?q=true"), "true", QueryParameter[Boolean]('q))
-    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path?q=true"), "Some(true)", QueryParameter[Option[Boolean]]('q))
-    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path"), "None", QueryParameter[Option[Boolean]]('q))
-    converterTest[Boolean, QueryParameter[Boolean]](get("/path"), "true", QueryParameter[Boolean]('p, default = Some(true)))
-    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path"), "Some(true)", QueryParameter[Option[Boolean]]('p, default = Some(Some(true))))
+    converterTest[Boolean, QueryParameter[Boolean]](get("/path?q=true"), QueryParameter[Boolean]('q), "true")
+    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path?q=true"), QueryParameter[Option[Boolean]]('q), "Some(true)")
+    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path"), QueryParameter[Option[Boolean]]('q), "None")
+    converterTest[Boolean, QueryParameter[Boolean]](get("/path"), QueryParameter[Boolean]('p, default = Some(true)), "true")
+    converterTest[Option[Boolean], QueryParameter[Option[Boolean]]](get("/path"), QueryParameter[Option[Boolean]]('p, default = Some(Some(true))), "Some(true)")
   }
 
   they should "convert an int query parameter" in {
-    converterTest[Int, QueryParameter[Int]](get("/path?q=2"), "2", QueryParameter[Int]('q))
-    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path?q=2"), "Some(2)", QueryParameter[Option[Int]]('q))
-    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path"), "None", QueryParameter[Option[Int]]('q))
-    converterTest[Int, QueryParameter[Int]](get("/path"), "2", QueryParameter[Int]('p, default = Some(2)))
-    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path"), "Some(2)", QueryParameter[Option[Int]]('p, default = Some(Some(2))))
+    converterTest[Int, QueryParameter[Int]](get("/path?q=2"), QueryParameter[Int]('q), "2")
+    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path?q=2"), QueryParameter[Option[Int]]('q), "Some(2)")
+    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path"), QueryParameter[Option[Int]]('q), "None")
+    converterTest[Int, QueryParameter[Int]](get("/path"), QueryParameter[Int]('p, default = Some(2)), "2")
+    converterTest[Option[Int], QueryParameter[Option[Int]]](get("/path"), QueryParameter[Option[Int]]('p, default = Some(Some(2))), "Some(2)")
   }
 
   they should "convert a long query parameter" in {
-    converterTest[Long, QueryParameter[Long]](get("/path?q=2"), "2", QueryParameter[Long]('q))
-    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path?q=2"), "Some(2)", QueryParameter[Option[Long]]('q))
-    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path"), "None", QueryParameter[Option[Long]]('q))
-    converterTest[Long, QueryParameter[Long]](get("/path"), "2", QueryParameter[Long]('p, default = Some(2)))
-    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path"), "Some(2)", QueryParameter[Option[Long]]('p, default = Some(Some(2))))
+    converterTest[Long, QueryParameter[Long]](get("/path?q=2"), QueryParameter[Long]('q), "2")
+    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path?q=2"), QueryParameter[Option[Long]]('q), "Some(2)")
+    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path"), QueryParameter[Option[Long]]('q), "None")
+    converterTest[Long, QueryParameter[Long]](get("/path"), QueryParameter[Long]('p, default = Some(2)), "2")
+    converterTest[Option[Long], QueryParameter[Option[Long]]](get("/path"), QueryParameter[Option[Long]]('p, default = Some(Some(2))), "Some(2)")
   }
 
   they should "pass QueryParameters iff their case is correct" in {

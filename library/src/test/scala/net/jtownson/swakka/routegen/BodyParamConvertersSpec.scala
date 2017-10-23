@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 Jeremy Townson
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives.complete
@@ -17,22 +33,18 @@ class BodyParamConvertersSpec extends FlatSpec with ConverterTest {
   implicit val petSchemaWriter = schemaWriter(Pet)
 
   "BodyParamConverters" should "convert a body param of String" in {
-    converterTest[String, BodyParameter[String]](post("/p", "Hello"), "Hello", BodyParameter[String]('p))
-    converterTest[Option[String], BodyParameter[Option[String]]](post("/p", "Hello"), "Some(Hello)", BodyParameter[Option[String]]('p))
-    converterTest[Option[String], BodyParameter[Option[String]]](post("/p"), "None", BodyParameter[Option[String]]('p))
-    converterTest[String, BodyParameter[String]](post("/p"), "Hello", BodyParameter[String]('p, default = Some("Hello")))
-    converterTest[Option[String], BodyParameter[Option[String]]](post("/p"), "Some(Hello)", BodyParameter[Option[String]]('p, default = Some(Some("Hello"))))
+    converterTest[String, BodyParameter[String]](post("/p", "Hello"), BodyParameter[String]('p), OK, extractionAssertion("Hello"))
+    converterTest[Option[String], BodyParameter[Option[String]]](post("/p", "Hello"), BodyParameter[Option[String]]('p), OK, extractionAssertion(Option("Hello")))
+    converterTest[Option[String], BodyParameter[Option[String]]](post("/p"), BodyParameter[Option[String]]('p), OK, extractionAssertion(Option.empty[String]))
+    converterTest[String, BodyParameter[String]](post("/p"), BodyParameter[String]('p, default = Some("Hello")), OK, extractionAssertion("Hello"))
+    converterTest[Option[String], BodyParameter[Option[String]]](post("/p"), BodyParameter[Option[String]]('p, default = Some(Some("Hello"))), OK, extractionAssertion(Option("Hello")))
   }
 
   they should "convert a required body param of a case class" in {
 
-    val pet = Pet(1, "tiddles").toJson.compactPrint
-    val conv = implicitly[ConvertibleToDirective[BodyParameter[Pet]]]
-
-    val route: Route = conv.convertToDirective("", BodyParameter[Pet]('p)) { bp =>
-      complete(bp.value)
-    }
-    converterTest[Pet, BodyParameter[Pet]](post("/p", pet), pet, route)
+    val pet = Pet(1, "tiddles")
+    //val conv = implicitly[ConvertibleToDirective[BodyParameter[Pet]]]
+    converterTest[Pet, BodyParameter[Pet]](post("/p", pet.toJson.compactPrint), BodyParameter[Pet]('p), OK, extractionAssertion(pet))
   }
 
   they should "convert an optional body param of a case class" in {
@@ -46,7 +58,7 @@ class BodyParamConvertersSpec extends FlatSpec with ConverterTest {
       }
     }
 
-    converterTest[Option[Pet], BodyParameter[Option[Pet]]](post("/p"), "got nothing", route)
+    converterTest[Option[Pet], BodyParameter[Option[Pet]]](post("/p"), route, "got nothing")
   }
 
   they should "pass enumerated body parameters iff the request provides a valid enum value" in {

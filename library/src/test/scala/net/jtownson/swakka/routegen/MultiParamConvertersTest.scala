@@ -16,22 +16,22 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
 import net.jtownson.swakka.model.Parameters.{MultiValued, QueryParameter}
 import org.scalatest.FlatSpec
 
 class MultiParamConvertersTest extends FlatSpec with ConverterTest {
 
   "MultiParamConverters" should "convert multi query parameters" in {
-    val mqp = MultiValued[String, QueryParameter[String]](QueryParameter[String](
-      name = 'status,
-      description = Some("Status values that need to be considered for filter"),
-      default = Some("available"),kkk
-      enum = Some(Seq("available", "pending", "sold"))
-    ))
+    converterTest(
+      Get(s"http://example.com?status=a1&status=a2"),
+      MultiValued[String, QueryParameter[String]](QueryParameter[String]('status)),
+      OK,
+      extractionAssertion(Seq("a1", "a2")))
 
-    val request = Get(s"http://example.com?status=a1&status=a2")
-
-    converterTest(request, mqp, OK, extractionAssertion(Seq("a1", "a2")))
+//    converterTest[Seq[String], MultiValued[String, QueryParameter[String]]](
+//      Get(s"http://example.com?status=a1&status=a2"),
+//      MultiValued[String, QueryParameter[String]](QueryParameter[String]('notStatus)),
+//      BadRequest)
   }
 }
