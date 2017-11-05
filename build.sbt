@@ -15,10 +15,13 @@
  */
 
 import sbt.Keys.scalaVersion
+enablePlugins(GitVersioning)
+
 
 lazy val commonSettings = Seq(
   organization := "net.jtownson",
-  version := "0.1a-SNAPSHOT",
+  isSnapshot := true,
+  git.formattedShaVersion := git.gitHeadCommit.value map(sha => s"$sha-SNAPSHOT"),
   scalaVersion := "2.12.1",
   scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 )
@@ -28,7 +31,7 @@ lazy val sonatypeCredentials = (sys.env.get("SONATYPE_USER"), sys.env.get("SONAT
     Credentials("Sonatype Nexus Repository Manager",
       "oss.sonatype.org",
       user, password)
-  case _ => Credentials.toDirect(Credentials(Path.userHome / ".sbt" / "0.13" / ".sonatype_credentials"))
+  case _ => Credentials.toDirect(Credentials(Path.userHome / ".sbt" / "1.0" / ".sonatype_credentials"))
 }
 
 lazy val sonatypeSettings = Seq(
@@ -37,18 +40,17 @@ lazy val sonatypeSettings = Seq(
   developers := List(Developer("jtownson", "Jeremy Townson", "jeremy dot townson at gmail dot com", url("https://bitbucket.org/jtownson"))),
   licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
   pomIncludeRepository := (_ => false),
-
   publishMavenStyle := true,
   publishArtifact in Test := false,
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
+  publishTo := Some(
     if (isSnapshot.value)
-      Some("snapshots" at nexus + "content/repositories/snapshots")
+      Opts.resolver.sonatypeSnapshots
     else
-      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-  },
+      Opts.resolver.sonatypeStaging
+  )
+//  ,
 
-  credentials += sonatypeCredentials
+//  credentials += sonatypeCredentials
 )
 
 
@@ -100,6 +102,7 @@ lazy val examples = project
   .settings(
     name := "swakka-examples",
     publishArtifact := false,
+    skip in publish := true,
     commonSettings)
   .dependsOn(library)
 
@@ -107,5 +110,6 @@ lazy val root = (project in file("."))
   .settings(
     name := "swakka-build",
     publishArtifact := false,
+    skip in publish := true,
     commonSettings)
   .aggregate(library, examples)
