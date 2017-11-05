@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, MissingQueryParamRejection}
+import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, MissingQueryParamRejection, Rejection}
 import akka.http.scaladsl.server.Directives.{onComplete, provide, reject}
 import akka.http.scaladsl.server.directives.BasicDirectives.extract
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
@@ -24,9 +24,9 @@ import akka.stream.Materializer
 import net.jtownson.swakka.model.Parameters.MultiValued.OpenMultiValued
 import net.jtownson.swakka.model.Parameters.{MultiValued, Parameter, QueryParameter}
 
-import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
+
 trait MultiParamConverters {
 
   implicit def multiValuedConverter[T, U <: QueryParameter[T]](implicit um: FromStringUnmarshaller[T], mat: Materializer, ec: ExecutionContext):
@@ -38,7 +38,14 @@ trait MultiParamConverters {
         flatMap(marshalledParams => onComplete(marshalledParams))
 
       marshalledParams.flatMap({
-        case Success(seq) => provide(close(mp)(seq))
+        case Success(Nil) => mp.singleParam.default match {
+          case Some(default) => provideWithCheck(close(mp)(Seq(default)))
+          case _ => mp.default match {
+            case Some(defaultSeq) => provideWithCheck(close(mp)(defaultSeq))
+            case _ => provideWithCheck(close(mp)(Nil))
+          }
+        }
+        case Success(seq) => provideWithCheck(close(mp)(seq))
         case Failure(t) => reject(
           MalformedQueryParamRejection(mp.name.name,
             s"Failed to marshal multivalued parameter ${mp.name.name}. The following error occurred: $t",
@@ -46,11 +53,28 @@ trait MultiParamConverters {
       })
     }
 
+  private def provideWithCheck[T, U <: Parameter[T]](p: MultiValued[T, U]): Directive1[MultiValued[T, U]] =
+    provideWithCheck(p, parameterRejection(p))
+
+  private def provideWithCheck[T, U <: Parameter[T]](p: MultiValued[T, U], errHandler: => Rejection): Directive1[MultiValued[T, U]] = {
+    val values: Seq[T] = p.value
+    p.singleParam.enum match {
+      case None => provide(p)
+      case Some(enum) if values.forall(enum.contains) => provide(p)
+      case _ => reject(errHandler)
+    }
+  }
+
+  private def parameterRejection[T, U <: Parameter[T]](p: MultiValued[T, U]): Rejection =
+    MalformedQueryParamRejection(
+      p.name.name,
+      s"The value ${p.value} is not allowed by this request. They are limited to ${p.enum}.")
+
   private def queryParamsWithName(name: String): Directive1[Seq[String]] =
     extract(_.request.uri.query().toSeq).
       map(_.filter( {case (key, _) => name == key} ).
       map(_._2)).
-      flatMap(params => if (params.isEmpty) reject(MissingQueryParamRejection(name)) else provide(params))
+      flatMap(params => provide(params))
 
   private def close[T, U <: Parameter[T]](mp: MultiValued[T, U]): Seq[T] => MultiValued[T, U] =
     t => mp.asInstanceOf[OpenMultiValued[T, U]].closeWith(t)
