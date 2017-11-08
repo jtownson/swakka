@@ -1,5 +1,9 @@
 package net.jtownson.swakka
 
+import akka.http.scaladsl.server.{Directives, Route}
+import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
+import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
+import net.jtownson.swakka.model.Parameters._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.ops.hlist.Tupler
@@ -7,11 +11,11 @@ import shapeless.{::, HList, HNil}
 
 // Given an hlist such as Container[String] :: Container[Int], pass function, f: (String, Int) => some return type.
 
-// Now try to create another typeclass that encapsulates every step, so munge is simplified a bit.
+// Begin compatibility with endpoint implementation
 
-class DepTypeOpSpec4 extends FlatSpec {
+class DepTypeOpSpec6 extends FlatSpec with RouteTest with TestFrameworkInterface {
 
-  case class Container[T](value: T)
+//  case class Container[T](value: T)
 
   trait ParameterValue[P] {
     type Out
@@ -29,7 +33,19 @@ class DepTypeOpSpec4 extends FlatSpec {
       override def get(p: P) = f(p)
     }
 
-    implicit def parameterValue[T]: Aux[Container[T], T] =
+    implicit def queryParameterValue[T]: Aux[QueryParameter[T], T] =
+      instance(p => p.value)
+
+    implicit def pathParameterValue[T]: Aux[PathParameter[T], T] =
+      instance(p => p.value)
+
+    implicit def headerParameterValue[T]: Aux[HeaderParameter[T], T] =
+      instance(p => p.value)
+
+    implicit def formParameterValue[T]: Aux[FormFieldParameter[T], T] =
+      instance(p => p.value)
+
+    implicit def multiParameterValue[T, U <: Parameter[T]]: Aux[MultiValued[T, U], Seq[T]] =
       instance(p => p.value)
 
     implicit val hNilParameterValue: Aux[HNil, HNil] =
@@ -89,18 +105,37 @@ class DepTypeOpSpec4 extends FlatSpec {
     }
   }
 
-  def munge[L, F, R](l: L, f: F)(implicit fi: FullInvoker.Aux[L, F, R]): R = fi(l, f)
+  type EndpointInvoker[L, F] = FullInvoker.Aux[L, F, Route]
 
+  def munge[L, F](l: L, f: F)(implicit fi: EndpointInvoker[L, F]): Route = fi(l, f)
 
   "ParameterValue" should "work for a simple tuple2" in {
-    val f: (String, Int) => String = (s, i) => s"I got $s and $i"
+    val f: (String, Int) => Route = (s, i) => Directives.complete(s"I got $s and $i")
 
-    val l = Container[String]("p1") :: Container[Int](1) :: HNil
+    val l: QueryParameter[String] :: QueryParameter[Int] :: HNil =
+      OpenQueryParameter[String]('p1, None, None, None).closeWith("p1") ::
+        OpenQueryParameter[Int]('p2, None, None, None).closeWith(1) :: HNil
 
-    val r: String = munge(l, f)
+    val r: Route = munge(l, f)
 
-    r shouldBe "I got p1 and 1"
+    Get("http://example.com") ~> r ~> check {
+      responseAs[String] shouldBe "I got p1 and 1"
+    }
   }
+
+  it should "work for hnil" in {
+    val f: Unit => Route = _ => Directives.complete("foo")
+
+    val l = HNil
+
+    val r = munge[HNil, Unit=>Route](l, f)
+
+    Get("http://example.com") ~> r ~> check {
+      responseAs[String] shouldBe "foo"
+    }
+  }
+
+  override def failTest(msg: String): Nothing = throw new AssertionError(msg)
 
 }
 

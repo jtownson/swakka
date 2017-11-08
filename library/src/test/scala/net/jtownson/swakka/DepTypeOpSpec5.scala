@@ -7,9 +7,9 @@ import shapeless.{::, HList, HNil}
 
 // Given an hlist such as Container[String] :: Container[Int], pass function, f: (String, Int) => some return type.
 
-// Now try to create another typeclass that encapsulates every step, so munge is simplified a bit.
+// Sort out some edge cases like zero parameters.
 
-class DepTypeOpSpec4 extends FlatSpec {
+class DepTypeOpSpec5 extends FlatSpec {
 
   case class Container[T](value: T)
 
@@ -91,7 +91,6 @@ class DepTypeOpSpec4 extends FlatSpec {
 
   def munge[L, F, R](l: L, f: F)(implicit fi: FullInvoker.Aux[L, F, R]): R = fi(l, f)
 
-
   "ParameterValue" should "work for a simple tuple2" in {
     val f: (String, Int) => String = (s, i) => s"I got $s and $i"
 
@@ -100,6 +99,16 @@ class DepTypeOpSpec4 extends FlatSpec {
     val r: String = munge(l, f)
 
     r shouldBe "I got p1 and 1"
+  }
+
+  it should "work for hnil" in {
+    val f: Unit => String = _ => "foo"
+
+    val l = HNil
+
+    val r = munge[HNil, Unit=>String, String](l, f)
+
+    r shouldBe "foo"
   }
 
 }
