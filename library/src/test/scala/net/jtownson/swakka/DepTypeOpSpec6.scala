@@ -17,74 +17,6 @@ class DepTypeOpSpec6 extends FlatSpec with RouteTest with TestFrameworkInterface
 
 //  case class Container[T](value: T)
 
-  trait ParameterValue[P] {
-    type Out
-    def get(p: P): Out
-  }
-
-  object ParameterValue {
-    type Aux[P, O] = ParameterValue[P] { type Out = O }
-
-    def apply[P](implicit inst: ParameterValue[P]): Aux[P, inst.Out] = inst
-
-    def instance[P, O](f: P => O): Aux[P, O] = new ParameterValue[P] {
-      type Out = O
-
-      override def get(p: P) = f(p)
-    }
-
-    implicit def queryParameterValue[T]: Aux[QueryParameter[T], T] =
-      instance(p => p.value)
-
-    implicit def pathParameterValue[T]: Aux[PathParameter[T], T] =
-      instance(p => p.value)
-
-    implicit def headerParameterValue[T]: Aux[HeaderParameter[T], T] =
-      instance(p => p.value)
-
-    implicit def formParameterValue[T]: Aux[FormFieldParameter[T], T] =
-      instance(p => p.value)
-
-    implicit def multiParameterValue[T, U <: Parameter[T]]: Aux[MultiValued[T, U], Seq[T]] =
-      instance(p => p.value)
-
-    implicit val hNilParameterValue: Aux[HNil, HNil] =
-      instance(_ => HNil)
-
-    implicit def hListParameterValue[H, T <: HList, HO, TO <: HList](
-     implicit
-     ph: Aux[H, HO],
-     pt: Aux[T, TO]): Aux[H :: T, HO :: TO] =
-      instance[H :: T, HO :: TO] {
-        case (h :: t) => ph.get(h) :: pt.get(t)
-      }
-  }
-
-  trait ResponseFunction[Tuple] {
-    type Function
-    type Return
-    def apply(f: Function, t: Tuple): Return
-  }
-
-  object ResponseFunction {
-    type Aux[T, F, R] = ResponseFunction[T] { type Function = F; type Return = R }
-
-    def apply[T](implicit inst: ResponseFunction[T]): Aux[T, inst.Function, inst.Return] = inst
-
-    implicit def tuple1[A,R]: Aux[A, (A) => R, R] = new ResponseFunction[A] {
-      type Function = A => R
-      type Return = R
-
-      override def apply(f: Function, t: A): Return = f(t)
-    }
-
-    implicit def tuple2[A,B,R]: Aux[(A,B), (A, B) => R, R] = new ResponseFunction[(A, B)] {
-      type Function = (A,B) => R
-      type Return = R
-
-      override def apply(f: (A, B) => R, t: (A, B)): Return = f.tupled(t)
-    }
-  }
 
   trait FullInvoker[L, F] {
     type R
@@ -92,11 +24,81 @@ class DepTypeOpSpec6 extends FlatSpec with RouteTest with TestFrameworkInterface
   }
 
   object FullInvoker {
+
+    trait ParameterValue[P] {
+      type Out
+      def get(p: P): Out
+    }
+
+    object ParameterValue {
+      type Aux[P, O] = ParameterValue[P] { type Out = O }
+
+      def apply[P](implicit inst: ParameterValue[P]): Aux[P, inst.Out] = inst
+
+      def instance[P, O](f: P => O): Aux[P, O] = new ParameterValue[P] {
+        type Out = O
+
+        override def get(p: P) = f(p)
+      }
+
+      implicit def queryParameterValue[T]: Aux[QueryParameter[T], T] =
+        instance(p => p.value)
+
+      implicit def pathParameterValue[T]: Aux[PathParameter[T], T] =
+        instance(p => p.value)
+
+      implicit def headerParameterValue[T]: Aux[HeaderParameter[T], T] =
+        instance(p => p.value)
+
+      implicit def formParameterValue[T]: Aux[FormFieldParameter[T], T] =
+        instance(p => p.value)
+
+      implicit def multiParameterValue[T, U <: Parameter[T]]: Aux[MultiValued[T, U], Seq[T]] =
+        instance(p => p.value)
+
+      implicit val hNilParameterValue: Aux[HNil, HNil] =
+        instance(_ => HNil)
+
+      implicit def hListParameterValue[H, T <: HList, HO, TO <: HList](
+                                                                        implicit
+                                                                        ph: Aux[H, HO],
+                                                                        pt: Aux[T, TO]): Aux[H :: T, HO :: TO] =
+        instance[H :: T, HO :: TO] {
+          case (h :: t) => ph.get(h) :: pt.get(t)
+        }
+    }
+
+    trait ResponseFunction[Tuple] {
+      type Function
+      type Return
+      def apply(f: Function, t: Tuple): Return
+    }
+
+    object ResponseFunction {
+      type Aux[T, F, R] = ResponseFunction[T] { type Function = F; type Return = R }
+
+      def apply[T](implicit inst: ResponseFunction[T]): Aux[T, inst.Function, inst.Return] = inst
+
+      implicit def tuple1[A,R]: Aux[A, (A) => R, R] = new ResponseFunction[A] {
+        type Function = A => R
+        type Return = R
+
+        override def apply(f: Function, t: A): Return = f(t)
+      }
+
+      implicit def tuple2[A,B,R]: Aux[(A,B), (A, B) => R, R] = new ResponseFunction[(A, B)] {
+        type Function = (A,B) => R
+        type Return = R
+
+        override def apply(f: (A, B) => R, t: (A, B)): Return = f.tupled(t)
+      }
+    }
+
     type Aux[L, F, RR] = FullInvoker[L, F] { type R = RR }
 
     def apply[L, F](implicit fi: FullInvoker[L, F]): Aux[L, F, fi.R] = fi
 
-    implicit def i1[L, O <: HList, T, F, RR]
+    implicit def fullInvoker[L, O <: HList, T, F, RR]
       (implicit pv: ParameterValue.Aux[L, O], tv: Tupler.Aux[O, T], rfv: ResponseFunction.Aux[T, F, RR]):
       Aux[L, F, RR] = new FullInvoker[L, F] {
         type R = RR
