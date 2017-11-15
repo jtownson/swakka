@@ -17,6 +17,7 @@
 package net.jtownson.swakka.jsonprotocol
 
 import akka.http.scaladsl.model.HttpMethods.{GET, POST}
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective._
@@ -31,9 +32,6 @@ import spray.json.{JsArray, JsObject, JsString, _}
 
 class PathsJsonProtocolSpec extends FlatSpec {
 
-
-  private def endpointImpl[Params]: Params => Route = _ => ???
-
   "JsonProtocol" should "write a parameterless pathitem" in {
 
     type Responses = ResponseValue[String, HNil]
@@ -41,10 +39,10 @@ class PathsJsonProtocolSpec extends FlatSpec {
     val pathItem = PathItem(
       path = "/ruok",
       method = POST,
-      operation = Operation[HNil, ResponseValue[String, HNil]](
+      operation = Operation[() => Route, HNil, ResponseValue[String, HNil]](
         parameters = HNil,
         responses = ResponseValue("200", "ok"),
-        endpointImplementation = endpointImpl))
+        endpointImplementation = () => complete("dummy")))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -69,10 +67,10 @@ class PathsJsonProtocolSpec extends FlatSpec {
     val pathItem = PathItem(
       path = "/ruok",
       method = GET,
-      operation = Operation[HNil, HNil](
+      operation = Operation[() => Route, HNil, HNil](
         parameters = HNil,
         responses = HNil,
-        endpointImplementation = endpointImpl))
+        endpointImplementation = () => complete("dummy")))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -87,15 +85,15 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String, HNil]
-    type Paths = PathItem[Params, Responses]
+    type Paths = PathItem[String => Route, Params, Responses]
 
-    val pathItem: PathItem[Params, Responses] = PathItem(
+    val pathItem: PathItem[String => Route, Params, Responses] = PathItem(
       path = "/ruok",
       method = GET,
       operation = Operation(
         parameters = QueryParameter[String]('q) :: HNil,
         responses = ResponseValue[String, HNil]("200", "ok"),
-        endpointImplementation = endpointImpl))
+        endpointImplementation = (_: String) => complete("dummy")))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -126,28 +124,30 @@ class PathsJsonProtocolSpec extends FlatSpec {
   type OneIntParam = QueryParameter[Int] :: HNil
   type OneStrParam = QueryParameter[String] :: HNil
   type StringResponse = ResponseValue[String, HNil]
-  type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
+  type Paths =
+    PathItem[Int => Route, OneIntParam, StringResponse] ::
+    PathItem[String => Route, OneStrParam, StringResponse] :: HNil
 
   it should "write a simple swagger definition" in {
     val api: OpenApi[Paths, HNil] =
       OpenApi(paths =
-        PathItem[OneIntParam, StringResponse](
+        PathItem[Int => Route, OneIntParam, StringResponse](
           path = "/app/e1",
           method = GET,
           operation = Operation(
             parameters = QueryParameter[Int]('q) :: HNil,
             responses = ResponseValue[String, HNil]("200", "ok"),
-            endpointImplementation = endpointImpl
+            endpointImplementation = (_: Int) => complete("dummy")
           )
         )
           ::
-          PathItem[OneStrParam, StringResponse](
+          PathItem[String => Route, OneStrParam, StringResponse](
             path = "/app/e2",
             method = GET,
             operation = Operation(
               parameters = QueryParameter[String]('q) :: HNil,
               responses = ResponseValue[String, HNil]("200", "ok"),
-              endpointImplementation = endpointImpl
+              endpointImplementation = (_: String) => complete("dummy")
             )
           )
           :: HNil
@@ -230,7 +230,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
             parameters = QueryParameter[Int]('q) :: HNil,
             responses = ResponseValue[String, HNil]("200", "ok"),
             security = Some(Seq(SecurityRequirement('auth, Seq("grant1", "grant2")))),
-            endpointImplementation = endpointImpl
+            endpointImplementation = (_: Int) => complete("dummy")
           )
         ) :: HNil
       )
@@ -276,21 +276,23 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   it should "combine path items where the path is equal" in {
 
-    type Paths = PathItem[HNil, HNil] :: PathItem[HNil, HNil] :: HNil
+    type Paths =
+      PathItem[() => Route, HNil, HNil] ::
+      PathItem[() => Route, HNil, HNil] :: HNil
 
     val paths: Paths =
-      PathItem[HNil, HNil](
+      PathItem[() => Route, HNil, HNil](
         path = "/app",
         method = GET,
         operation = Operation(
-          endpointImplementation = endpointImpl
+          endpointImplementation = () => complete("dummy")
         )
       ) ::
-        PathItem[HNil, HNil](
+        PathItem[() => Route, HNil, HNil](
           path = "/app",
           method = POST,
           operation = Operation(
-            endpointImplementation = endpointImpl
+            endpointImplementation = () => complete("dummy")
           )
         ) ::
         HNil

@@ -55,16 +55,16 @@ object Greeter1 extends App {
   type Params = QueryParameter[String] :: HNil
   type StringResponse = ResponseValue[String, HNil]
 
-  type Paths = PathItem[Params, StringResponse] :: HNil
+  type Paths = PathItem[String => Route, Params, StringResponse] :: HNil
 
   val corsHeaders = Seq(
     RawHeader("Access-Control-Allow-Origin", "*"),
     RawHeader("Access-Control-Allow-Methods", "GET"))
 
-  val greet: Params => Route = {
-    case (QueryParameter(name) :: HNil) =>
+  val greet: String => Route =
+    name =>
       complete(HttpResponse(OK, corsHeaders, s"Hello $name!"))
-  }
+
 
   val api =
     OpenApi(
@@ -73,7 +73,7 @@ object Greeter1 extends App {
       PathItem(
         path = "/greet",
         method = GET,
-        operation = Operation[Params, StringResponse](
+        operation = Operation(
           parameters = QueryParameter[String]('name) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = greet

@@ -42,33 +42,35 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   import ConvertibleToDirective._
   import OpenApiJsonProtocol._
 
-  def f[Params] = mockFunction[Params, Route]
+  def f1[T] = mockFunction[T, Route]
 
   type OneIntParam = QueryParameter[Int] :: HNil
   type OneStrParam = QueryParameter[String] :: HNil
 
   type StringResponse = ResponseValue[String, HNil]
 
-  type Paths = PathItem[OneIntParam, StringResponse] :: PathItem[OneStrParam, StringResponse] :: HNil
+  type Paths =
+    PathItem[Int => Route, OneIntParam, StringResponse] ::
+    PathItem[String => Route, OneStrParam, StringResponse] :: HNil
 
   val api =
     OpenApi[Paths, HNil](paths =
-      PathItem[OneIntParam, StringResponse](
+      PathItem[Int => Route, OneIntParam, StringResponse](
         path = "/app/e1",
         method = GET,
         operation = Operation(
           parameters = QueryParameter[Int]('q) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
-          endpointImplementation = f
+          endpointImplementation = f1[Int]
         )
       ) ::
-        PathItem[OneStrParam, StringResponse](
+        PathItem[String => Route, OneStrParam, StringResponse](
           path = "/app/e2",
           method = GET,
           operation = Operation(
             parameters = QueryParameter[String]('q) :: HNil,
             responses = ResponseValue[String, HNil]("200", "ok"),
-            endpointImplementation = f
+            endpointImplementation = f1[String]
           )
         ) ::
         HNil

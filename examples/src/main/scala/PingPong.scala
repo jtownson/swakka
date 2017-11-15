@@ -46,6 +46,8 @@ import net.jtownson.swakka.RouteGen
 // Implicit json formats for serializing the swagger.json
 import net.jtownson.swakka.OpenApiJsonProtocol._
 
+// Route generation instances
+import net.jtownson.swakka.routegen.ConvertibleToDirective._
 
 object PingPong extends App {
 
@@ -56,7 +58,7 @@ object PingPong extends App {
   type NoParams = HNil
   type StringResponse = ResponseValue[String, HNil]
 
-  type Paths = PathItem[NoParams, StringResponse] :: HNil
+  type Paths = PathItem[() => Route, NoParams, StringResponse] :: HNil
 
   val corsHeaders = Seq(
     RawHeader("Access-Control-Allow-Origin", "*"),
@@ -66,15 +68,15 @@ object PingPong extends App {
     OpenApi(
       produces = Some(Seq("text/plain")),
       paths =
-      PathItem[NoParams, StringResponse](
+      PathItem(
         path = "/ping",
         method = GET,
-        operation = Operation[NoParams, StringResponse](
+        operation = Operation[() => Route, NoParams, StringResponse](
           responses = ResponseValue[String, HNil]("200", "ok"),
-          endpointImplementation = _ => complete(HttpResponse(OK, corsHeaders, "pong"))
+          endpointImplementation = () => complete(HttpResponse(OK, corsHeaders, "pong"))
         )
       ) ::
-        HNil
+      HNil
     )
 
   val route: Route = RouteGen.openApiRoute(

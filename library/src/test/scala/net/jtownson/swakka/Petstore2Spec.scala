@@ -18,6 +18,8 @@ package net.jtownson.swakka
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.HttpMethods.{GET, POST, PUT}
+import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.OpenApiModel._
@@ -27,8 +29,10 @@ import net.jtownson.swakka.model.Parameters.{BodyParameter, MultiValued, QueryPa
 import net.jtownson.swakka.model.Responses.ResponseValue
 import net.jtownson.swakka.model.SecurityDefinitions.{ApiKeyInHeaderSecurity, Oauth2ImplicitSecurity, SecurityRequirement}
 import net.jtownson.swakka.model.{ExternalDocs, Info, License, Tag}
-import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import net.jtownson.swakka.routegen.{ConvertibleToDirective, SwaggerRouteSettings}
+import net.jtownson.swakka.routegen.ConvertibleToDirective._
+import net.jtownson.swakka.model.ParameterValue._
+import net.jtownson.swakka.model.Invoker._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.record._
@@ -65,19 +69,25 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
     //    type ShowPetParams = PathParameter[String] :: HNil
     //    type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
 
+    type CreatePetEndpoint = Pet => Route
     type CreatePetParams = BodyParameter[Pet] :: HNil
     type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
+    val createPet: CreatePetEndpoint = _ => complete("dummy")
 
+    type UpdatePetEndpoint = Pet => Route
     type UpdatePetParams = BodyParameter[Pet] :: HNil
     type UpdatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: HNil
+    val updatePet: UpdatePetEndpoint = _ => complete("dummy")
 
+    type FindByStatusEndpoint = Seq[String] => Route
     type FindByStatusParams = MultiValued[String, QueryParameter[String]] :: HNil
     type FindByStatusResponses = ResponseValue[Seq[Pet], HNil] :: ResponseValue[HNil, HNil] :: HNil
+    val findByStatus: FindByStatusEndpoint = (_: Seq[String]) => complete("dummy")
 
     type Paths =
-      PathItem[CreatePetParams, CreatePetResponses] ::
-      PathItem[UpdatePetParams, UpdatePetResponses] ::
-      PathItem[FindByStatusParams, FindByStatusResponses] ::
+      PathItem[CreatePetEndpoint, CreatePetParams, CreatePetResponses] ::
+      PathItem[UpdatePetEndpoint, UpdatePetParams, UpdatePetResponses] ::
+      PathItem[FindByStatusEndpoint, FindByStatusParams, FindByStatusResponses] ::
       HNil
 
     type SecurityDefinitions = Record.`'petstore_auth -> Oauth2ImplicitSecurity, 'api_key -> ApiKeyInHeaderSecurity`.T
@@ -92,8 +102,7 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
         'api_key ->> ApiKeyInHeaderSecurity("api_key") ::
         HNil
 
-
-    val petstoreApi = OpenApi[Paths, SecurityDefinitions](
+    val petstoreApi = OpenApi(
       info = Info(
         description = Some("This is a sample server Petstore server.  You can find out more about Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).  For this sample, you can use the api key `special-key` to test the authorization filters."),
         version = "1.0.0",
@@ -118,7 +127,7 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
       basePath = Some("/v2"),
       schemes = Some(Seq("http")),
       paths =
-        PathItem[CreatePetParams, CreatePetResponses](
+        PathItem(
           path = "/pets",
           method = POST,
           operation = Operation(
@@ -144,10 +153,10 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
                 ) ::
                 HNil,
             security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets")))),
-            endpointImplementation = _ => ???
+            endpointImplementation = createPet
           )
         ) ::
-        PathItem[UpdatePetParams, UpdatePetResponses](
+        PathItem(
           path = "/pets",
           method = PUT,
           operation = Operation(
@@ -173,13 +182,13 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
               ) ::
               HNil,
             security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets")))),
-            endpointImplementation = _ => ???
+            endpointImplementation = updatePet
           )
         ) ::
         PathItem(
           path = "/pet/findByStatus",
           method = GET,
-          operation = Operation[FindByStatusParams, FindByStatusResponses](
+          operation = Operation(
             summary = Some("Finds Pets by status"),
             description = Some("Multiple status values can be provided with comma separated strings"),
             operationId = Some("findPetsByStatus"),
@@ -196,11 +205,10 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
               ResponseValue[Seq[Pet], HNil]("200", "successful operation") ::
                 ResponseValue[HNil, HNil]("400", "Invalid status value") ::
                 HNil,
-            endpointImplementation = _ => ???,
+            endpointImplementation = findByStatus,
             security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets"))))
           )
-        )
-        :: HNil,
+        ) :: HNil,
       securityDefinitions = Some(securityDefinitions)
     )
 

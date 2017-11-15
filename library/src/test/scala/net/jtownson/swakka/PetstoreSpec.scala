@@ -17,6 +17,8 @@
 package net.jtownson.swakka
 
 import akka.http.scaladsl.model.HttpMethods.{GET, POST}
+import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.OpenApiJsonProtocol._
@@ -52,16 +54,22 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "Swakka" should "support the petstore example" in {
 
+    type ListPetsEndpoint = Int => Route
     type ListPetsParams = QueryParameter[Int] :: HNil
     type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
 
+    type CreatePetEndpoint = () => Route
     type CreatePetParams = HNil
     type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
 
+    type ShowPetEndpoint = String => Route
     type ShowPetParams = PathParameter[String] :: HNil
     type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
 
-    type Paths = PathItem[ListPetsParams, ListPetsResponses] :: PathItem[HNil, CreatePetResponses] :: PathItem[ShowPetParams, ShowPetResponses] :: HNil
+    type Paths =
+      PathItem[ListPetsEndpoint, ListPetsParams, ListPetsResponses] ::
+      PathItem[CreatePetEndpoint, HNil, CreatePetResponses] ::
+      PathItem[ShowPetEndpoint, ShowPetParams, ShowPetResponses] :: HNil
 
 
     val petstoreApi = OpenApi[Paths, HNil](
@@ -72,7 +80,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       consumes = Some(Seq("application/json")),
       produces = Some(Seq("application/json")),
       paths =
-        PathItem[ListPetsParams, ListPetsResponses](
+        PathItem[ListPetsEndpoint, ListPetsParams, ListPetsResponses](
           path = "/pets",
           method = GET,
           operation = Operation(
@@ -93,8 +101,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   responseCode = "default",
                   description = "unexpected error"
                 ) :: HNil,
-            endpointImplementation = _ => ???)) ::
-          PathItem[CreatePetParams, CreatePetResponses](
+            endpointImplementation = (_: Int) => complete("dummy"))) ::
+          PathItem[CreatePetEndpoint, CreatePetParams, CreatePetResponses](
             path = "/pets",
             method = POST,
             operation = Operation(
@@ -112,10 +120,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   description = "unexpected error"
                 ) ::
                 HNil,
-              endpointImplementation = _ => ???
+              endpointImplementation = () => complete("dummy")
             )
           ) ::
-          PathItem[ShowPetParams, ShowPetResponses](
+          PathItem[ShowPetEndpoint, ShowPetParams, ShowPetResponses](
             path = "/pets/{petId}",
             method = GET,
             operation = Operation(
@@ -129,7 +137,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
                 ResponseValue[Error, HNil]("default", "unexpected error") ::
                 HNil,
-              endpointImplementation = _ => ???
+              endpointImplementation = (_: String) => complete("dummy")
             )
           ) ::
           HNil

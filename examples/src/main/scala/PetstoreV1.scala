@@ -52,43 +52,39 @@ object PetstoreV1 extends App {
   implicit val errorSchemaWriter = schemaWriter(Error)
   implicit val errorJsonFormat = jsonFormat2(Error)
 
+  type ListPetsEndpoint = Int => Route
   type ListPetsParams = QueryParameter[Int] :: HNil
   type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
 
+  type CreatePetsEndpoint = Pet => Route
   type CreatePetParams = BodyParameter[Pet] :: HNil
   type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
 
+  type ShowPetEndpoint = String => Route
   type ShowPetParams = PathParameter[String] :: HNil
   type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
 
 
   val petsDb = mutable.LinkedHashMap[String, Pet]()
 
-  def listPets(params: ListPetsParams): Route =
-    params match {
-      case (QueryParameter(limit) :: HNil) => {
-        val jsonResponse = petsDb.values.take(limit).toList.toJson
-        complete(jsonResponse)
-      }
-    }
+  def listPets(limit: Int): Route = {
+    val jsonResponse = petsDb.values.take(limit).toList.toJson
+    complete(jsonResponse)
+  }
 
-  def createPet(params: CreatePetParams): Route =
-    params match {
-      case (BodyParameter(pet) :: HNil) => {
-        val petId = UUID.randomUUID().toString
-        val newPet = pet.copy(id = petId)
-        petsDb.put(petId, newPet)
-        complete(StatusCodes.Created)
-      }
-    }
+  def createPet(pet: Pet): Route = {
+    val petId = UUID.randomUUID().toString
+    val newPet = pet.copy(id = petId)
+    petsDb.put(petId, newPet)
+    complete(StatusCodes.Created)
+  }
 
-  def getPet(params: ShowPetParams): Route = params match {
-    case (PathParameter(petId) :: HNil) =>
-      val maybePet = petsDb.get(petId)
-      maybePet match {
-        case Some(pet) => complete(pet.toJson)
-        case None => complete(NotFound)
-      }
+  def getPet(petId: String): Route = {
+    val maybePet = petsDb.get(petId)
+    maybePet match {
+      case Some(pet) => complete(pet.toJson)
+      case None => complete(NotFound)
+    }
   }
 
   val petstoreApi = OpenApi(
@@ -99,7 +95,7 @@ object PetstoreV1 extends App {
     consumes = Some(Seq("application/json")),
     produces = Some(Seq("application/json")),
     paths =
-      PathItem[ListPetsParams, ListPetsResponses](
+      PathItem(
         path = "/pets",
         method = GET,
         operation = Operation(
@@ -120,46 +116,48 @@ object PetstoreV1 extends App {
                 responseCode = "default",
                 description = "unexpected error"
               ) :: HNil,
-          endpointImplementation = listPets)) ::
-        PathItem[CreatePetParams, CreatePetResponses](
-          path = "/pets",
-          method = POST,
-          operation = Operation(
-            summary = Some("Create a pet"),
-            operationId = Some("createPets"),
-            tags = Some(Seq("pets")),
-            parameters = BodyParameter[Pet](name = 'pet, description = Some("the pet to create")) :: HNil,
-            responses =
-              ResponseValue[HNil, HNil](
-                responseCode = "201",
-                description = "Null response"
+          endpointImplementation = listPets _
+        )
+      ) ::
+      PathItem(
+        path = "/pets",
+        method = POST,
+        operation = Operation(
+          summary = Some("Create a pet"),
+          operationId = Some("createPets"),
+          tags = Some(Seq("pets")),
+          parameters = BodyParameter[Pet](name = 'pet, description = Some("the pet to create")) :: HNil,
+          responses =
+            ResponseValue[HNil, HNil](
+              responseCode = "201",
+              description = "Null response"
+            ) ::
+              ResponseValue[Error, HNil](
+                responseCode = "default",
+                description = "unexpected error"
               ) ::
-                ResponseValue[Error, HNil](
-                  responseCode = "default",
-                  description = "unexpected error"
-                ) ::
-                HNil,
-            endpointImplementation = createPet
-          )
-        ) ::
-        PathItem[ShowPetParams, ShowPetResponses](
-          path = "/pets/{petId}",
-          method = GET,
-          operation = Operation(
-            summary = Some("Info for a specific pet"),
-            operationId = Some("showPetById"),
-            tags = Some(Seq("pets")),
-            parameters =
-              PathParameter[String]('petId, Some("The id of the pet to retrieve")) ::
-                HNil,
-            responses =
-              ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
-                ResponseValue[Error, HNil]("default", "unexpected error") ::
-                HNil,
-            endpointImplementation = getPet
-          )
-        ) ::
-        HNil
+              HNil,
+          endpointImplementation = createPet _
+        )
+      ) ::
+      PathItem(
+        path = "/pets/{petId}",
+        method = GET,
+        operation = Operation(
+          summary = Some("Info for a specific pet"),
+          operationId = Some("showPetById"),
+          tags = Some(Seq("pets")),
+          parameters =
+            PathParameter[String]('petId, Some("The id of the pet to retrieve")) ::
+              HNil,
+          responses =
+            ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
+              ResponseValue[Error, HNil]("default", "unexpected error") ::
+              HNil,
+          endpointImplementation = getPet _
+        )
+      ) ::
+      HNil
   )
 
   val corsHeaders = List(

@@ -47,15 +47,13 @@ object HeadersInHeadersOut extends App {
   type Params = HeaderParameter[Double] :: HNil
   type Responses = ResponseValue[Unit, Header[Double]]
 
-  type Paths = PathItem[Params, Responses]
+  type Paths = PathItem[Double => Route, Params, Responses]
 
   val corsHeaders = Seq(
     RawHeader("Access-Control-Allow-Origin", "*"),
     RawHeader("Access-Control-Allow-Methods", "GET"))
 
-  val multiplyInputBy2: Params => Route = {
-
-    case (HeaderParameter(number) :: HNil) => {
+  val multiplyInputBy2: Double => Route = number => {
 
       val ret = (number * 2).toString
 
@@ -64,7 +62,6 @@ object HeadersInHeadersOut extends App {
         corsHeaders :+ RawHeader("x-header-out", ret))
       )
     }
-  }
 
   val api =
     OpenApi(
@@ -72,7 +69,7 @@ object HeadersInHeadersOut extends App {
       PathItem(
         path = "/",
         method = GET,
-        operation = Operation[Params, Responses](
+        operation = Operation(
           parameters = HeaderParameter[Double](Symbol("x-header-in")) :: HNil,
           responses = ResponseValue[Unit, Header[Double]](
             responseCode = "204",
