@@ -20,7 +20,6 @@ import akka.http.scaladsl.model.HttpMethods.{GET, POST}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.model.Parameters.QueryParameter
 import net.jtownson.swakka.model.Responses.ResponseValue
