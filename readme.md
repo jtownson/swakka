@@ -9,50 +9,49 @@ libraryDependencies += "net.jtownson" %% "swakka" % "0.1a-SNAPSHOT"
 
 Swakka is
 
-1. A Scala library for creating Swagger definitions with Akka Http.
-2. A nice DSL for creating webapps with Akka Http. 
+1. A Scala library for creating Swagger definitions in a type-safe fashion.
+3. Swagger support for Akka Http.
 
  
 Swakka is not
 
-1. A web runtime. That is handled by Akka Http. Swakka generates Akka Http Routes from OpenApi definitions.
-It _adds_ to Akka Http rather than competes and dovetails cleanly with Akka Http concepts.
+1. A web runtime. Akka Http _is_ a web runtime and Swakka is a layer above that.
+Swakka generates Swagger JSON and provides Akka Http Routes to (a) serve that JSON and 
+(b) support the API in the Swagger definition.
+It _adds_ to Akka Http and dovetails cleanly with Akka Http concepts.
 
 Here's how it works...
 
 ### Swakka in five key points:
 ```scala
 	
-object PingPong extends App {
+object Greeter1 extends App {
 
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  type NoParams = HNil
-  type StringResponse = ResponseValue[String, HNil]
-
-  type Paths = PathItem[NoParams, () => Route, StringResponse] :: HNil
-  
-  val endpointImplementation: () => Route =
-      () => complete(HttpResponse(OK, corsHeaders, "pong"))
-      
   // (1) - Create a swagger-like API structure using an OpenApi case class.
-  // Implement each endpoint as an Akka _Route_ (e.g. complete("pong"))
+  // Implement each endpoint as an Akka _Route_
+
+  val greet: String => Route =
+    name =>
+      complete(HttpResponse(OK, corsHeaders, s"Hello $name!"))
+
   val api =
     OpenApi(
       produces = Some(Seq("text/plain")),
       paths =
       PathItem(
-        path = "/ping",
+        path = "/greet",
         method = GET,
         operation = Operation(
-          parameters = HNil: HNil, // This means there are no parameters
-          responses = ResponseValue[String, HNil]("200", "ok"), // There is a String response with no headers
-          endpointImplementation = endpointImplementation // This function provides the response (as an inner Route)
+          parameters = QueryParameter[String]('name) :: HNil,
+          responses = ResponseValue[String, HNil]("200", "ok"),
+          endpointImplementation = greet
         )
       ) ::
-      HNil
+        HNil
     )
 
   // (2) - Swakka will generate 
@@ -75,10 +74,12 @@ object PingPong extends App {
 jtownson@munch ~$ # (3) Your callers can then get the swagger file
 jtownson@munch ~$ curl -i localhost:8080/swagger.json
 HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET
 Server: akka-http/10.0.5
-Date: Sun, 21 May 2017 22:00:55 GMT
-Content-Type: text/plain; charset=UTF-8
-Content-Length: 302
+Date: Thu, 16 Nov 2017 21:02:53 GMT
+Content-Type: application/json
+Content-Length: 476
 
 {
   "swagger": "2.0",
@@ -86,9 +87,16 @@ Content-Length: 302
     "title": "",
     "version": ""
   },
+  "produces": ["text/plain"],
   "paths": {
-    "/ping": {
+    "/greet": {
       "get": {
+        "parameters": [{
+          "name": "name",
+          "in": "query",
+          "required": true,
+          "type": "string"
+        }],
         "responses": {
           "200": {
             "description": "ok",
@@ -103,25 +111,26 @@ Content-Length: 302
 }
 
 jtownson@munch ~$ # (4) and call the API
-jtownson@munch ~$ curl -i localhost:8080/ping
+jtownson@munch ~$ curl -i localhost:8080/greet?name=you
 HTTP/1.1 200 OK
 Server: akka-http/10.0.5
-Date: Sun, 21 May 2017 22:02:02 GMT
+Date: Thu, 16 Nov 2017 21:04:59 GMT
 Content-Type: text/plain; charset=UTF-8
-Content-Length: 4
+Content-Length: 10
 
-pong
+Hello you!
 
 jtownson@munch ~$ # (5) With the generated route directives matching the
-jtownson@munch ~$ #     host, paths, parameters, etc of your swagger API definition.
-jtownson@munch ~$ curl -i localhost:8080/pang
+jtownson@munch ~$ #     host, paths, parameters, etc of your swagger API definition,
+jtownson@munch ~$ #     you can be sure that requests reaching your endpoing are valid.
+jtownson@munch ~$ curl -i localhost:8080/greet
 HTTP/1.1 404 Not Found
 Server: akka-http/10.0.5
-Date: Sun, 21 May 2017 22:09:14 GMT
+Date: Thu, 16 Nov 2017 21:06:43 GMT
 Content-Type: text/plain; charset=UTF-8
-Content-Length: 42
+Content-Length: 50
 
-The requested resource could not be found.
+Request is missing required query parameter 'name'
 ```
 
 ### Parameters:
@@ -130,55 +139,70 @@ APIs without inputs are never very interesting (counter examples, please).
 Enter ```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParameter[T]``` and ```BodyParameter[T]```.
 
 ```scala
+object Greeter2 extends App {
 
-  // We'll define an endpoint that takes a single query parameter as a String.
-  type Params = QueryParameter[String] :: HNil
-  type StringResponse = ResponseValue[String, HNil]
+  // We'll define an endpoint that takes a single path parameter as a String.
 
-  type Paths = PathItem[Params, String => Route, StringResponse] :: HNil
+  implicit val system = ActorSystem()
+  implicit val mat = ActorMaterializer()
+  implicit val executionContext = system.dispatcher
 
-  // The endpoint is then a function Params => Route
-  val greet: Params => Route = {
-    // Pattern match the Params HList
-    case (QueryParameter(name) :: HNil) =>
-      complete(s"Hello ${name}!")
-  }
+  // The endpoint is then a function String => Route
+  val greet: String => Route =
+    name =>
+      complete(HttpResponse(OK, corsHeaders, s"Hello ${name}!"))
 
+  // where the String taken by the endpoint is the
+  // value of the path param defined here
   val api =
-    OpenApi(paths =
+    OpenApi(
+      produces = Some(Seq("text/plain")),
+      paths =
       PathItem(
-        path = "/greet",
+        path = "/greet/{name}",
         method = GET,
-        operation = Operation[Params, StringResponse](
-          parameters = QueryParameter[String]('name) :: HNil,
+        operation = Operation(
+          parameters = PathParameter[String]('name) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = greet
         )
       ) ::
         HNil
     )
+
+  val route: Route = RouteGen.openApiRoute(
+    api,
+    Some(SwaggerRouteSettings()))
+
+  val bindingFuture = Http().bindAndHandle(
+    route,
+    "localhost",
+    8080)
+}
 ```
 The input *parameters* of your API are defined in terms of a _Params_ type parameter, which is 
-a shapeless HList. In this example, it is a single query parameter that is read as a _String_.
+a shapeless HList. In this example, it is a single path parameter that is read as a _String_.
 
-For each of your swagger endpoints, you provide an implementation as a function
+For each of your swagger endpoints, you provide an implementation as a function, the exact
+type of which is dependent on the parameters HList in the api definition. So, if for instance,
 ```scala
-endpointImplementation: Params => Route
+parameters = QueryParameter[Boolean] :: PathParameter[String] :: HNil
 ```
+then the endpoint will have a dependent function type of ```Function2[Boolean, String, Route]```
+or ```(Boolean, String) => Route```
 
 The Swakka-generated outer Route contains Akka _directives_ that extract these Params from the HTTP request
 (either from the query string, path, headers or request body). 
 
-You can then pattern match the Params HList to get the value of each ```QueryParameter```, ```PathParameter```, etc.
-
 ### Responses
 
-The responses from your API are defined using a _Responses_ HList. 
+The responses from your API are defined using a _Responses_ HList containing ```ResponseValue[_, _]``` elements. 
+(Note, though, you can use a bare ResponseValue, that is not part of a HList; 
+in swagger, the responses json element is an _object_ not a list. This makes it subtly different
+than the parameters list, which will be serialized to a, possibly empty, json _array_). 
 
 For example
 ```scala
-type EndpointResponses = ResponseValue[String, HNil] :: ResponseValue[Pet, HNil] :: ResponseValue[Error, HNil] :: HNil
-
 val responses = 
       ResponseValue[String, HNil](
         responseCode = "404",
@@ -203,8 +227,12 @@ Each ```ResponseValue``` takes two type parameters:
     1.1. a spray ```JsonFormat``` so that Akka Http can marshall it correctly.
     
     1.2. a Swakka ```SchemaWriter``` so that Swakka can write a json schema for the case class into the swagger file.
+    Swakka can generate SchemaWriter instances for any case class, although it is not done implicitly and you have to
+    call a function to make it happen (see the example below)
     
 2. Any headers set in the response (e.g. caching headers)
+
+This provides a declarative, type-level approach to generating swagger response elements.
 
 Here is an example:
 
@@ -218,11 +246,10 @@ case class Success(id: String)
 
 implicit val successSchema: SchemaWriter[Success] = schemaWriter(Success)
 
-type Headers = Header[String]
-type Responses = ResponseValue[Success, Headers] :: HNil
+type CacheControl = Header[String]
 
 val responses: Responses = 
-  ResponseValue[Success, Headers](
+  ResponseValue[Success, CacheControl](
     responseCode = "200", 
     description = "ok",
     headers = Header[String](Symbol("cache-control"), Some("a cache control header specifying the max-age of the entity")))
@@ -260,34 +287,33 @@ Given your OpenApi definition, Swakka creates two things:
 1. An Akka Route
 2. A swagger.json
 
-```Response[T, Headers]``` definitions do not modify the generated Akka Route (step 1), they only modify the swagger.json (step 2).
-This means neither the scala compiler nor Akka's runtime will tell you if the response types declared in your OpenApi definition
-are in sync with the actual type returned by your endpoint implementation. If you change the return type of an endpoint, you
-must _remember_ to update the OpenApi definition.
+Note that ```Response[T, Headers]``` definitions do not modify the generated Akka Route (step 1), 
+they only modify the swagger.json (step 2).
 
+This means neither the scala compiler nor Akka's runtime will tell you if the response types declared in your OpenApi 
+definition are in sync with the actual type returned by your endpoint implementation.
+If you change the return type of an endpoint, you must _remember_ to update the OpenApi definition.
+
+(I am working on fixing this).
 
 ### Optional Parameters
 
 If a parameter in your API is optional then declare it using scala's _Option_, a la:
 
 ```scala
-  "optional query parameters" should "not cause request rejections" in {
+  "optional query parameters when missing" should "not cause request rejections" in {
 
     // Our query parameter is Option[Int].
-    type Params = QueryParameter[Option[Int]] :: HNil
-    type Responses = ResponseValue[String, HNil]
-    type Paths = PathItem[Params, Responses]
-
-    val f: Params => Route = {
+    val f: Option[Int] => Route = {
       // matches when the caller does provide a value
-      case QueryParameter(Some(value)) :: HNil =>
+      case Some(value) =>
         complete(value)
       // matched when the caller does not
-      case QueryParameter(None) :: HNil =>
+      case _ =>
         complete("None")
     }
 
-    val api = OpenApi[Paths, Nothing](paths =
+    val api = OpenApi(paths =
       PathItem(
         path = "/app/e1",
         method = GET,
@@ -306,7 +332,7 @@ If a parameter in your API is optional then declare it using scala's _Option_, a
     }
     
     // The caller provides the value "Something" for q
-    // The endpoint implementation will get that value
+    // The endpoint implementation will get Some("Something")
     Get("http://localhost:8080/app/e1?q=Something") ~> seal(route) ~> check {
       status shouldBe OK
       responseAs[String] shouldBe "Something"
@@ -347,8 +373,9 @@ the generated swagger will be identical except that the parameter will have requ
         }],
 ```
 
-Note, _PathParameter_ does not support Optional values. Nor does Swagger/OpenAPI. If you have a case where
-a URL makes sense both with and without some part of the path, you should *define two endpoints*.
+Note, _PathParameter_ does not support Optional values since Swagger/OpenAPI does not.
+If you have a case where a URL makes sense both with and without some part of the path, 
+you should *define two endpoints*.
 
 ### Other types of parameters
 
@@ -365,47 +392,21 @@ the following
 * Long
 * Boolean
 
-Swakka defines implicit (Spray) JsonFormats to convert all of these types (and their Optional variants) into Swagger json.
-You just need to import these conversions: 
+Swakka also defines a special case ```MultiValued[T]``` which yields a Seq[T] value. This provides
+support for Swagger's ```collectionFormat=multi``` construct (an example of which can be found in
+the Petstore v2 swagger sample).
+    
+Swakka defines implicit (Spray) JsonFormats to convert the types above (and their Optional variants) into Swagger json.
+To enable this, you import these conversions: 
 ```scala
 import net.jtownson.swakka.OpenApiJsonProtocol._
 ``` 
-Defining a PathParameter requires code like this:
-```scala
-
-  // The endpoint will take one input, a string path parameter.
-  type Params = PathParameter[String] :: HNil
-
-  // Pattern match to get its value out of the Params HList.
-  val greet: Params => Route = {
-    case (PathParameter(name) :: HNil) =>
-      complete(HttpResponse(OK, corsHeaders, s"Hello ${name}!"))
-  }
-
-  // Create the OpenApi definition
-  val api =
-    OpenApi(
-      produces = Some(Seq("text/plain")),
-      paths =
-      PathItem(
-        path = "/greet/{name}", // NB! This token matches the name of the parameter below.
-        method = GET,
-        operation = Operation[Params, StringResponse](
-          parameters = PathParameter[String]('name) :: HNil,
-          responses = ResponseValue[String, HNil]("200", "ok"),
-          endpointImplementation = greet
-        )
-      ) ::
-        HNil
-    )
-
-   // generate the route and start the webserver...
-``` 
 
 ### Body parameters (and _SchemaWriter_)
-BodyParameter[T] allows custom (i.e. case class) types for T (because Swagger allows custom models for the request body).
+BodyParameter[T] allows custom case class types for T 
+(because Swagger allows custom models for the request body).
 
-For this to work, your code must create 
+To enable this your code must create 
 
 1. An implicit JsonFormat for T (in just the same way that you already do with Akka-Http apps)
 2. A _SchemaWriter_. This writes the Json Schema for T into the body of the swagger.json
@@ -451,7 +452,7 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
   // SchemaWriter required by Swakka to generate json schema 
   implicit val petSchemaWriter = schemaWriter(Pet)
   // ConvertibleToDirective instance which Swakka uses to tell Akka how to extract the request body.
-  // Note the types are a bit confusing. Getting them wrong would cause an implicit resolution error from scalac. 
+  // (Note the types and avoid implicit resolution errors from scalac). 
   implicit val petBodyParamConverter: ConvertibleToDirective[BodyParameter[Pet]] = bodyParamConverter[Pet]
 
   // ...
@@ -485,10 +486,8 @@ you can add arbitrary Akka directives in the endpoint function to do this. For e
 ```scala
   "Endpoints" should "support private Akka directives" in {
 
-    type Params = HNil
-
     // This endpoint extracts x-forwarded-for
-    val f: Params => Route = _ =>
+    val f: () => Route = _ =>
       optionalHeaderValueByName("x-forwarded-for") {
         case Some(forward) => complete(s"x-forwarded-for = $forward")
         case None => complete("no x-forwarded-for header set")
@@ -499,7 +498,7 @@ you can add arbitrary Akka directives in the endpoint function to do this. For e
       PathItem(
         path = "/app",
         method = GET,
-        operation = Operation[HNil, HNil](endpointImplementation = f)))
+        operation = Operation(endpointImplementation = f)))
 
     val route = RouteGen.openApiRoute(api)
 
@@ -516,7 +515,7 @@ you can add arbitrary Akka directives in the endpoint function to do this. For e
 ```
 
 This feature of Swakka's design makes it easy to integrate with existing Akka Http apps
-because you can layer your OpenApi definition on top of existing Routes. 
+and layer your OpenApi definition on top of existing Routes. 
 
 
 ### Route generation and CORS
@@ -557,24 +556,14 @@ will get logged by webservers and those logs copied around).
 When writing a swagger file manually, you define the list of security schemes supported by your API and then
 reference one of those schemes (by name) for each endpoint. Swakka is the same, but in Scala.
 
-Security definitions are optional in your swagger definition and by default they are skipped:
-```scala
-type SecurityDefinitions = Nothing
+Security definitions are optional in your swagger definition and they default to ```None```.
 
-// By allowing securityDefinitions to take the value of None (which is the default value)
-// The type of SecurityDefinitions is Nothing
-val uselessApi = OpenApi[HNil, SecurityDefinitions](paths = HNil, securityDefinitions = None)
-
-// is long hand for
-val sameUselessApi = OpenApi(paths = HNil)
-```
-
-Otherwise, the security definition section takes the form of a Shapeless _extensible record_ 
+Otherwise, the security definition section takes the form of Some Shapeless _extensible record_ 
 (https://github.com/milessabin/shapeless/wiki/Feature-overview:-shapeless-2.0.0#extensible-records).
 
-Extensible records can get technical but the actual code you need in Swakka is simple enough. But, if your code
-does not compile, you need to understand why and you are new to shapeless, you'll need to set aside a few hours for reading.
-If you are new to _Scala_, make that a few weeks!
+If you are not familiar with Shapeless, extensible records will seem technical but the actual code you need in Swakka
+is simple enough. If your code does not compile, you need to understand why and you are new to shapeless, 
+you'll need to set aside a few hours for reading. If you are new to _Scala_, make that a few weeks!
 
 Here is an example from the Petstore
 
@@ -585,10 +574,8 @@ Here is an example from the Petstore
     import shapeless.syntax.singleton._
     import shapeless.{::, HNil}
     
-    
-    // This curious construct is the simplest way to declare the static type of a SecurityDefinition
-    // Usually, the Scala compiler can infer it for you but making it explicit gives really good readability. Other
-    // devs looking at your code can see the API security at a glance.
+    // If you wish, you can make the SecurityDefinitions type explicit using this somewhat curious construct.
+    // Usually, the Scala compiler can infer it for you but making it explicit gives really good readability.
     type SecurityDefinitions = Record.`'petstore_auth -> Oauth2ImplicitSecurity, 'api_key -> ApiKeyInHeaderSecurity`.T
 
     // Create a shapeless record for the security schemes
@@ -604,7 +591,7 @@ Here is an example from the Petstore
       // 1. define the list of all security schemes supported by the API 
       securityDefinitions = Some(securityDefinitions),
       paths =
-        PathItem[HNil, HNil](
+        PathItem(
           path = "/pets",
           method = GET,
           operation = Operation(
@@ -620,7 +607,7 @@ Here is an example from the Petstore
 ### Imports and implicits
 
 Before reading further it's worth having a look at the code in the Petstore apps and unit tests. There is a V1 example
-that declares a simple API for posting and getting Pets and a more complex V2 example that demonstrates oAuth, api_key security
+that declares highlights swagger v1 concepts and a more complex V2 example that demonstrates oAuth, api_key security
 and a wider array of endpoints.
   
 Once you get a feel for those, here is a checklist of the implicit values (and other key objects) that you need to import or create.
