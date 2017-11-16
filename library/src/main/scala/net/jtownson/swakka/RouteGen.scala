@@ -50,20 +50,21 @@ object RouteGen {
   implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
     (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  implicit def pathItemRouteGen[F, Params <: HList : ConvertibleToDirective, Responses]
-  (implicit ev: AkkaHttpInvoker[Params, F]): RouteGen[PathItem[F, Params, Responses]] =
-    (pathItem: PathItem[F, Params, Responses]) => pathItemRoute(pathItem)
+  implicit def pathItemRouteGen[Params <: HList : ConvertibleToDirective, EndpointFunction, Responses]
+  (implicit ev: AkkaHttpInvoker[Params, EndpointFunction]): RouteGen[PathItem[Params, EndpointFunction, Responses]] =
+    (pathItem: PathItem[Params, EndpointFunction, Responses]) => pathItemRoute(pathItem)
 
   implicit val hNilRouteGen: RouteGen[HNil] =
     _ => RouteDirectives.reject
 
-  def pathItemRoute[F, Params <: HList : ConvertibleToDirective, Responses](pathItem: PathItem[F, Params, Responses])
-                                                                           (implicit ev: AkkaHttpInvoker[Params, F]): Route =
+  def pathItemRoute[Params <: HList : ConvertibleToDirective, EndpointFunction, Responses]
+  (pathItem: PathItem[Params, EndpointFunction, Responses])
+  (implicit ev: AkkaHttpInvoker[Params, EndpointFunction]): Route =
     pathItemRoute(pathItem.method, pathItem.path, pathItem.operation)
 
-  private def pathItemRoute[F, Params <: HList : ConvertibleToDirective, Responses]
-  (httpMethod: HttpMethod, modelPath: String, operation: Operation[F, Params, Responses])
-  (implicit ev1: ConvertibleToDirective[Params], ev2: AkkaHttpInvoker[Params, F]) = {
+  private def pathItemRoute[Params <: HList : ConvertibleToDirective, EndpointFunction, Responses]
+  (httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, EndpointFunction, Responses])
+  (implicit ev1: ConvertibleToDirective[Params], ev2: AkkaHttpInvoker[Params, EndpointFunction]) = {
 
     method(httpMethod) {
 

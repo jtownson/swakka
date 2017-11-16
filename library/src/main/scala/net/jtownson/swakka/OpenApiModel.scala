@@ -20,32 +20,25 @@ import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.model.{Info, Tag}
 import net.jtownson.swakka.model.ModelDefaults._
 import net.jtownson.swakka.model.SecurityDefinitions.SecurityRequirement
-import net.jtownson.swakka.routegen.ConvertibleToDirective
 import shapeless.HNil
 
 object OpenApiModel {
 
   /**
-    *
-    * @param summary
-    * @param description
-    * @param operationId
-    * @param tags
-    * @param consumes
-    * @param produces
-    * @param parameters
-    * @param responses
+    * Maps to an OpenAPI operation.
+    * @param parameters parameters must be an HList of parameter types found in net.jtownson.swakka.model.Parameters
+    * @param responses responses must a HList of or bare net.jtownson.swakka.model.Responses.ResponseValue
     * @param security
-    * @param endpointImplementation
+    * @param endpointImplementation a function of type EndpointImplementation (see below)
     * @tparam Params this is a HList of the parameters collected by your api operation.
     *                e.g. QueryParameter[String] :: HeaderParameter[Long] :: HNil.
     *                These Params affect both the generated swagger json and generated akka-http
     *                Routes which extracts parameters from a user request.
-    * @tparam F this is a FunctionN, whose input is dependent on the Params type and returning an akka-http Route.
+    * @tparam EndpointFunction this is a FunctionN, whose input is dependent on the Params type and returning an akka-http Route.
     *           Given the example params, above, F would be (String, Long) => Route
     * @tparam Responses this is a HList or bare type that defines the responses swagger json.
     */
-  case class Operation[F, Params : ConvertibleToDirective, Responses](
+  case class Operation[Params, EndpointFunction, Responses](
     summary: Option[String] = None,
     description: Option[String] = None,
     operationId: Option[String] = None,
@@ -55,12 +48,12 @@ object OpenApiModel {
     parameters: Params = HNil,
     responses: Responses = HNil,
     security: Option[Seq[SecurityRequirement]] = None,
-    endpointImplementation: F)
+    endpointImplementation: EndpointFunction)
 
-  case class PathItem[F, Params : ConvertibleToDirective, Responses](
+  case class PathItem[Params, EndpointFunction, Responses](
     path: String,
     method: HttpMethod,
-    operation: Operation[F, Params, Responses])
+    operation: Operation[Params, EndpointFunction, Responses])
 
   case class OpenApi[Paths, +SecurityDefinitions] (
     info: Info = pointlessInfo,

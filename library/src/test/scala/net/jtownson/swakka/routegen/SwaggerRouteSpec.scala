@@ -39,7 +39,6 @@ import scala.collection.immutable.Seq
 
 class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
-  import ConvertibleToDirective._
   import OpenApiJsonProtocol._
 
   def f1[T] = mockFunction[T, Route]
@@ -50,12 +49,12 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   type StringResponse = ResponseValue[String, HNil]
 
   type Paths =
-    PathItem[Int => Route, OneIntParam, StringResponse] ::
-    PathItem[String => Route, OneStrParam, StringResponse] :: HNil
+    PathItem[OneIntParam, Int => Route, StringResponse] ::
+    PathItem[OneStrParam, String => Route, StringResponse] :: HNil
 
   val api =
     OpenApi[Paths, HNil](paths =
-      PathItem[Int => Route, OneIntParam, StringResponse](
+      PathItem[OneIntParam, Int => Route, StringResponse](
         path = "/app/e1",
         method = GET,
         operation = Operation(
@@ -64,7 +63,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
           endpointImplementation = f1[Int]
         )
       ) ::
-        PathItem[String => Route, OneStrParam, StringResponse](
+        PathItem[OneStrParam, String => Route, StringResponse](
           path = "/app/e2",
           method = GET,
           operation = Operation(

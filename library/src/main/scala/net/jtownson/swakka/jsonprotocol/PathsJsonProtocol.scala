@@ -29,9 +29,10 @@ import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, Js
 // A JsonProtocol supporting OpenApi paths
 trait PathsJsonProtocol extends DefaultJsonProtocol {
 
-  private def operationWriter[F, Params <: HList, Responses]
-  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]): JsonWriter[Operation[F, Params, Responses]] =
-    (operation: Operation[F, Params, Responses]) => {
+  private def operationWriter[Params <: HList, EndpointFunction, Responses]
+  (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
+  JsonWriter[Operation[Params, EndpointFunction, Responses]] =
+    (operation: Operation[Params, EndpointFunction, Responses]) => {
 
       val parameters: JsValue = ev1.write(operation.parameters)
       val responses = ev2.write(operation.responses)
@@ -128,12 +129,12 @@ trait PathsJsonProtocol extends DefaultJsonProtocol {
     func2Format((l: H :: T) => flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
 
 
-  implicit def singlePathItemFormat[F, Params <: HList, Responses]
+  implicit def singlePathItemFormat[Params <: HList, EndpointFunction, Responses]
   (implicit ev1: ParameterJsonFormat[Params], ev2: ResponseJsonFormat[Responses]):
-  PathsJsonFormat[PathItem[F, Params, Responses]] =
-    func2Format((pathItem: PathItem[F, Params, Responses]) => JsObject(
+  PathsJsonFormat[PathItem[Params, EndpointFunction, Responses]] =
+    func2Format((pathItem: PathItem[Params, EndpointFunction, Responses]) => JsObject(
       pathItem.path -> JsObject(
-        asString(pathItem.method) -> operationWriter[F, Params, Responses].write(pathItem.operation)
+        asString(pathItem.method) -> operationWriter[Params, EndpointFunction, Responses].write(pathItem.operation)
       )
     ))
 

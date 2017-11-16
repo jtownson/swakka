@@ -67,12 +67,13 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
 
     type Paths =
-      PathItem[ListPetsEndpoint, ListPetsParams, ListPetsResponses] ::
-      PathItem[CreatePetEndpoint, HNil, CreatePetResponses] ::
-      PathItem[ShowPetEndpoint, ShowPetParams, ShowPetResponses] :: HNil
+      PathItem[ListPetsParams, ListPetsEndpoint, ListPetsResponses] ::
+      PathItem[CreatePetParams, CreatePetEndpoint, CreatePetResponses] ::
+      PathItem[ShowPetParams, ShowPetEndpoint, ShowPetResponses] :: HNil
 
+    val dummyRoute: Route = complete("dummy")
 
-    val petstoreApi = OpenApi[Paths, HNil](
+    val petstoreApi = OpenApi(
       info = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(License(name = "MIT"))),
       host = Some("petstore.swagger.io"),
       basePath = Some("/v1"),
@@ -80,10 +81,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       consumes = Some(Seq("application/json")),
       produces = Some(Seq("application/json")),
       paths =
-        PathItem[ListPetsEndpoint, ListPetsParams, ListPetsResponses](
+        PathItem[ListPetsParams, ListPetsEndpoint, ListPetsResponses](
           path = "/pets",
           method = GET,
-          operation = Operation(
+          operation = Operation[ListPetsParams, ListPetsEndpoint, ListPetsResponses](
             summary = Some("List all pets"),
             operationId = Some("listPets"),
             tags = Some(Seq("pets")),
@@ -101,11 +102,11 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   responseCode = "default",
                   description = "unexpected error"
                 ) :: HNil,
-            endpointImplementation = (_: Int) => complete("dummy"))) ::
-          PathItem[CreatePetEndpoint, CreatePetParams, CreatePetResponses](
+            endpointImplementation = (_: Int) => dummyRoute)) ::
+          PathItem[CreatePetParams, CreatePetEndpoint, CreatePetResponses](
             path = "/pets",
             method = POST,
-            operation = Operation(
+            operation = Operation[CreatePetParams, CreatePetEndpoint, CreatePetResponses](
               summary = Some("Create a pet"),
               operationId = Some("createPets"),
               tags = Some(Seq("pets")),
@@ -120,13 +121,13 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   description = "unexpected error"
                 ) ::
                 HNil,
-              endpointImplementation = () => complete("dummy")
+              endpointImplementation = () => dummyRoute
             )
           ) ::
-          PathItem[ShowPetEndpoint, ShowPetParams, ShowPetResponses](
+          PathItem[ShowPetParams, ShowPetEndpoint, ShowPetResponses](
             path = "/pets/{petId}",
             method = GET,
-            operation = Operation(
+            operation = Operation[ShowPetParams, ShowPetEndpoint, ShowPetResponses](
               summary = Some("Info for a specific pet"),
               operationId = Some("showPetById"),
               tags = Some(Seq("pets")),
@@ -137,7 +138,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
                 ResponseValue[Error, HNil]("default", "unexpected error") ::
                 HNil,
-              endpointImplementation = (_: String) => complete("dummy")
+              endpointImplementation = (_: String) => dummyRoute
             )
           ) ::
           HNil

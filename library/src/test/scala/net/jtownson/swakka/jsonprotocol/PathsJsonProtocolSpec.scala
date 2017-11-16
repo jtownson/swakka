@@ -39,7 +39,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
     val pathItem = PathItem(
       path = "/ruok",
       method = POST,
-      operation = Operation[() => Route, HNil, ResponseValue[String, HNil]](
+      operation = Operation[HNil, () => Route, ResponseValue[String, HNil]](
         parameters = HNil,
         responses = ResponseValue("200", "ok"),
         endpointImplementation = () => complete("dummy")))
@@ -67,7 +67,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
     val pathItem = PathItem(
       path = "/ruok",
       method = GET,
-      operation = Operation[() => Route, HNil, HNil](
+      operation = Operation[HNil, () => Route, HNil](
         parameters = HNil,
         responses = HNil,
         endpointImplementation = () => complete("dummy")))
@@ -85,9 +85,9 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
     type Params = QueryParameter[String] :: HNil
     type Responses = ResponseValue[String, HNil]
-    type Paths = PathItem[String => Route, Params, Responses]
+    type Paths = PathItem[Params, String => Route, Responses]
 
-    val pathItem: PathItem[String => Route, Params, Responses] = PathItem(
+    val pathItem: PathItem[Params, String => Route, Responses] = PathItem(
       path = "/ruok",
       method = GET,
       operation = Operation(
@@ -125,13 +125,13 @@ class PathsJsonProtocolSpec extends FlatSpec {
   type OneStrParam = QueryParameter[String] :: HNil
   type StringResponse = ResponseValue[String, HNil]
   type Paths =
-    PathItem[Int => Route, OneIntParam, StringResponse] ::
-    PathItem[String => Route, OneStrParam, StringResponse] :: HNil
+    PathItem[OneIntParam, Int => Route, StringResponse] ::
+    PathItem[OneStrParam, String => Route, StringResponse] :: HNil
 
   it should "write a simple swagger definition" in {
     val api: OpenApi[Paths, HNil] =
       OpenApi(paths =
-        PathItem[Int => Route, OneIntParam, StringResponse](
+        PathItem[OneIntParam, Int => Route, StringResponse](
           path = "/app/e1",
           method = GET,
           operation = Operation(
@@ -141,7 +141,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
           )
         )
           ::
-          PathItem[String => Route, OneStrParam, StringResponse](
+          PathItem[OneStrParam, String => Route, StringResponse](
             path = "/app/e2",
             method = GET,
             operation = Operation(
@@ -277,18 +277,18 @@ class PathsJsonProtocolSpec extends FlatSpec {
   it should "combine path items where the path is equal" in {
 
     type Paths =
-      PathItem[() => Route, HNil, HNil] ::
-      PathItem[() => Route, HNil, HNil] :: HNil
+      PathItem[HNil, () => Route, HNil] ::
+      PathItem[HNil, () => Route, HNil] :: HNil
 
     val paths: Paths =
-      PathItem[() => Route, HNil, HNil](
+      PathItem[HNil, () => Route, HNil](
         path = "/app",
         method = GET,
         operation = Operation(
           endpointImplementation = () => complete("dummy")
         )
       ) ::
-        PathItem[() => Route, HNil, HNil](
+        PathItem[HNil, () => Route, HNil](
           path = "/app",
           method = POST,
           operation = Operation(

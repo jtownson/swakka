@@ -30,17 +30,14 @@ import org.scalatest.FlatSpec
 import org.scalatest.Inside._
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
-import shapeless.{::, HList, HNil}
+import shapeless.{::, HNil}
 import spray.json._
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.model.Responses.ResponseValue
-import net.jtownson.swakka.routegen.{ConvertibleToDirective, SwaggerRouteSettings}
-import org.scalamock.function.{MockFunction, MockFunction0, MockFunction1}
-import net.jtownson.swakka.model.Invoker
+import net.jtownson.swakka.routegen.SwaggerRouteSettings
+import org.scalamock.function.{MockFunction0, MockFunction1}
 import net.jtownson.swakka.model.Invoker._
-import net.jtownson.swakka.model.ParameterValue
 import net.jtownson.swakka.model.ParameterValue._
 
 import scala.collection.immutable.Seq
@@ -50,9 +47,9 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   import OpenApiJsonProtocol._
   import net.jtownson.swakka.routegen.ConvertibleToDirective._
 
-  def f0: () => Route = mockFunction[Route]
+  private def f0: MockFunction0[Route] = mockFunction[Route]
 
-  private val defaultOp = Operation[() => Route, HNil, ResponseValue[String, HNil]](
+  private def defaultOp = Operation[HNil, () => Route, ResponseValue[String, HNil]](
     responses = ResponseValue("200", "ok"), endpointImplementation = f0)
 
   val zeroParamModels = Table(
@@ -66,8 +63,9 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   forAll(zeroParamModels) { (testcaseName, request, apiModel, response) =>
     testcaseName should "convert to a complete akka Route" in {
 
-      val implementation = mockImpl(apiModel.operation)
-      implementation.expects().returning(complete(response))
+      val endpoint: MockFunction0[Route] = apiModel.operation.endpointImplementation.asInstanceOf[MockFunction0[Route]]
+
+      endpoint.expects().returning(complete(response))
 
       val route = RouteGen.pathItemRoute(apiModel)
 
@@ -77,9 +75,6 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       }
     }
   }
-
-  private def mockImpl[F, Params <: HList, Responses](operation: Operation[F, Params, Responses]): MockFunction0[Route] =
-    operation.endpointImplementation.asInstanceOf[MockFunction0[Route]]
 
   type OneStringParam = QueryParameter[String] :: HNil
   def f1s = mockFunction[String, Route]
@@ -150,7 +145,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val f = mockFunction[Int, Route]
 
-    val op = Operation[Int => Route, PathParameter[Int] :: HNil, HNil](
+    val op = Operation[PathParameter[Int] :: HNil, Int => Route, HNil](
       parameters = PathParameter[Int]('widgetId) :: HNil,
       endpointImplementation = f)
 
@@ -168,7 +163,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val f: Int => Route = mockFunction[Int, Route]
 
-    val op = Operation[Int => Route, PathParameter[Int] :: HNil, HNil](
+    val op = Operation[PathParameter[Int] :: HNil, Int => Route, HNil](
       parameters = PathParameter[Int]('widgetId) :: HNil,
       endpointImplementation = f)
 
@@ -246,10 +241,10 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     val f2 = mockFunction[String, Route]
 
     type Paths =
-      PathItem[Int => Route, OneIntParam, ResponseValue[String, HNil]] ::
-        PathItem[String => Route, OneStringParam, ResponseValue[String, HNil]] :: HNil
+      PathItem[OneIntParam, Int => Route, ResponseValue[String, HNil]] ::
+        PathItem[OneStringParam, String => Route, ResponseValue[String, HNil]] :: HNil
 
-    val path1: PathItem[Int => Route, OneIntParam, ResponseValue[String, HNil]] =
+    val path1: PathItem[OneIntParam, Int => Route, ResponseValue[String, HNil]] =
       PathItem(
         path = "/app/e1",
         method = GET,
@@ -257,7 +252,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           parameters = QueryParameter[Int]('q) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f1))
 
-    val path2: PathItem[String => Route, OneStringParam, ResponseValue[String, HNil]] =
+    val path2: PathItem[OneStringParam, String => Route, ResponseValue[String, HNil]] =
       PathItem(
         path = "/app/e2",
         method = GET,
@@ -291,7 +286,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     type Params = QueryParameter[Int] :: HNil
     type Responses = ResponseValue[String, HNil]
-    type Paths = PathItem[Int => Route, Params, Responses]
+    type Paths = PathItem[Params, Int => Route, Responses]
 
     val f = mockFunction[Int, Route]
 
@@ -321,15 +316,15 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     type NoParams = HNil
     type StringResponse = ResponseValue[String, HNil]
 
-    type Paths = PathItem[() => Route, NoParams, StringResponse] :: HNil
+    type Paths = PathItem[NoParams, () => Route, StringResponse] :: HNil
 
     val api =
       OpenApi[Paths, HNil](
         paths =
-          PathItem[() => Route, NoParams, StringResponse](
+          PathItem[NoParams, () => Route, StringResponse](
             path = "/app/e1",
             method = GET,
-            operation = Operation[() => Route, NoParams, StringResponse](
+            operation = Operation[NoParams, () => Route, StringResponse](
               responses = ResponseValue[String, HNil]("200", "ok"),
               endpointImplementation = () => complete("pong")
             )
@@ -353,7 +348,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     type Params = PathParameter[String] :: HNil
     type StringResponse = ResponseValue[String, HNil]
-    type Paths = PathItem[String => Route, Params, StringResponse] :: HNil
+    type Paths = PathItem[Params, String => Route, StringResponse] :: HNil
 
     val greet: String => Route =
       name => complete(s"Hello $name!")
@@ -363,7 +358,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         PathItem(
           path = "/greet/{name}",
           method = GET,
-          operation = Operation[String => Route, Params, StringResponse](
+          operation = Operation[Params, String => Route, StringResponse](
             parameters = PathParameter[String]('name) :: HNil,
             responses = ResponseValue[String, HNil]("200", "ok"),
             endpointImplementation = greet
@@ -381,15 +376,20 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   }
 
   "host element" should "be included in the route defn" in {
-    type Paths = PathItem[() => Route, HNil, HNil]
+    type Paths = PathItem[HNil, () => Route, HNil]
 
     val f = mockFunction[Route]
 
     val api = OpenApi[Paths, HNil](
       host = Some("foo"),
       paths =
-        PathItem(path =
-          "/app", method = GET, operation = Operation(parameters = HNil, responses = HNil, endpointImplementation = f)))
+        PathItem(
+          path = "/app",
+          method = GET,
+          operation = Operation(
+            parameters = HNil,
+            responses = HNil,
+            endpointImplementation = f)))
 
     val route = RouteGen.openApiRoute(api)
 
@@ -407,7 +407,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "if the host element includes a port, it" should "be removed from the route defn" in {
 
-    type Paths = PathItem[() => Route, HNil, HNil]
+    type Paths = PathItem[HNil, () => Route, HNil]
 
     val f = mockFunction[Route]
 
@@ -435,7 +435,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
   }
 
   "schemes" should "be included in the route defn" in {
-    type Paths = PathItem[() => Route, HNil, HNil]
+    type Paths = PathItem[HNil, () => Route, HNil]
 
     val f = mockFunction[Route]
 
@@ -471,7 +471,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     type Params = QueryParameter[Option[Int]] :: HNil
     type Responses = ResponseValue[String, HNil]
-    type Paths = PathItem[Option[Int] => Route, Params, Responses]
+    type Paths = PathItem[Params, Option[Int] => Route, Responses]
 
     val f: Option[Int] => Route = {
       case Some(_) =>
@@ -540,13 +540,11 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         case None => complete("no x-forwarded-for header set")
       }
 
-//    implicit val cd: ConvertibleToDirective[HNil] = implicitly[ConvertibleToDirective[HNil]]
-
     val api = OpenApi(paths =
       PathItem(
         path = "/app",
         method = GET,
-        operation = Operation[() => Route, Params, HNil](endpointImplementation = f)))
+        operation = Operation[Params, () => Route, HNil](endpointImplementation = f)))
 
     import net.jtownson.swakka.routegen.SwaggerRouteSettings
     import net.jtownson.swakka.routegen.CorsUseCases._

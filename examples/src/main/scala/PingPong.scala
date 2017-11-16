@@ -58,11 +58,15 @@ object PingPong extends App {
   type NoParams = HNil
   type StringResponse = ResponseValue[String, HNil]
 
-  type Paths = PathItem[() => Route, NoParams, StringResponse] :: HNil
+  type Paths = PathItem[NoParams, () => Route, StringResponse] :: HNil
+
+  val endpointImplementation: () => Route =
+    () => complete(HttpResponse(OK, corsHeaders, "pong"))
 
   val corsHeaders = Seq(
     RawHeader("Access-Control-Allow-Origin", "*"),
     RawHeader("Access-Control-Allow-Methods", "GET"))
+
 
   val api =
     OpenApi(
@@ -71,9 +75,10 @@ object PingPong extends App {
       PathItem(
         path = "/ping",
         method = GET,
-        operation = Operation[() => Route, NoParams, StringResponse](
+        operation = Operation[NoParams, () => Route, StringResponse](
+          parameters = HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
-          endpointImplementation = () => complete(HttpResponse(OK, corsHeaders, "pong"))
+          endpointImplementation = endpointImplementation
         )
       ) ::
       HNil
