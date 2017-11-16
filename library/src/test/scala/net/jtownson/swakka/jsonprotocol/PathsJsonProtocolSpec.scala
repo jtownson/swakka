@@ -67,9 +67,9 @@ class PathsJsonProtocolSpec extends FlatSpec {
     val pathItem = PathItem(
       path = "/ruok",
       method = GET,
-      operation = Operation[HNil, () => Route, HNil](
-        parameters = HNil,
-        responses = HNil,
+      operation = Operation(
+        parameters = HNil: HNil,
+        responses = HNil: HNil,
         endpointImplementation = () => complete("dummy")))
 
     val expectedSwagger = JsObject(

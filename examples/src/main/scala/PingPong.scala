@@ -75,8 +75,8 @@ object PingPong extends App {
       PathItem(
         path = "/ping",
         method = GET,
-        operation = Operation[NoParams, () => Route, StringResponse](
-          parameters = HNil,
+        operation = Operation(
+          parameters = HNil: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = endpointImplementation
         )

@@ -81,10 +81,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       consumes = Some(Seq("application/json")),
       produces = Some(Seq("application/json")),
       paths =
-        PathItem[ListPetsParams, ListPetsEndpoint, ListPetsResponses](
+        PathItem(
           path = "/pets",
           method = GET,
-          operation = Operation[ListPetsParams, ListPetsEndpoint, ListPetsResponses](
+          operation = Operation(
             summary = Some("List all pets"),
             operationId = Some("listPets"),
             tags = Some(Seq("pets")),
@@ -103,14 +103,14 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                   description = "unexpected error"
                 ) :: HNil,
             endpointImplementation = (_: Int) => dummyRoute)) ::
-          PathItem[CreatePetParams, CreatePetEndpoint, CreatePetResponses](
+          PathItem(
             path = "/pets",
             method = POST,
-            operation = Operation[CreatePetParams, CreatePetEndpoint, CreatePetResponses](
+            operation = Operation(
               summary = Some("Create a pet"),
               operationId = Some("createPets"),
               tags = Some(Seq("pets")),
-              parameters = HNil,
+              parameters = HNil: HNil,
               responses =
                 ResponseValue[HNil, HNil](
                   responseCode = "201",
@@ -124,10 +124,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
               endpointImplementation = () => dummyRoute
             )
           ) ::
-          PathItem[ShowPetParams, ShowPetEndpoint, ShowPetResponses](
+          PathItem(
             path = "/pets/{petId}",
             method = GET,
-            operation = Operation[ShowPetParams, ShowPetEndpoint, ShowPetResponses](
+            operation = Operation(
               summary = Some("Info for a specific pet"),
               operationId = Some("showPetById"),
               tags = Some(Seq("pets")),
