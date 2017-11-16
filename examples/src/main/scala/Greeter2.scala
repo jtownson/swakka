@@ -45,11 +45,6 @@ object Greeter2 extends App {
   implicit val mat = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  type Params = PathParameter[String] :: HNil
-  type StringResponse = ResponseValue[String, HNil]
-
-  type Paths = PathItem[String => Route, Params, StringResponse] :: HNil
-
   val corsHeaders = Seq(
     RawHeader("Access-Control-Allow-Origin", "*"),
     RawHeader("Access-Control-Allow-Methods", "GET"))

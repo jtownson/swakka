@@ -52,18 +52,6 @@ object PetstoreV1 extends App {
   implicit val errorSchemaWriter = schemaWriter(Error)
   implicit val errorJsonFormat = jsonFormat2(Error)
 
-  type ListPetsEndpoint = Int => Route
-  type ListPetsParams = QueryParameter[Int] :: HNil
-  type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
-
-  type CreatePetsEndpoint = Pet => Route
-  type CreatePetParams = BodyParameter[Pet] :: HNil
-  type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
-
-  type ShowPetEndpoint = String => Route
-  type ShowPetParams = PathParameter[String] :: HNil
-  type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
-
 
   val petsDb = mutable.LinkedHashMap[String, Pet]()
 

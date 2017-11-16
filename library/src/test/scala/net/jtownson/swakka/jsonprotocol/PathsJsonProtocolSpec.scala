@@ -31,17 +31,24 @@ import spray.json.{JsArray, JsObject, JsString, _}
 
 class PathsJsonProtocolSpec extends FlatSpec {
 
-  "JsonProtocol" should "write a parameterless pathitem" in {
+  val dummyEndpoint: () => Route =
+    () => complete("dummy")
 
-    type Responses = ResponseValue[String, HNil]
+  val dummyStringEndpoint: String => Route =
+    _ => complete("dummy")
+
+  val dummyIntEndpoint: Int => Route =
+    _ => complete("dummy")
+
+
+  "JsonProtocol" should "write a parameterless pathitem" in {
 
     val pathItem = PathItem(
       path = "/ruok",
       method = POST,
-      operation = Operation[HNil, () => Route, ResponseValue[String, HNil]](
-        parameters = HNil,
-        responses = ResponseValue("200", "ok"),
-        endpointImplementation = () => complete("dummy")))
+      operation = Operation(
+        responses = ResponseValue[String, HNil]("200", "ok"),
+        endpointImplementation = dummyEndpoint))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -67,9 +74,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       path = "/ruok",
       method = GET,
       operation = Operation(
-        parameters = HNil: HNil,
-        responses = HNil: HNil,
-        endpointImplementation = () => complete("dummy")))
+        endpointImplementation = dummyEndpoint))
 
     val expectedSwagger = JsObject(
       "/ruok" -> JsObject(
@@ -82,11 +87,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   it should "write an pathItem with a parameter" in {
 
-    type Params = QueryParameter[String] :: HNil
-    type Responses = ResponseValue[String, HNil]
-    type Paths = PathItem[Params, String => Route, Responses]
-
-    val pathItem: PathItem[Params, String => Route, Responses] = PathItem(
+    val pathItem = PathItem(
       path = "/ruok",
       method = GET,
       operation = Operation(
@@ -120,33 +121,26 @@ class PathsJsonProtocolSpec extends FlatSpec {
     pathItem.toJson shouldBe expectedSwagger
   }
 
-  type OneIntParam = QueryParameter[Int] :: HNil
-  type OneStrParam = QueryParameter[String] :: HNil
-  type StringResponse = ResponseValue[String, HNil]
-  type Paths =
-    PathItem[OneIntParam, Int => Route, StringResponse] ::
-    PathItem[OneStrParam, String => Route, StringResponse] :: HNil
-
   it should "write a simple swagger definition" in {
-    val api: OpenApi[Paths, HNil] =
+    val api =
       OpenApi(paths =
-        PathItem[OneIntParam, Int => Route, StringResponse](
+        PathItem(
           path = "/app/e1",
           method = GET,
           operation = Operation(
             parameters = QueryParameter[Int]('q) :: HNil,
             responses = ResponseValue[String, HNil]("200", "ok"),
-            endpointImplementation = (_: Int) => complete("dummy")
+            endpointImplementation = dummyIntEndpoint
           )
         )
           ::
-          PathItem[OneStrParam, String => Route, StringResponse](
+          PathItem(
             path = "/app/e2",
             method = GET,
             operation = Operation(
               parameters = QueryParameter[String]('q) :: HNil,
               responses = ResponseValue[String, HNil]("200", "ok"),
-              endpointImplementation = (_: String) => complete("dummy")
+              endpointImplementation = dummyStringEndpoint
             )
           )
           :: HNil
@@ -201,7 +195,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       )
     )
 
-    apiFormat[Paths, HNil].write(api) shouldBe expectedJson
+    api.toJson shouldBe expectedJson
   }
 
   it should "write an empty swagger definition" in {
@@ -215,7 +209,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       "paths" -> JsObject()
     )
 
-    apiFormat[HNil, HNil].write(api) shouldBe expectedJson
+    api.toJson shouldBe expectedJson
   }
 
   it should "write a swagger security definition with a security requirement" in {
@@ -275,23 +269,19 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   it should "combine path items where the path is equal" in {
 
-    type Paths =
-      PathItem[HNil, () => Route, HNil] ::
-      PathItem[HNil, () => Route, HNil] :: HNil
-
-    val paths: Paths =
-      PathItem[HNil, () => Route, HNil](
+    val paths =
+      PathItem(
         path = "/app",
         method = GET,
         operation = Operation(
-          endpointImplementation = () => complete("dummy")
+          endpointImplementation = dummyEndpoint
         )
       ) ::
-        PathItem[HNil, () => Route, HNil](
+        PathItem(
           path = "/app",
           method = POST,
           operation = Operation(
-            endpointImplementation = () => complete("dummy")
+            endpointImplementation = dummyEndpoint
           )
         ) ::
         HNil

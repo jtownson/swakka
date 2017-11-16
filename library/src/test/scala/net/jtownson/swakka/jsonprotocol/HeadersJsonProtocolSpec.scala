@@ -97,8 +97,6 @@ class HeadersJsonProtocolSpec extends FlatSpec {
 
   it should "serialize a combination of headers" in {
 
-    type Headers = Header[String] :: Header[Int] :: HNil
-
     val headers = Header[String](Symbol("x-s"), Some("a string header")) :: Header[Int](Symbol("x-i"), Some("an int header")) :: HNil
 
     val expectedJson = JsObject(

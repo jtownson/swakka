@@ -43,18 +43,9 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
   def f1[T] = mockFunction[T, Route]
 
-  type OneIntParam = QueryParameter[Int] :: HNil
-  type OneStrParam = QueryParameter[String] :: HNil
-
-  type StringResponse = ResponseValue[String, HNil]
-
-  type Paths =
-    PathItem[OneIntParam, Int => Route, StringResponse] ::
-    PathItem[OneStrParam, String => Route, StringResponse] :: HNil
-
   val api =
-    OpenApi[Paths, HNil](paths =
-      PathItem[OneIntParam, Int => Route, StringResponse](
+    OpenApi(paths =
+      PathItem(
         path = "/app/e1",
         method = GET,
         operation = Operation(
@@ -63,7 +54,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
           endpointImplementation = f1[Int]
         )
       ) ::
-        PathItem[OneStrParam, String => Route, StringResponse](
+        PathItem(
           path = "/app/e2",
           method = GET,
           operation = Operation(

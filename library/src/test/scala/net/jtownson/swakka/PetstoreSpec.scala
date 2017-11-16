@@ -54,23 +54,6 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
   "Swakka" should "support the petstore example" in {
 
-    type ListPetsEndpoint = Int => Route
-    type ListPetsParams = QueryParameter[Int] :: HNil
-    type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
-
-    type CreatePetEndpoint = () => Route
-    type CreatePetParams = HNil
-    type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
-
-    type ShowPetEndpoint = String => Route
-    type ShowPetParams = PathParameter[String] :: HNil
-    type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
-
-    type Paths =
-      PathItem[ListPetsParams, ListPetsEndpoint, ListPetsResponses] ::
-      PathItem[CreatePetParams, CreatePetEndpoint, CreatePetResponses] ::
-      PathItem[ShowPetParams, ShowPetEndpoint, ShowPetResponses] :: HNil
-
     val dummyRoute: Route = complete("dummy")
 
     val petstoreApi = OpenApi(
@@ -110,7 +93,6 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
               summary = Some("Create a pet"),
               operationId = Some("createPets"),
               tags = Some(Seq("pets")),
-              parameters = HNil: HNil,
               responses =
                 ResponseValue[HNil, HNil](
                   responseCode = "201",

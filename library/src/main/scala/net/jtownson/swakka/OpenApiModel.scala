@@ -45,8 +45,8 @@ object OpenApiModel {
     tags: Option[Seq[String]] = None,
     consumes: Option[Seq[String]] = None,
     produces: Option[Seq[String]] = None,
-    parameters: Params = HNil,
-    responses: Responses = HNil,
+    parameters: Params = HNil: HNil,
+    responses: Responses = HNil: HNil,
     security: Option[Seq[SecurityRequirement]] = None,
     endpointImplementation: EndpointFunction)
 

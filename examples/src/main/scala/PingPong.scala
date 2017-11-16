@@ -55,11 +55,6 @@ object PingPong extends App {
   implicit val mat = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  type NoParams = HNil
-  type StringResponse = ResponseValue[String, HNil]
-
-  type Paths = PathItem[NoParams, () => Route, StringResponse] :: HNil
-
   val endpointImplementation: () => Route =
     () => complete(HttpResponse(OK, corsHeaders, "pong"))
 
@@ -76,7 +71,6 @@ object PingPong extends App {
         path = "/ping",
         method = GET,
         operation = Operation(
-          parameters = HNil: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = endpointImplementation
         )

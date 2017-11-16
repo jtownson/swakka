@@ -272,10 +272,6 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
   it should "serialize an hlist of query params" in {
 
-    type Params =
-      QueryParameter[Int] :: PathParameter[String] ::
-        HeaderParameter[Int] :: BodyParameter[String] :: HNil
-
     val params =
       QueryParameter[Int]('r) :: PathParameter[String]('s) ::
         HeaderParameter[Int]('t) :: BodyParameter[String]('u) :: HNil

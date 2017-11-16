@@ -44,11 +44,6 @@ object HeadersInHeadersOut extends App {
   implicit val mat = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  type Params = HeaderParameter[Double] :: HNil
-  type Responses = ResponseValue[Unit, Header[Double]]
-
-  type Paths = PathItem[Double => Route, Params, Responses]
-
   val corsHeaders = Seq(
     RawHeader("Access-Control-Allow-Origin", "*"),
     RawHeader("Access-Control-Allow-Methods", "GET"))

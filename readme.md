@@ -32,22 +32,27 @@ object PingPong extends App {
   type NoParams = HNil
   type StringResponse = ResponseValue[String, HNil]
 
-  type Paths = PathItem[NoParams, StringResponse] :: HNil
+  type Paths = PathItem[NoParams, () => Route, StringResponse] :: HNil
   
+  val endpointImplementation: () => Route =
+      () => complete(HttpResponse(OK, corsHeaders, "pong"))
+      
   // (1) - Create a swagger-like API structure using an OpenApi case class.
   // Implement each endpoint as an Akka _Route_ (e.g. complete("pong"))
   val api =
-    OpenApi(paths =
-      PathItem[NoParams, StringResponse](
+    OpenApi(
+      produces = Some(Seq("text/plain")),
+      paths =
+      PathItem(
         path = "/ping",
         method = GET,
-        operation = Operation[NoParams, StringResponse](
-          responses = ResponseValue[String, HNil]("200", "ok"),
-          endpointImplementation = _ => complete("pong") // this is the implementation. 
-          // It is a function from NoParams to an Akka Http Route.
+        operation = Operation(
+          parameters = HNil: HNil, // This means there are no parameters
+          responses = ResponseValue[String, HNil]("200", "ok"), // There is a String response with no headers
+          endpointImplementation = endpointImplementation // This function provides the response (as an inner Route)
         )
       ) ::
-        HNil
+      HNil
     )
 
   // (2) - Swakka will generate 
@@ -130,7 +135,7 @@ Enter ```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParameter[T]``` 
   type Params = QueryParameter[String] :: HNil
   type StringResponse = ResponseValue[String, HNil]
 
-  type Paths = PathItem[Params, StringResponse] :: HNil
+  type Paths = PathItem[Params, String => Route, StringResponse] :: HNil
 
   // The endpoint is then a function Params => Route
   val greet: Params => Route = {

@@ -63,37 +63,11 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
 
   "Swakka" should "support the petstore v2 example, which includes auth" in {
 
-//    type ListPetsParams = QueryParameter[Int] :: HNil
-//    type ListPetsResponses = ResponseValue[Pets, Header[String]] :: ResponseValue[Error, HNil] :: HNil
+    val createPet: Pet => Route = _ => complete("dummy")
 
-    //    type ShowPetParams = PathParameter[String] :: HNil
-    //    type ShowPetResponses = ResponseValue[Pets, HNil] :: ResponseValue[Error, HNil] :: HNil
+    val updatePet: Pet => Route = _ => complete("dummy")
 
-    type CreatePetEndpoint = Pet => Route
-    type CreatePetParams = BodyParameter[Pet] :: HNil
-    type CreatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: ResponseValue[Error, HNil] :: HNil
-    val createPet: CreatePetEndpoint = _ => complete("dummy")
-
-    type UpdatePetEndpoint = Pet => Route
-    type UpdatePetParams = BodyParameter[Pet] :: HNil
-    type UpdatePetResponses = ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: ResponseValue[HNil, HNil] :: HNil
-    val updatePet: UpdatePetEndpoint = _ => complete("dummy")
-
-    type FindByStatusEndpoint = Seq[String] => Route
-    type FindByStatusParams = MultiValued[String, QueryParameter[String]] :: HNil
-    type FindByStatusResponses = ResponseValue[Seq[Pet], HNil] :: ResponseValue[HNil, HNil] :: HNil
-    val findByStatus: FindByStatusEndpoint = (_: Seq[String]) => complete("dummy")
-
-    type Paths =
-      PathItem[CreatePetEndpoint, CreatePetParams, CreatePetResponses] ::
-      PathItem[UpdatePetEndpoint, UpdatePetParams, UpdatePetResponses] ::
-      PathItem[FindByStatusEndpoint, FindByStatusParams, FindByStatusResponses] ::
-      HNil
-
-    type SecurityDefinitions = Record.`'petstore_auth -> Oauth2ImplicitSecurity, 'api_key -> ApiKeyInHeaderSecurity`.T
-
-    // TODO this needs a real value
-//    implicit val cvTemp: ConvertibleToDirective[FindByStatusParams] = (_,_) => ???
+    val findByStatus: Seq[String] => Route = _ => complete("dummy")
 
     val securityDefinitions =
       'petstore_auth ->> Oauth2ImplicitSecurity(
@@ -360,6 +334,8 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
                     JsString("pending"),
                     JsString("sold")
                   )
+// The petstorev2 sample has that required = true but there is also a default value.
+// This seems to make no sense because if the user always provides a value, the default is redundant.
 //                  ,
 //                  "default" -> JsString("available")
                 ),
