@@ -222,13 +222,10 @@ val responses =
 
 Each ```ResponseValue``` takes two type parameters:
 
-1. The type of the response body. This can be any any case class. To make it work you need two things
-
-    1.1. a spray ```JsonFormat``` so that Akka Http can marshall it correctly.
-    
-    1.2. a Swakka ```SchemaWriter``` so that Swakka can write a json schema for the case class into the swagger file.
-    Swakka can generate SchemaWriter instances for any case class, although it is not done implicitly and you have to
-    call a function to make it happen (see the example below)
+1. The type of the response body. This can be any any case class. 
+As for any Akka-Http app, you need a a spray ```JsonFormat``` to enable marshalling of your response.
+Additionally, Swakka generates a ```SchemaWriter```, which is another ```JsonFormat``` for writing
+a json schema for the case class into the swagger file.
     
 2. Any headers set in the response (e.g. caching headers)
 
@@ -243,8 +240,6 @@ import shapeless.{::, HNil}
 import spray.json._
 
 case class Success(id: String)
-
-implicit val successSchema: SchemaWriter[Success] = schemaWriter(Success)
 
 type CacheControl = Header[String]
 
@@ -406,12 +401,12 @@ import net.jtownson.swakka.OpenApiJsonProtocol._
 BodyParameter[T] allows custom case class types for T 
 (because Swagger allows custom models for the request body).
 
-To enable this your code must create 
+To enable this, your code requires
 
-1. An implicit JsonFormat for T (in just the same way that you already do with Akka-Http apps)
-2. A _SchemaWriter_. This writes the Json Schema for T into the body of the swagger.json
-(i.e. it introspects case class T and spits out a json schema as a String). Swakka provides a function to do
-this automatically. You have to call it.
+1. An implicit spray JsonFormat for T (in just the same way that you already do with Akka-Http apps)
+2. A _SchemaWriter_. This is a special JsonFormat that writes the Json Schema for T into the body of the swagger.json
+(i.e. it introspects case class T and spits out a json schema as a String). Swakka will derive
+SchemaWriter instances for your case classes if you import ```SchemaWriter```
 3. A _ConvertibleToDirective_ instance. Swakka uses this to create an Akka Http _Directive_ that will
 match and extract the request body. 
 
@@ -449,11 +444,8 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
 
   // Spray JsonFormat required by Akka Http
   implicit val petJsonFormat = jsonFormat3(Pet)
-  // SchemaWriter required by Swakka to generate json schema 
-  implicit val petSchemaWriter = schemaWriter(Pet)
-  // ConvertibleToDirective instance which Swakka uses to tell Akka how to extract the request body.
-  // (Note the types and avoid implicit resolution errors from scalac). 
-  implicit val petBodyParamConverter: ConvertibleToDirective[BodyParameter[Pet]] = bodyParamConverter[Pet]
+  // Make the derived SchemaWriter instance explicit if required 
+  implicit val petSchemaWriter = implicitly[SchemaWriter[Pet]]
 
   // ...
 }
@@ -621,22 +613,19 @@ where N is 1, 2, 3, according to the number of fields in the case class.
 * For a custom case class, T, the SchemaWriter needed to write T's json schema into the swagger file
 ```scala
 import net.jtownson.swakka.jsonschema.SchemaWriter._
-implicit val schemaWriter = schemaWriter(T)
+implicit val schemaWriter = implicitly[SchemaWriter[T]] // If this fails, something is wrong
+
 ```
-* For custom request body types (for POST and PUT requests),
-the RouteGen instances to convert case class T to an Akka Directive
-that will match and extract instances of T from HTTP requests.
+* The RouteGen instances to convert the API definition to an Akka Directive
+that will match and extract parameters, etc from HTTP requests.
 ```scala
   import net.jtownson.swakka.routegen.ConvertibleToDirective._
-  implicit val bodyParamConverter: ConvertibleToDirective[BodyParameter[T]] = bodyParamConverter[T]
 ```
 
-Note the type parameters on the left and right of the expression above. Calling bodyParamConverter with the
-wrong type causes the scala compiler to emit a 'Cannot find implicit...' error which is hard to track down (I know!)
-
-* Imports for shapeless HLists to work
+* Imports for shapeless HLists
 ```scala
 import shapeless.{::, HNil}
+
 ```
 And, for api security definitions, imports for extensible records
 ```scala
