@@ -16,6 +16,7 @@
 
 package net.jtownson.swakka.jsonschema
 
+import net.jtownson.swakka.jsonschema.ApiModelDictionary.annotationEntries
 import net.jtownson.swakka.jsonschema.FieldNameExtractor.nonOptional
 import net.jtownson.swakka.jsonschema.SchemaWriter.instance
 import net.jtownson.swakka.jsonschema.Schemas.objectSchema
@@ -25,6 +26,8 @@ import shapeless.ops.hlist.ToTraversable
 import shapeless.ops.record.Keys
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness}
 import spray.json.{JsNull, JsObject, JsValue}
+import spray.json.DefaultJsonProtocol._
+import scala.reflect.runtime.universe.TypeTag
 
 trait HListSchemaWriters {
 
@@ -56,7 +59,9 @@ trait HListSchemaWriters {
     instance(f)
   }
 
-  implicit def genericObjectEncoder[A <: Product,
+  private val apiModelPropertyFormat = jsonFormat1(ApiModelPropertyEntry)
+
+  implicit def genericObjectEncoder[A <: Product : TypeTag,
                                     L <: HList,
                                     R <: HList,
                                     O <: HList](
@@ -70,12 +75,24 @@ trait HListSchemaWriters {
     val f: JsonSchema[A] => JsValue =
       schema => {
 
-        val fieldSchemas: List[(String, JsValue)] =
-          asJsObject(lEncoder.value.write(JsonSchema[L]())).fields.toList
+        val annotationDictionary: Map[String, JsValue] =
+          annotationEntries[A].mapValues(apiModelPropertyFormat.write)
+
+        val fieldSchemas: Map[String, JsValue] =
+          asJsObject(lEncoder.value.write(JsonSchema[L]())).fields
+
+        val annotatedFieldSchemas: Map[String, JsValue] = fieldSchemas map {
+          case (field, schemaJs) => {
+            val annotationSchemaJs = annotationDictionary.getOrElse(field, JsObject())
+            val annotationOverrides = asJsObject(annotationSchemaJs).fields ++ asJsObject(schemaJs).fields
+
+            (field, JsObject(annotationOverrides))
+          }
+        }
 
         val requiredFields = FieldNameExtractor[A].extract(nonOptional)
 
-        objectSchema(schema.description, requiredFields, fieldSchemas)
+        objectSchema(schema.description, requiredFields, annotatedFieldSchemas.toList)
       }
     instance(f)
   }

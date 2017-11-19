@@ -16,4 +16,4 @@
 
 package net.jtownson.swakka.jsonschema
 
-case class ApiModelPropertyEntry(name: Option[String], value: Option[String], required: Boolean)
+case class ApiModelPropertyEntry(description: Option[String])

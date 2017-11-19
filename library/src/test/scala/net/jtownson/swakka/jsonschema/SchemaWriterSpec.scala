@@ -102,8 +102,8 @@ class SchemaWriterSpec extends FlatSpec {
   }
 
   case class E(
-                @ApiModelProperty(value = "the id", required = true) id: Int,
-                @ApiModelProperty(value = "the value") value: String
+                @ApiModelProperty("the id") id: Int,
+                @ApiModelProperty("the value") value: String
               )
 
   it should "produce annotated docs" in {
@@ -111,7 +111,7 @@ class SchemaWriterSpec extends FlatSpec {
     JsonSchema[E](Some("the parent")).toJson shouldBe JsObject(
       "type" -> JsString("object"),
       "description" -> JsString("the parent"),
-      "required" -> JsArray(JsString("id")),
+      "required" -> JsArray(JsString("id"), JsString("value")),
       "properties" -> JsObject(
         "id" -> JsObject(
           "description" -> JsString("the id"),
@@ -124,7 +124,7 @@ class SchemaWriterSpec extends FlatSpec {
       ))
   }
 
-  case class F(@ApiModelProperty(value = "the nested e") e: E)
+  case class F(@ApiModelProperty("the nested e") e: E)
 
 
   it should "produce annotated docs for nested classes" in {
@@ -132,11 +132,12 @@ class SchemaWriterSpec extends FlatSpec {
     JsonSchema[F](Some("the parent F")).toJson shouldBe JsObject(
       "type" -> JsString("object"),
       "description" -> JsString("the parent F"),
+      "required" -> JsArray(JsString("e")),
       "properties" -> JsObject(
         "e" -> JsObject(
           "type" -> JsString("object"),
           "description" -> JsString("the nested e"),
-          "required" -> JsArray(JsString("id")),
+          "required" -> JsArray(JsString("id"), JsString("value")),
           "properties" -> JsObject(
             "id" -> JsObject(
               "description" -> JsString("the id"),

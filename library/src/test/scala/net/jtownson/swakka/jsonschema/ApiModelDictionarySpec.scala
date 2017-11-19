@@ -24,22 +24,22 @@ import org.scalatest.Matchers._
 class ApiModelDictionarySpec extends FlatSpec {
 
   case class A(
-                @ApiModelProperty(name = "the name", value = "the value", required = true) foo: Int,
+                @ApiModelProperty("the value") foo: Int,
                 bar: String,
                 baz: Option[Float])
 
   val dictionary = apiModelDictionary[A]
 
   "ApiModelDictionary" should "extract ApiModelProperty annotations from a case class" in {
-    dictionary("foo") shouldBe ApiModelPropertyEntry(Some("the name"), Some("the value"), true)
+    dictionary("foo") shouldBe ApiModelPropertyEntry(Some("the value"))
   }
 
   it should "default required to true for non-optional fields" in {
-    dictionary("bar") shouldBe ApiModelPropertyEntry(None, None, true)
+    dictionary("bar") shouldBe ApiModelPropertyEntry(None)
   }
 
   it should "default required to false for optional fields" in {
-    dictionary("baz") shouldBe ApiModelPropertyEntry(None, None, false)
+    dictionary("baz") shouldBe ApiModelPropertyEntry(None)
   }
 
   it should "maintain field ordering" in {
