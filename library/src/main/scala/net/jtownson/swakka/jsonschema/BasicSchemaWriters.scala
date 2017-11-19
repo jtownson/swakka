@@ -18,8 +18,6 @@ package net.jtownson.swakka.jsonschema
 
 import net.jtownson.swakka.jsonschema.Schemas.{arraySchema, numericSchema, stringSchema, unitSchema}
 import net.jtownson.swakka.model.Responses.ResponseValue
-import shapeless.HNil
-import spray.json.JsNull
 
 trait BasicSchemaWriters {
 
@@ -50,8 +48,5 @@ trait BasicSchemaWriters {
   implicit def responseValueWriter[T, Headers](implicit ev: SchemaWriter[T]):
   SchemaWriter[ResponseValue[T, Headers]] =
     (_: JsonSchema[ResponseValue[T, Headers]]) => ev.write(JsonSchema[T]())
-
-  implicit val hNilSchemaWriter: SchemaWriter[HNil] =
-    _ => JsNull
 
 }

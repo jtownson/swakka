@@ -29,15 +29,14 @@ import net.jtownson.swakka.model.Parameters.{BodyParameter, MultiValued, QueryPa
 import net.jtownson.swakka.model.Responses.ResponseValue
 import net.jtownson.swakka.model.SecurityDefinitions.{ApiKeyInHeaderSecurity, Oauth2ImplicitSecurity, SecurityRequirement}
 import net.jtownson.swakka.model.{ExternalDocs, Info, License, Tag}
-import net.jtownson.swakka.routegen.{ConvertibleToDirective, SwaggerRouteSettings}
+import net.jtownson.swakka.routegen.SwaggerRouteSettings
 import net.jtownson.swakka.routegen.ConvertibleToDirective._
 import net.jtownson.swakka.model.ParameterValue._
 import net.jtownson.swakka.model.Invoker._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import shapeless.record._
 import shapeless.syntax.singleton._
-import shapeless.{::, HNil}
+import shapeless.HNil
 import spray.json._
 
 class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface {
@@ -55,11 +54,10 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
                   )
 
   implicit val petJsonFormat = jsonFormat3(Pet)
-  implicit val petSchemaWriter = schemaWriter(Pet)
-  implicit val petBodyParamConverter: ConvertibleToDirective[BodyParameter[Pet]] = bodyParamConverter[Pet]
+//  implicit val petSchemaWriter = schemaWriter(Pet)
 
   implicit val errorJsonFormat = jsonFormat2(Error)
-  implicit val errorSchemaWriter = schemaWriter(Error)
+//  implicit val errorSchemaWriter = schemaWriter(Error)
 
   "Swakka" should "support the petstore v2 example, which includes auth" in {
 

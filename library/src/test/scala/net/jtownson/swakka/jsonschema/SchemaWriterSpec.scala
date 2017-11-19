@@ -23,7 +23,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json.{JsObject, JsString, _}
 
-class JsonSchemaJsonProtocolSpec extends FlatSpec {
+class SchemaWriterSpec extends FlatSpec {
 
   "Protocol" should "describe Unit" in {
     JsonSchema[Unit]().toJson shouldBe JsObject()
@@ -51,8 +51,6 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
 
   case class A()
 
-  implicit val aWriter = schemaWriter(A)
-
   it should "describe an empty case class" in {
     JsonSchema[A]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
@@ -60,8 +58,6 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class B(i: Int)
-
-  implicit val bWriter = schemaWriter(B)
 
   it should "describe a single field case class" in {
     JsonSchema[B]().toJson shouldBe JsObject(
@@ -75,8 +71,6 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class C(a: A)
-
-  implicit val cWriter = schemaWriter(C)
 
   it should "describe a nested case class" in {
 
@@ -92,8 +86,6 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
   }
 
   case class D(id: Int, value: String)
-
-  implicit val dWriter = schemaWriter(D)
 
   it should "describe a two field case class" in {
     JsonSchema[D]().toJson shouldBe JsObject(
@@ -113,8 +105,6 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
                 @ApiModelProperty(value = "the id", required = true) id: Int,
                 @ApiModelProperty(value = "the value") value: String
               )
-
-  implicit val eWriter = schemaWriter(E)
 
   it should "produce annotated docs" in {
 
@@ -136,7 +126,6 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
 
   case class F(@ApiModelProperty(value = "the nested e") e: E)
 
-  implicit val fWriter = schemaWriter(F)
 
   it should "produce annotated docs for nested classes" in {
 
@@ -163,7 +152,6 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
 
   case class G(o: Option[String])
 
-  implicit val gWriter = schemaWriter(G)
 
   it should "produce a schema for options" in {
     JsonSchema[G]().toJson shouldBe JsObject(
@@ -177,7 +165,6 @@ class JsonSchemaJsonProtocolSpec extends FlatSpec {
 
   case class H(s: Seq[String])
 
-  implicit val hWriter = schemaWriter(H)
 
   it should "produce a schema for Seq" in {
     JsonSchema[H]().toJson shouldBe JsObject(

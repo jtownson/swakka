@@ -38,7 +38,6 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     val defaultPet = Pet("I'm a default. Boo!")
 
     implicit val petJsonWriter = jsonFormat1(Pet)
-    implicit val petSchemaWriter = schemaWriter(Pet)
 
     object Statuses extends Enumeration {
       val placed, approved, delivered = Value

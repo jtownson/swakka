@@ -49,8 +49,6 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                     message: String
                   )
 
-  implicit val petSchemaWriter = schemaWriter(Pet)
-  implicit val errorSchemaWriter = schemaWriter(Error)
 
   "Swakka" should "support the petstore example" in {
 

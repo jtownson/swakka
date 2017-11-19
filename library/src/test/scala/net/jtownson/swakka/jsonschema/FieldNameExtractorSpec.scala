@@ -16,15 +16,18 @@
 
 package net.jtownson.swakka.jsonschema
 
-import spray.json.{DefaultJsonProtocol, JsonFormat, JsonWriter}
 
-trait JsonSchemaJsonProtocol extends DefaultJsonProtocol {
+import net.jtownson.swakka.jsonschema.FieldNameExtractor.{optional, nonOptional}
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
 
-  def jsonSchemaJsonWriter[T](implicit ev: SchemaWriter[T]): JsonWriter[JsonSchema[T]] = ev.write
+class FieldNameExtractorSpec extends FlatSpec {
 
-  implicit def jsonSchemaJsonFormat[T](implicit ev: SchemaWriter[T]): JsonFormat[JsonSchema[T]] =
-    lift(jsonSchemaJsonWriter[T])
+  "FieldNameExtractor" should "get the (non)optional fields from a case class" in {
+    case class A(i: Int, j: Option[Int], k: String)
 
+    val fne = FieldNameExtractor[A]
+    fne.extract(nonOptional) shouldBe List("i", "k")
+    fne.extract(optional) shouldBe List("j")
+  }
 }
-
-object JsonSchemaJsonProtocol extends JsonSchemaJsonProtocol

@@ -29,7 +29,11 @@ import akka.stream.ActorMaterializer
 import net.jtownson.swakka.OpenApiModel.{OpenApi, Operation, PathItem}
 import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.jsonschema.SchemaWriter._
-import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
+import net.jtownson.swakka.model.Parameters.{
+  BodyParameter,
+  PathParameter,
+  QueryParameter
+}
 import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
 import net.jtownson.swakka.model.{Info, License}
 import net.jtownson.swakka.routegen.CorsUseCases.SpecificallyThese
@@ -45,13 +49,13 @@ object PetstoreV1 extends App {
   case class Pet(id: String, name: String, tag: Option[String] = None)
 
   type Pets = Seq[Pet]
-  implicit val petSchemaWriter = schemaWriter(Pet)
+  //  implicit val petSchemaWriter = schemaWriter(Pet)
   implicit val petJsonFormat = jsonFormat3(Pet)
 
   case class Error(id: Int, message: String)
-  implicit val errorSchemaWriter = schemaWriter(Error)
-  implicit val errorJsonFormat = jsonFormat2(Error)
 
+  //  implicit val errorSchemaWriter = schemaWriter(Error)
+  implicit val errorJsonFormat = jsonFormat2(Error)
 
   val petsDb = mutable.LinkedHashMap[String, Pet]()
 
@@ -71,12 +75,14 @@ object PetstoreV1 extends App {
     val maybePet = petsDb.get(petId)
     maybePet match {
       case Some(pet) => complete(pet.toJson)
-      case None => complete(NotFound)
+      case None      => complete(NotFound)
     }
   }
 
   val petstoreApi = OpenApi(
-    info = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(License(name = "MIT"))),
+    info = Info(version = "1.0.0",
+                title = "Swagger Petstore",
+                licence = Some(License(name = "MIT"))),
     host = Some("petstore.swagger.io:8080"),
     basePath = Some("/v1"),
     schemes = Some(Seq("http")),
@@ -93,42 +99,47 @@ object PetstoreV1 extends App {
           parameters =
             QueryParameter[Int](
               name = 'limit,
-              description = Some("How many items to return at one time (max 100)")) ::
+              description =
+                Some("How many items to return at one time (max 100)")) ::
               HNil,
           responses =
             ResponseValue[Pets, Header[String]](
               responseCode = "200",
               description = "An paged array of pets",
-              headers = Header[String](Symbol("x-next"), Some("A link to the next page of responses"))) ::
+              headers =
+                Header[String](Symbol("x-next"),
+                               Some("A link to the next page of responses"))) ::
               ResponseValue[Error, HNil](
-                responseCode = "default",
-                description = "unexpected error"
-              ) :: HNil,
+              responseCode = "default",
+              description = "unexpected error"
+            ) :: HNil,
           endpointImplementation = listPets _
         )
       ) ::
-      PathItem(
+        PathItem(
         path = "/pets",
         method = POST,
         operation = Operation(
           summary = Some("Create a pet"),
           operationId = Some("createPets"),
           tags = Some(Seq("pets")),
-          parameters = BodyParameter[Pet](name = 'pet, description = Some("the pet to create")) :: HNil,
+          parameters = BodyParameter[Pet](name = 'pet,
+                                          description =
+                                            Some("the pet to create")) :: HNil,
           responses =
             ResponseValue[HNil, HNil](
               responseCode = "201",
               description = "Null response"
             ) ::
               ResponseValue[Error, HNil](
-                responseCode = "default",
-                description = "unexpected error"
-              ) ::
+              responseCode = "default",
+              description = "unexpected error"
+            ) ::
               HNil,
           endpointImplementation = createPet _
         )
       ) ::
-      PathItem(
+        PathItem(
         path = "/pets/{petId}",
         method = GET,
         operation = Operation(
@@ -139,30 +150,28 @@ object PetstoreV1 extends App {
             PathParameter[String]('petId, Some("The id of the pet to retrieve")) ::
               HNil,
           responses =
-            ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
+            ResponseValue[Pets, HNil]("200",
+                                      "Expected response to a valid request") ::
               ResponseValue[Error, HNil]("default", "unexpected error") ::
               HNil,
           endpointImplementation = getPet _
         )
       ) ::
-      HNil
+        HNil
   )
 
-  val corsHeaders = List(
-    RawHeader("Access-Control-Allow-Origin", "*"),
-    RawHeader("Access-Control-Allow-Methods", "GET, POST"))
+  val corsHeaders = List(RawHeader("Access-Control-Allow-Origin", "*"),
+                         RawHeader("Access-Control-Allow-Methods", "GET, POST"))
 
   val apiRoutes = openApiRoute(
     api = petstoreApi,
-    swaggerRouteSettings = Some(SwaggerRouteSettings(corsUseCase = SpecificallyThese(corsHeaders)))
+    swaggerRouteSettings =
+      Some(SwaggerRouteSettings(corsUseCase = SpecificallyThese(corsHeaders)))
   )
 
   implicit val system = ActorSystem()
   implicit val mat = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
-  val bindingFuture = Http().bindAndHandle(
-    apiRoutes,
-    "localhost",
-    8080)
+  val bindingFuture = Http().bindAndHandle(apiRoutes, "localhost", 8080)
 }

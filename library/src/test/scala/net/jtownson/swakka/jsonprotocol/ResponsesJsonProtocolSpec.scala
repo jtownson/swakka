@@ -33,9 +33,6 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
     case class Success(id: String)
 
     case class Error(msg: String)
-
-    implicit val successSchema: SchemaWriter[Success] = schemaWriter(Success)
-    implicit val errorSchema: SchemaWriter[Error] = schemaWriter(Error)
   }
 
   import UserCode._

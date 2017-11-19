@@ -19,7 +19,6 @@ package net.jtownson.swakka.routegen
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import net.jtownson.swakka.OpenApiJsonProtocol._
-import net.jtownson.swakka.jsonschema.SchemaWriter.schemaWriter
 import net.jtownson.swakka.model.Parameters.BodyParameter
 import net.jtownson.swakka.routegen.ConvertibleToDirective.{bodyOptParamConverter, bodyParamConverter}
 import org.scalatest.FlatSpec
@@ -30,7 +29,6 @@ import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
 class BodyParamConvertersSpec extends FlatSpec with ConverterTest {
 
   implicit val petFormat = jsonFormat2(Pet)
-  implicit val petSchemaWriter = schemaWriter(Pet)
 
   "BodyParamConverters" should "convert a body param of String" in {
     converterTest[String, BodyParameter[String]](post("/p", "Hello"), BodyParameter[String]('p), OK, extractionAssertion("Hello"))
