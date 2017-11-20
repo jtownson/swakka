@@ -18,6 +18,7 @@ package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.jsonprotocol.HeadersJsonProtocol._
 import net.jtownson.swakka.jsonprotocol.ResponsesJsonProtocol._
+import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import net.jtownson.swakka.jsonschema.SchemaWriter
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import net.jtownson.swakka.model.Responses.{Header, ResponseValue}

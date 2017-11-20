@@ -16,4 +16,4 @@
 
 package net.jtownson.swakka.jsonschema
 
-case class ApiModelPropertyEntry(description: Option[String])
+case class FieldDoc(description: Option[String])

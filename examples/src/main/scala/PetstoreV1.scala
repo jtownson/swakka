@@ -28,6 +28,7 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import net.jtownson.swakka.OpenApiModel.{OpenApi, Operation, PathItem}
 import net.jtownson.swakka.RouteGen.openApiRoute
+import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import net.jtownson.swakka.model.Parameters.{
   BodyParameter,
@@ -49,12 +50,10 @@ object PetstoreV1 extends App {
   case class Pet(id: String, name: String, tag: Option[String] = None)
 
   type Pets = Seq[Pet]
-  //  implicit val petSchemaWriter = schemaWriter(Pet)
   implicit val petJsonFormat = jsonFormat3(Pet)
 
   case class Error(id: Int, message: String)
 
-  //  implicit val errorSchemaWriter = schemaWriter(Error)
   implicit val errorJsonFormat = jsonFormat2(Error)
 
   val petsDb = mutable.LinkedHashMap[String, Pet]()

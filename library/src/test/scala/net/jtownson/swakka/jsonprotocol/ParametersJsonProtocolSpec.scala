@@ -19,6 +19,7 @@ package net.jtownson.swakka.jsonprotocol
 import akka.http.scaladsl.server.directives.FileInfo
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import net.jtownson.swakka.jsonprotocol.ParametersJsonProtocol._
 import net.jtownson.swakka.jsonschema.SchemaWriter._
 import net.jtownson.swakka.misc.jsObject

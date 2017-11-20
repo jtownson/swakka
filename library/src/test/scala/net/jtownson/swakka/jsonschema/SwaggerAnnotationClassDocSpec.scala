@@ -17,36 +17,30 @@
 package net.jtownson.swakka.jsonschema
 
 import io.swagger.annotations.ApiModelProperty
-import net.jtownson.swakka.jsonschema.ApiModelDictionary._
+
+import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
-class ApiModelDictionarySpec extends FlatSpec {
+class SwaggerAnnotationClassDocSpec extends FlatSpec {
 
   case class A(
                 @ApiModelProperty("the value") foo: Int,
                 bar: String,
-                baz: Option[Float])
+                @ApiModelProperty("the baz") baz: Option[Float])
 
-  val dictionary = apiModelDictionary[A]
+  val dictionary = ClassDoc.entries[A]
 
   "ApiModelDictionary" should "extract ApiModelProperty annotations from a case class" in {
-    dictionary("foo") shouldBe ApiModelPropertyEntry(Some("the value"))
+    dictionary("foo") shouldBe FieldDoc(Some("the value"))
+    dictionary("baz") shouldBe FieldDoc(Some("the baz"))
   }
 
-  it should "default required to true for non-optional fields" in {
-    dictionary("bar") shouldBe ApiModelPropertyEntry(None)
-  }
-
-  it should "default required to false for optional fields" in {
-    dictionary("baz") shouldBe ApiModelPropertyEntry(None)
+  it should "skip undocumented fields" in {
+    dictionary contains "bar" shouldBe false
   }
 
   it should "maintain field ordering" in {
-    dictionary.keys.toList shouldBe List("foo", "bar", "baz")
-  }
-
-  "ApiModelKeys" should "maintain field ordering" in {
-    apiModelKeys[A] shouldBe Seq("foo", "bar", "baz")
+    dictionary.keys.toList shouldBe List("foo", "baz")
   }
 }

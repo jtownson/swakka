@@ -25,6 +25,7 @@ import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.jsonschema.SchemaWriter._
+import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import net.jtownson.swakka.model.Parameters.{BodyParameter, MultiValued, QueryParameter}
 import net.jtownson.swakka.model.Responses.ResponseValue
 import net.jtownson.swakka.model.SecurityDefinitions.{ApiKeyInHeaderSecurity, Oauth2ImplicitSecurity, SecurityRequirement}
@@ -54,10 +55,8 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
                   )
 
   implicit val petJsonFormat = jsonFormat3(Pet)
-//  implicit val petSchemaWriter = schemaWriter(Pet)
 
   implicit val errorJsonFormat = jsonFormat2(Error)
-//  implicit val errorSchemaWriter = schemaWriter(Error)
 
   "Swakka" should "support the petstore v2 example, which includes auth" in {
 

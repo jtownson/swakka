@@ -27,34 +27,30 @@ import scala.reflect.runtime.universe._
 // The resulting map is from the fields of a class
 // to the ApiModelProperty entries for that field.
 
-object ApiModelDictionary {
+object SwaggerAnnotationClassDoc {
 
-  def annotationEntries[T: TypeTag]: Map[String, ApiModelPropertyEntry] =
-    constructorAnnotations[T](classOf[ApiModelProperty]).map(kv => (kv._1, tuples2Property(kv._2)))
-
-  def apiModelDictionary[T: TypeTag]: Map[String, ApiModelPropertyEntry] = {
-
-    val annotationEntries: Map[String, ApiModelPropertyEntry] =
-      constructorAnnotations[T](classOf[ApiModelProperty]).map(kv => (kv._1, tuples2Property(kv._2)))
-
-    val allEntries: Seq[(String, ApiModelPropertyEntry)] =
-      fieldNameTypes[T].map(
-        fieldNameType => {
-          val (fieldName, _)  = fieldNameType
-          (fieldName, annotationEntries.getOrElse(fieldName, ApiModelPropertyEntry(None)))
-        })
-
-    ListMap(allEntries: _*)
+  // Instance of the ClassDoc type class.
+  implicit def apiDoc[T: TypeTag]: ClassDoc[T] = new ClassDoc[T] {
+    override def entries: Map[String, FieldDoc] = annotationEntries[T]
   }
 
-  def apiModelKeys[T: TypeTag]: Seq[String] =
-    apiModelDictionary[T].keys.toSeq
+  private def annotationEntries[T: TypeTag]: Map[String, FieldDoc] = {
+    val entriesUnordered =
+      constructorAnnotations[T](classOf[ApiModelProperty]).map(kv => (kv._1, tuples2Property(kv._2)))
 
-  private def tuples2Property(s: Set[(String, String)]): ApiModelPropertyEntry = {
+    val entriesOrdered =
+      fieldNameTypes[T].
+        filter { case (fieldName, _) => entriesUnordered.contains(fieldName) }.
+        map { case (fieldName, _) => (fieldName, entriesUnordered(fieldName))}
+
+    ListMap(entriesOrdered: _*)
+  }
+
+  private def tuples2Property(s: Set[(String, String)]): FieldDoc = {
 
     val value: Option[String] = s.find(findField("value")).map(_._2)
 
-    ApiModelPropertyEntry(value)
+    FieldDoc(value)
   }
 
   private def findField(field: String): ((String, String)) => Boolean = {

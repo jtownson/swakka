@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.jsonschema
 
-import net.jtownson.swakka.jsonschema.ApiModelDictionary.annotationEntries
+import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import net.jtownson.swakka.jsonschema.FieldNameExtractor.nonOptional
 import net.jtownson.swakka.jsonschema.SchemaWriter.instance
 import net.jtownson.swakka.jsonschema.Schemas.objectSchema
@@ -27,7 +27,6 @@ import shapeless.ops.record.Keys
 import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness}
 import spray.json.{JsNull, JsObject, JsValue}
 import spray.json.DefaultJsonProtocol._
-import scala.reflect.runtime.universe.TypeTag
 
 trait HListSchemaWriters {
 
@@ -59,9 +58,9 @@ trait HListSchemaWriters {
     instance(f)
   }
 
-  private val apiModelPropertyFormat = jsonFormat1(ApiModelPropertyEntry)
+  private val fieldDocJsonFormat = jsonFormat1(FieldDoc)
 
-  implicit def genericObjectEncoder[A <: Product : TypeTag,
+  implicit def genericObjectEncoder[A <: Product,
                                     L <: HList,
                                     R <: HList,
                                     O <: HList](
@@ -70,20 +69,20 @@ trait HListSchemaWriters {
       lEncoder: Lazy[SchemaWriter[L]],
       folder: Aux[L, HNil.type, nonOptional.type, R],
       keys: Keys.Aux[R, O],
-      traversable: ToTraversable.Aux[O, List, Symbol]
+      traversable: ToTraversable.Aux[O, List, Symbol],
+      classDoc: ClassDoc[A]
   ): SchemaWriter[A] = {
     val f: JsonSchema[A] => JsValue =
       schema => {
 
-        val annotationDictionary: Map[String, JsValue] =
-          annotationEntries[A].mapValues(apiModelPropertyFormat.write)
+        val classDocJs: Map[String, JsValue] = classDoc.entries.mapValues(fieldDocJsonFormat.write)
 
         val fieldSchemas: Map[String, JsValue] =
           asJsObject(lEncoder.value.write(JsonSchema[L]())).fields
 
         val annotatedFieldSchemas: Map[String, JsValue] = fieldSchemas map {
           case (field, schemaJs) => {
-            val annotationSchemaJs = annotationDictionary.getOrElse(field, JsObject())
+            val annotationSchemaJs = classDocJs.getOrElse(field, JsObject())
             val annotationOverrides = asJsObject(annotationSchemaJs).fields ++ asJsObject(schemaJs).fields
 
             (field, JsObject(annotationOverrides))

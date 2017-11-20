@@ -21,6 +21,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.jsonschema.SchemaWriter._
