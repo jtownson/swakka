@@ -29,18 +29,27 @@ class SwaggerAnnotationClassDocSpec extends FlatSpec {
                 bar: String,
                 @ApiModelProperty("the baz") baz: Option[Float])
 
-  val dictionary = ClassDoc.entries[A]
+  val docEntries = ClassDoc.entries[A]
 
   "ApiModelDictionary" should "extract ApiModelProperty annotations from a case class" in {
-    dictionary("foo") shouldBe FieldDoc(Some("the value"))
-    dictionary("baz") shouldBe FieldDoc(Some("the baz"))
+    docEntries("foo") shouldBe FieldDoc("the value")
+    docEntries("baz") shouldBe FieldDoc("the baz")
   }
 
   it should "skip undocumented fields" in {
-    dictionary contains "bar" shouldBe false
+    docEntries contains "bar" shouldBe false
   }
 
   it should "maintain field ordering" in {
-    dictionary.keys.toList shouldBe List("foo", "baz")
+    docEntries.keys.toList shouldBe List("foo", "baz")
+  }
+
+  it should "support overridden field docs" in {
+    implicit val tDocs: ClassDoc[A] = ClassDoc[A](Map("foo" -> FieldDoc("foo")))
+
+    val overriddenDocEntries = ClassDoc.entries[A]
+    overriddenDocEntries("foo") shouldBe FieldDoc("foo")
+    overriddenDocEntries.contains("baz") shouldBe false
+
   }
 }

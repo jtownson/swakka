@@ -48,7 +48,7 @@ object SwaggerAnnotationClassDoc {
 
   private def tuples2Property(s: Set[(String, String)]): FieldDoc = {
 
-    val value: Option[String] = s.find(findField("value")).map(_._2)
+    val value: String = s.find(findField("value")).map(_._2).get
 
     FieldDoc(value)
   }

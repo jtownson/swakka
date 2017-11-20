@@ -20,6 +20,11 @@ trait ClassDoc[T] {
 
 object ClassDoc {
 
+  // Create a hardcoded ClassDoc instance for a class.
+  def apply[T](tDocs: Map[String, FieldDoc]): ClassDoc[T] = new ClassDoc[T] {
+    override def entries: Map[String, FieldDoc] = tDocs
+  }
+
   def entries[T](implicit ev: ClassDoc[T]): Map[String, FieldDoc] = ev.entries
 
   // Instances live in SwaggerAnnotationClassDoc

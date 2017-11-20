@@ -458,16 +458,38 @@ examples project and in the library unit tests. Take your pick.
 You will probably want to annotate your custom model classes (either those used for requests or for responses) so that
 the swagger file contains useful comments about each of the fields.
 
-Swakka currently allows you to do this using an existing Swagger annotation called @ApiModelProperty.
+There are two ways to do this. 
+
+The first is using a Swagger annotation called @ApiModelProperty.
 
 ```scala
+// Import the swagger annotation
 import io.swagger.annotations.ApiModelProperty
+// Then import SwaggerAnnotationClassDoc, which brings into scope an instance of the ClassDoc typeclass
+// which reads @ApiModelProperty annotations using reflection.
+import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 
-case class A(@ApiModelProperty(name = "the name", value = "the value", required = true) foo: Int)
+
+case class A(@ApiModelProperty("some docs about foo") foo: Int)
 ```
 
-(Depending on feedback, I may introduce a pluggable scheme to provide this data without annotations).
+The second is to create your own ```ClassDoc[T]``` and bring that into scope. 
+It has a single method, called ```entries``` which returns a ```Map[String, FieldDoc]``` 
+describing some or all of the fields in your model classes. If you want to return
+hardcoded maps on a class by class basis, you can use an apply method on ClassDoc.
+e.g.
 
+```scala
+case class A(foo: Int)
+
+implicit val aDocs = new ClassDoc[A](Map("foo" -> FieldDoc("docs about foo")))
+
+```
+
+Of course, you can still annotate your case classes and, if specific ClassDoc
+intances are in a closer scope they will take priority. You can use this to 
+override annotation entries if, for example, they are in another project and
+your local semantics are differ.
 
 ### The endpoint implementation, _Params => Route_
 
