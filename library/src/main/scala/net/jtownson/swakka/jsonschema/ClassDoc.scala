@@ -11,6 +11,7 @@ package net.jtownson.swakka.jsonschema
   *
   *   val entries = Map("i" -> ApiModelPropertyEntry("something about i"))
   * </code>
+  *
   * @tparam T The type for which documentation entries apply.
   */
 trait ClassDoc[T] {
@@ -27,5 +28,11 @@ object ClassDoc {
 
   def entries[T](implicit ev: ClassDoc[T]): Map[String, FieldDoc] = ev.entries
 
-  // Instances live in SwaggerAnnotationClassDoc
+  // Instances
+  import SwaggerAnnotationClassDoc._
+  import scala.reflect.runtime.universe._
+
+  implicit def apiDoc[T: TypeTag]: ClassDoc[T] = new ClassDoc[T] {
+    override def entries: Map[String, FieldDoc] = annotationEntries[T]
+  }
 }

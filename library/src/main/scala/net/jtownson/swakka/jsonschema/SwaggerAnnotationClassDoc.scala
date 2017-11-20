@@ -29,12 +29,7 @@ import scala.reflect.runtime.universe._
 
 object SwaggerAnnotationClassDoc {
 
-  // Instance of the ClassDoc type class.
-  implicit def apiDoc[T: TypeTag]: ClassDoc[T] = new ClassDoc[T] {
-    override def entries: Map[String, FieldDoc] = annotationEntries[T]
-  }
-
-  private def annotationEntries[T: TypeTag]: Map[String, FieldDoc] = {
+  def annotationEntries[T: TypeTag]: Map[String, FieldDoc] = {
     val entriesUnordered =
       constructorAnnotations[T](classOf[ApiModelProperty]).map(kv => (kv._1, tuples2Property(kv._2)))
 

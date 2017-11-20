@@ -23,5 +23,5 @@ trait HeadersJsonFormat[T] extends JsonFormat[T] {
 }
 
 object HeadersJsonFormat {
-  def func2Format[T](f: T => JsValue): HeadersJsonFormat[T] = (obj: T) => f(obj)
+  def instance[T](f: T => JsValue): HeadersJsonFormat[T] = (obj: T) => f(obj)
 }

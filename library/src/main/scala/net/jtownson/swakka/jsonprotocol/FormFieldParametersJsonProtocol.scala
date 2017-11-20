@@ -95,3 +95,4 @@ trait FormFieldParametersJsonProtocol {
   }
 }
 
+object FormFieldParametersJsonProtocol extends FormFieldParametersJsonProtocol

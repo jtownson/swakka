@@ -24,7 +24,7 @@ import net.jtownson.swakka.model.Responses.ResponseValue
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
-trait ResponsesJsonProtocol {
+trait ResponsesJsonProtocol extends HeadersJsonProtocol {
 
   implicit val hNilResponseFormat: ResponseJsonFormat[HNil] =
     _ => JsObject()

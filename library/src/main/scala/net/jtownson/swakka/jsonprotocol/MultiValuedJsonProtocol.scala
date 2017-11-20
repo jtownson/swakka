@@ -53,3 +53,5 @@ trait MultiValuedJsonProtocol {
   }
 
 }
+
+object MultiValuedJsonProtocol extends MultiValuedJsonProtocol

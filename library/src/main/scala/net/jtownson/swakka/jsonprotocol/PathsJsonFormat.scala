@@ -23,5 +23,5 @@ trait PathsJsonFormat[T] extends JsonFormat[T] {
 }
 
 object PathsJsonFormat {
-  def func2Format[T](f: T => JsValue): PathsJsonFormat[T] = (obj: T) => f(obj)
+  def instance[T](f: T => JsValue): PathsJsonFormat[T] = (obj: T) => f(obj)
 }

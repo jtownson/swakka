@@ -18,7 +18,6 @@ package net.jtownson.swakka.jsonschema
 
 import io.swagger.annotations.ApiModelProperty
 
-import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 

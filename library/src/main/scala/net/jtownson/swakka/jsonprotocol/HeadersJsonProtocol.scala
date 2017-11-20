@@ -26,22 +26,22 @@ import net.jtownson.swakka.misc.jsObject
 trait HeadersJsonProtocol {
 
   implicit val stringHeaderFormat: HeadersJsonFormat[Header[String]] =
-    func2Format(header => headerJson(header.name, "string", None, header.description))
+    instance(header => headerJson(header.name, "string", None, header.description))
 
   implicit val doubleHeaderFormat: HeadersJsonFormat[Header[Double]] =
-    func2Format(header => headerJson(header.name, "number", Some("double"), header.description))
+    instance(header => headerJson(header.name, "number", Some("double"), header.description))
 
   implicit val floatHeaderFormat: HeadersJsonFormat[Header[Float]] =
-    func2Format(header => headerJson(header.name, "number", Some("float"), header.description))
+    instance(header => headerJson(header.name, "number", Some("float"), header.description))
 
   implicit val integerHeaderFormat: HeadersJsonFormat[Header[Int]] =
-    func2Format(header => headerJson(header.name, "integer", Some("int32"), header.description))
+    instance(header => headerJson(header.name, "integer", Some("int32"), header.description))
 
   implicit val longHeaderFormat: HeadersJsonFormat[Header[Long]] =
-    func2Format(header => headerJson(header.name, "integer", Some("int64"), header.description))
+    instance(header => headerJson(header.name, "integer", Some("int64"), header.description))
 
   implicit val booleanHeaderFormat: HeadersJsonFormat[Header[Boolean]] =
-    func2Format(header => headerJson(header.name, "boolean", None, header.description))
+    instance(header => headerJson(header.name, "boolean", None, header.description))
 
   // TODO
   //  implicit val arrayHeaderFormat: HeadersJsonFormat[Header[String]] = ???
@@ -59,7 +59,7 @@ trait HeadersJsonProtocol {
   }
 
   implicit def hConsHeaderFormat[H, T <: HList](implicit head: HeadersJsonFormat[H], tail: HeadersJsonFormat[T]): HeadersJsonFormat[H :: T] =
-    func2Format((l: H :: T) => {
+    instance((l: H :: T) => {
       flattenToObject(JsArray(head.write(l.head), tail.write(l.tail)))
     })
 }
