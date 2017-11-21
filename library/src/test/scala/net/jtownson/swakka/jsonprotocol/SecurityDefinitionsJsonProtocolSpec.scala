@@ -17,12 +17,13 @@
 package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.model.SecurityDefinitions._
-import org.scalatest.Matchers._
-import shapeless._
 import SecurityDefinitionsJsonProtocol._
+
+import org.scalatest.Matchers._
+import org.scalatest.FlatSpec
+
 import spray.json._
 
-import org.scalatest.FlatSpec
 import shapeless._
 import shapeless.syntax.singleton._
 

@@ -18,10 +18,11 @@ package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.model.Responses.Header
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
+import net.jtownson.swakka.misc.jsObject
+import HeadersJsonFormat._
+
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
-import HeadersJsonFormat._
-import net.jtownson.swakka.misc.jsObject
 
 trait HeadersJsonProtocol {
 

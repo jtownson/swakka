@@ -19,9 +19,11 @@ package net.jtownson.swakka.jsonprotocol
 import akka.http.scaladsl.server.directives.FileInfo
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+
+import spray.json.{JsBoolean, JsString, JsValue}
+
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.model.Parameters.FormFieldParameter
-import spray.json.{JsBoolean, JsString, JsValue}
 
 
 trait FormFieldParametersJsonProtocol {

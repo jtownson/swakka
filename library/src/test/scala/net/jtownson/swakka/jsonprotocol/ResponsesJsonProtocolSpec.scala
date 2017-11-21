@@ -18,9 +18,12 @@ package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.jsonprotocol.ResponsesJsonProtocol._
 import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+
 import shapeless.HNil
+
 import spray.json.{JsObject, JsString, _}
 
 class ResponsesJsonProtocolSpec extends FlatSpec {

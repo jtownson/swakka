@@ -17,10 +17,12 @@
 package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.model.Parameters.{MultiValued, QueryParameter}
+import ParametersJsonProtocol._
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+
 import spray.json.{JsArray, JsBoolean, JsObject, JsString}
-import ParametersJsonProtocol._
 import spray.json._
 
 class MultiValuedJsonProtocolSpec extends FlatSpec {

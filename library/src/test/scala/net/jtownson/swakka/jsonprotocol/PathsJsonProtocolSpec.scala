@@ -19,14 +19,17 @@ package net.jtownson.swakka.jsonprotocol
 import akka.http.scaladsl.model.HttpMethods.{GET, POST}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import spray.json.{JsArray, JsObject, JsString, _}
+
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.jsonprotocol.PathsJsonProtocol._
 import net.jtownson.swakka.model.Parameters.QueryParameter
 import net.jtownson.swakka.model.Responses.ResponseValue
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+
 import shapeless.HNil
-import spray.json.{JsArray, JsObject, JsString, _}
 
 import scala.reflect.runtime.universe._
 

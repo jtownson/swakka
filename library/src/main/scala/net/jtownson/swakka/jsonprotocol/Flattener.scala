@@ -18,7 +18,6 @@ package net.jtownson.swakka.jsonprotocol
 
 import spray.json.{JsArray, JsObject, JsValue}
 
-
 object Flattener {
 
   def flattenToArray(jsValue: JsArray): JsArray = jsValue match {

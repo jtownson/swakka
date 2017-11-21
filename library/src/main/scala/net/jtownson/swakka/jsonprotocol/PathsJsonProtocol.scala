@@ -24,7 +24,6 @@ import net.jtownson.swakka.jsonprotocol.SecurityDefinitionsJsonProtocol.security
 import shapeless.{::, HList, HNil}
 import spray.json._
 import spray.json.{
-  DefaultJsonProtocol,
   JsArray,
   JsObject,
   JsString,
@@ -34,10 +33,8 @@ import spray.json.{
 
 // A JsonProtocol supporting OpenApi paths
 trait PathsJsonProtocol
-    extends DefaultJsonProtocol
-    with ParametersJsonProtocol
-    with ResponsesJsonProtocol
-    with HeadersJsonProtocol {
+    extends ParametersJsonProtocol
+    with ResponsesJsonProtocol {
 
   private def operationWriter[Params <: HList, EndpointFunction, Responses](
       implicit ev1: ParameterJsonFormat[Params],

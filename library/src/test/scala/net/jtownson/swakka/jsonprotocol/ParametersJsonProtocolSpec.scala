@@ -19,16 +19,17 @@ package net.jtownson.swakka.jsonprotocol
 import akka.http.scaladsl.server.directives.FileInfo
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
+import spray.json.{JsArray, JsBoolean, JsObject, JsString, JsValue, _}
+
 import net.jtownson.swakka.jsonprotocol.ParametersJsonProtocol._
-import net.jtownson.swakka.jsonschema.SchemaWriter._
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.model.Parameters._
+
 import org.scalatest.Matchers._
 import org.scalatest._
-import shapeless.{::, HNil}
-import spray.json.{JsArray, JsBoolean, JsObject, JsString, JsValue, _}
 import org.scalatest.prop.TableDrivenPropertyChecks._
+
+import shapeless.HNil
 
 class ParametersJsonProtocolSpec extends FlatSpec {
 
