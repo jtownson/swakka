@@ -18,6 +18,12 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server._
 
+/**
+  * ConvertibleToDirective is a type class supporting the conversion
+  * of query, body, header, ... parameters into Akka-Http directives
+  * that extract the values of those parameters.
+  * These Directives are composed by RouteGen into a single Route.
+  */
 trait ConvertibleToDirective[T] {
   def convertToDirective(modelPath: String, t: T): Directive1[T]
 }
@@ -32,5 +38,4 @@ object ConvertibleToDirective
     with MultiParamConverters {
 
   def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
-
 }

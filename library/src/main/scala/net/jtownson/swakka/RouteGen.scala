@@ -18,20 +18,37 @@ package net.jtownson.swakka
 
 import akka.http.scaladsl.model.HttpMethod
 import akka.http.scaladsl.server._
-import shapeless.{HList, HNil, :: => hcons}
+import shapeless.{HList, HNil, ::}
 import OpenApiModel._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
 import net.jtownson.swakka.model.Invoker.AkkaHttpInvoker
 import net.jtownson.swakka.routegen.SwaggerRoute.swaggerRoute
-import net.jtownson.swakka.routegen._
+import net.jtownson.swakka.routegen.{hostDirective, _}
 import spray.json.JsonFormat
 
+/**
+  * RouteGen is a type class that supports the conversion of an OpenApi model into a Akka-Http Route.
+  * This allows the processing of an HTTP request according to a Swagger definition.
+  * See also ConvertibleToDirective.
+  * @tparam T
+  */
 trait RouteGen[T] {
   def toRoute(t: T): Route
 }
 
 object RouteGen {
+
+  /**
+    * This is the hook to generate a Route for an OpenApi definition.
+    * @param api the swagger model
+    * @param swaggerRouteSettings a settings object that dictates whether to include the swagger file itself in the Route
+    *                             (along with the URL at which to serve it and which CORS headers to set).
+    * @tparam Paths A Paths HList. Please refer to the the project readme or sample code for usage.
+    * @tparam SecurityDefinitions A HList of SecurityDefinitions. Again, please refer to the readme or samples.
+    * @return An Akka-Http Route that extracts the parameters in the api definition, passing them to the endpoints
+    *         defined therein.
+    */
 
   def openApiRoute[Paths, SecurityDefinitions]
   (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: Option[SwaggerRouteSettings] = None)
@@ -47,24 +64,37 @@ object RouteGen {
       }
     }
 
-  implicit def hconsRouteGen[H, T <: HList](implicit ev1: RouteGen[H], ev2: RouteGen[T]): RouteGen[hcons[H, T]] =
-    (l: hcons[H, T]) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
+  implicit def hconsRouteGen[H, T <: HList](
+      implicit ev1: RouteGen[H],
+      ev2: RouteGen[T]): RouteGen[H :: T] =
+    (l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  implicit def pathItemRouteGen[Params <: HList : ConvertibleToDirective, EndpointFunction, Responses]
-  (implicit ev: AkkaHttpInvoker[Params, EndpointFunction]): RouteGen[PathItem[Params, EndpointFunction, Responses]] =
-    (pathItem: PathItem[Params, EndpointFunction, Responses]) => pathItemRoute(pathItem)
+  implicit def pathItemRouteGen[Params <: HList: ConvertibleToDirective,
+                                EndpointFunction,
+                                Responses](
+      implicit ev: AkkaHttpInvoker[Params, EndpointFunction])
+    : RouteGen[PathItem[Params, EndpointFunction, Responses]] =
+    (pathItem: PathItem[Params, EndpointFunction, Responses]) =>
+      pathItemRoute(pathItem)
 
   implicit val hNilRouteGen: RouteGen[HNil] =
-    _ => RouteDirectives.reject
+    (_: HNil) => RouteDirectives.reject
 
-  def pathItemRoute[Params <: HList : ConvertibleToDirective, EndpointFunction, Responses]
-  (pathItem: PathItem[Params, EndpointFunction, Responses])
-  (implicit ev: AkkaHttpInvoker[Params, EndpointFunction]): Route =
+  def pathItemRoute[Params <: HList: ConvertibleToDirective,
+                    EndpointFunction,
+                    Responses](
+      pathItem: PathItem[Params, EndpointFunction, Responses])(
+      implicit ev: AkkaHttpInvoker[Params, EndpointFunction]): Route =
     pathItemRoute(pathItem.method, pathItem.path, pathItem.operation)
 
-  private def pathItemRoute[Params <: HList : ConvertibleToDirective, EndpointFunction, Responses]
-  (httpMethod: HttpMethod, modelPath: String, operation: Operation[Params, EndpointFunction, Responses])
-  (implicit ev1: ConvertibleToDirective[Params], ev2: AkkaHttpInvoker[Params, EndpointFunction]) = {
+  private def pathItemRoute[Params <: HList: ConvertibleToDirective,
+                            EndpointFunction,
+                            Responses](
+      httpMethod: HttpMethod,
+      modelPath: String,
+      operation: Operation[Params, EndpointFunction, Responses])(
+      implicit ev1: ConvertibleToDirective[Params],
+      ev2: AkkaHttpInvoker[Params, EndpointFunction]) = {
 
     method(httpMethod) {
 

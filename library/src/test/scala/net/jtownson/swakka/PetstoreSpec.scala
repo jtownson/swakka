@@ -21,20 +21,20 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import net.jtownson.swakka.OpenApiJsonProtocol._
-import net.jtownson.swakka.RouteGen.openApiRoute
 import net.jtownson.swakka.jsonschema.SchemaWriter._
+import net.jtownson.swakka.RouteGen._
 import net.jtownson.swakka.model.Parameters.{PathParameter, QueryParameter}
 import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
 import net.jtownson.swakka.model.{Info, License}
-import net.jtownson.swakka.routegen.CorsUseCases.NoCors
-import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
+import net.jtownson.swakka.routegen.SwaggerRouteSettings
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.{::, HNil}
 import spray.json._
+
+import scala.reflect.runtime.universe._
 
 class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
@@ -126,6 +126,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     )
 
     val apiRoutes = openApiRoute(petstoreApi, Some(SwaggerRouteSettings()))
+
+    println(reify(openApiRoute(petstoreApi, Some(SwaggerRouteSettings()))))
 
     val expectedJson = JsObject(
       "swagger" -> JsString("2.0"),

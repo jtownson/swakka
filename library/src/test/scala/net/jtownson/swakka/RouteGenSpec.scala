@@ -25,18 +25,21 @@ import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives.{complete, optionalHeaderValueByName, reject}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
+import spray.json._
+
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Inside._
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
+import org.scalamock.function.{MockFunction0, MockFunction1}
+
 import shapeless.{::, HNil}
-import spray.json._
+
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
 import net.jtownson.swakka.model.Responses.ResponseValue
 import net.jtownson.swakka.routegen.SwaggerRouteSettings
-import org.scalamock.function.{MockFunction0, MockFunction1}
 import net.jtownson.swakka.model.Invoker._
 import net.jtownson.swakka.model.ParameterValue._
 
