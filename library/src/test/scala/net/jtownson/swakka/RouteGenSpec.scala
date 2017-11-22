@@ -37,11 +37,8 @@ import org.scalamock.function.{MockFunction0, MockFunction1}
 import shapeless.{::, HNil}
 
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.model.Parameters.{BodyParameter, PathParameter, QueryParameter}
-import net.jtownson.swakka.model.Responses.ResponseValue
-import net.jtownson.swakka.routegen.SwaggerRouteSettings
-import net.jtownson.swakka.model.Invoker._
-import net.jtownson.swakka.model.ParameterValue._
+import net.jtownson.swakka.RouteGen._
+import net.jtownson.swakka.OpenApiJsonProtocol._
 
 import scala.collection.immutable.Seq
 
@@ -504,9 +501,6 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
         method = GET,
         operation = Operation(
           endpointImplementation = f)))
-
-    import net.jtownson.swakka.routegen.SwaggerRouteSettings
-    import net.jtownson.swakka.routegen.CorsUseCases._
 
     val corsHeaders = Seq(
       RawHeader("Access-Control-Allow-Origin", "*"),

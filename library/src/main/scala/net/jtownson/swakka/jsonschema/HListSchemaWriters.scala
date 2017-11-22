@@ -16,7 +16,6 @@
 
 package net.jtownson.swakka.jsonschema
 
-import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
 import net.jtownson.swakka.jsonschema.FieldNameExtractor.nonOptional
 import net.jtownson.swakka.jsonschema.SchemaWriter.instance
 import net.jtownson.swakka.jsonschema.Schemas.objectSchema

@@ -16,12 +16,11 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server.{Directive1, ValidationRejection}
-import akka.http.scaladsl.server.Directives.{as, entity, provide, reject}
+import akka.http.scaladsl.server.Directives.{as, entity}
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
-import net.jtownson.swakka.model.Parameters.BodyParameter
-import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
+import net.jtownson.swakka.OpenApiModel._
 import AdditionalDirectives._
+import RouteGenTemplates._
 
 trait BodyParamConverters {
 
@@ -48,14 +47,5 @@ trait BodyParamConverters {
   private def returnOrElse[T](default: Option[T])(maybeEntity: Option[T]) = maybeEntity match {
     case v@Some(_) => v
     case _ => default
-  }
-
-  private def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
-    t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
-
-  private def enumCase[T](bp: BodyParameter[T])(value: T): Directive1[T] = bp.enum match {
-    case None => provide(value)
-    case Some(seq) if seq.contains(value) => provide(value)
-    case _ => reject(ValidationRejection(s"The request body $value is not allowed by this request. They are limited to ${bp.enum}"))
   }
 }

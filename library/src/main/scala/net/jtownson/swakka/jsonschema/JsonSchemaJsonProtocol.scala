@@ -18,9 +18,10 @@ package net.jtownson.swakka.jsonschema
 
 import spray.json.{DefaultJsonProtocol, JsonFormat, JsonWriter}
 
-trait JsonSchemaJsonProtocol extends DefaultJsonProtocol {
+trait JsonSchemaJsonProtocol extends DefaultJsonProtocol with SchemaWriters {
 
-  def jsonSchemaJsonWriter[T](implicit ev: SchemaWriter[T]): JsonWriter[JsonSchema[T]] = ev.write
+  implicit def jsonSchemaJsonWriter[T](implicit ev: SchemaWriter[T]): JsonWriter[JsonSchema[T]] =
+    ev.write
 
   implicit def jsonSchemaJsonFormat[T](implicit ev: SchemaWriter[T]): JsonFormat[JsonSchema[T]] =
     lift(jsonSchemaJsonWriter[T])

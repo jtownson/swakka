@@ -16,10 +16,9 @@
 
 package net.jtownson.swakka
 
-import net.jtownson.swakka.OpenApiModel.OpenApi
+import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.jsonprotocol._
-import net.jtownson.swakka.model.{Contact, Info, License}
-import spray.json.{DefaultJsonProtocol, JsArray, JsObject, JsString, JsValue, JsonWriter, RootJsonFormat, RootJsonWriter}
+import spray.json._
 
 trait OpenApiJsonProtocol extends
   ParametersJsonProtocol with

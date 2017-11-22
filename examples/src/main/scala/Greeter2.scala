@@ -23,13 +23,11 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.RouteGen
-import net.jtownson.swakka.model.Parameters.PathParameter
-import net.jtownson.swakka.model.Responses.ResponseValue
-import net.jtownson.swakka.routegen.CorsUseCases.SpecificallyThese
-import net.jtownson.swakka.routegen.SwaggerRouteSettings
+import net.jtownson.swakka.RouteGen._
+
 import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
@@ -69,7 +67,7 @@ object Greeter2 extends App {
         HNil
     )
 
-  val route: Route = RouteGen.openApiRoute(
+  val route: Route = openApiRoute(
     api,
     Some(SwaggerRouteSettings(
       corsUseCase = SpecificallyThese(corsHeaders))))

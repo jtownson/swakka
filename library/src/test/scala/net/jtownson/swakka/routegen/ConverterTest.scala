@@ -23,7 +23,7 @@ import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
-import net.jtownson.swakka.model.Parameters.Parameter
+import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective.converter
 import org.scalatest.Assertion
 import org.scalatest.Matchers._

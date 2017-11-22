@@ -23,7 +23,7 @@ trait SchemaWriter[T] {
   def write(schema: JsonSchema[T]): JsValue
 }
 
-object SchemaWriter extends BasicSchemaWriters with HListSchemaWriters {
+object SchemaWriter {
 
   def apply[T](implicit ev: SchemaWriter[T]): SchemaWriter[T] = ev
 

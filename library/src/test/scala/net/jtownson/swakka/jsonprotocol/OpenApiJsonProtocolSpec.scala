@@ -3,18 +3,18 @@ package net.jtownson.swakka.jsonprotocol
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
-import net.jtownson.swakka.OpenApiModel.{OpenApi, Operation, PathItem}
-import net.jtownson.swakka.model.Parameters.QueryParameter
-import net.jtownson.swakka.model.Responses.ResponseValue
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import spray.json.{JsArray, JsObject, JsString, JsTrue, _}
+
+import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.OpenApiJsonProtocol._
-import net.jtownson.swakka.model.SecurityDefinitions.SecurityRequirement
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import shapeless.HNil
-import spray.json.{JsArray, JsObject, JsString, JsTrue, _}
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
-class OpenApiJsonFormatSpec extends FlatSpec {
+import shapeless.HNil
+
+class OpenApiJsonProtocolSpec extends FlatSpec {
 
   val dummyEndpoint: () => Route =
     () => complete("dummy")

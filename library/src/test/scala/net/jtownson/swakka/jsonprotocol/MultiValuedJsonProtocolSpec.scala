@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.model.Parameters.{MultiValued, QueryParameter}
+import net.jtownson.swakka.OpenApiModel._
 import ParametersJsonProtocol._
 
 import org.scalatest.FlatSpec
@@ -58,6 +58,4 @@ class MultiValuedJsonProtocolSpec extends FlatSpec {
 
     mqp.toJson shouldBe expectedJson
   }
-
-
 }

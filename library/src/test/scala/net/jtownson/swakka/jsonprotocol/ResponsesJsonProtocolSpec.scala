@@ -17,7 +17,7 @@
 package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.jsonprotocol.ResponsesJsonProtocol._
-import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
+import net.jtownson.swakka.OpenApiModel._
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

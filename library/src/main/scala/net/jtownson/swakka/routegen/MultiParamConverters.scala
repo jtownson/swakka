@@ -16,13 +16,13 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, MissingQueryParamRejection, Rejection}
+import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, Rejection}
 import akka.http.scaladsl.server.Directives.{onComplete, provide, reject}
 import akka.http.scaladsl.server.directives.BasicDirectives.extract
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
 import akka.stream.Materializer
-import net.jtownson.swakka.model.Parameters.MultiValued.OpenMultiValued
-import net.jtownson.swakka.model.Parameters.{MultiValued, Parameter, QueryParameter}
+import net.jtownson.swakka.OpenApiModel._
+import RouteGenTemplates._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -76,6 +76,4 @@ trait MultiParamConverters {
       map(_._2)).
       flatMap(params => provide(params))
 
-  private def close[T, U <: Parameter[T]](mp: MultiValued[T, U]): Seq[T] => MultiValued[T, U] =
-    t => mp.asInstanceOf[OpenMultiValued[T, U]].closeWith(t)
 }

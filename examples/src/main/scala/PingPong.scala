@@ -23,7 +23,7 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives.complete
 import akka.stream.ActorMaterializer
-import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
+
 import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
@@ -38,16 +38,13 @@ import scala.collection.immutable.Seq
 
 // Core OpenAPI case classes
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.model.Responses.ResponseValue
 
 // Generates an akka-http Route from an API definition
-import net.jtownson.swakka.RouteGen
+import net.jtownson.swakka.RouteGen._
 
 // Implicit json formats for serializing the swagger.json
 import net.jtownson.swakka.OpenApiJsonProtocol._
 
-// Route generation instances
-import net.jtownson.swakka.routegen.ConvertibleToDirective._
 
 object PingPong extends App {
 
@@ -78,9 +75,9 @@ object PingPong extends App {
       HNil
     )
 
-  val route: Route = RouteGen.openApiRoute(
+  val route: Route = openApiRoute(
     api,
-    swaggerRouteSettings = Some(SwaggerRouteSettings(corsUseCase = CorsUseCases.SpecificallyThese(corsHeaders))))
+    swaggerRouteSettings = Some(SwaggerRouteSettings(corsUseCase = SpecificallyThese(corsHeaders))))
 
   val bindingFuture = Http().bindAndHandle(
     route,

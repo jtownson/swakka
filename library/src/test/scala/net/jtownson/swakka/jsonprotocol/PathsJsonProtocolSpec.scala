@@ -23,8 +23,6 @@ import spray.json.{JsArray, JsObject, JsString, _}
 
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.jsonprotocol.PathsJsonProtocol._
-import net.jtownson.swakka.model.Parameters.QueryParameter
-import net.jtownson.swakka.model.Responses.ResponseValue
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

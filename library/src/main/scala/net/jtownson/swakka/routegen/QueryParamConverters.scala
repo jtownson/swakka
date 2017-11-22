@@ -18,7 +18,7 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives.{parameter, _}
 import akka.http.scaladsl.unmarshalling.PredefinedFromStringUnmarshallers._
-import net.jtownson.swakka.model.Parameters.QueryParameter
+import net.jtownson.swakka.OpenApiModel._
 import RouteGenTemplates._
 
 trait QueryParamConverters {

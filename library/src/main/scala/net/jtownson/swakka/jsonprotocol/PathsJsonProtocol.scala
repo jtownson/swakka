@@ -20,21 +20,15 @@ import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.instance
-import net.jtownson.swakka.jsonprotocol.SecurityDefinitionsJsonProtocol.securityRequirementJsonFormat
 import shapeless.{::, HList, HNil}
 import spray.json._
-import spray.json.{
-  JsArray,
-  JsObject,
-  JsString,
-  JsValue,
-  JsonWriter
-}
+import spray.json.{JsArray, JsObject, JsString, JsValue, JsonWriter}
 
 // A JsonProtocol supporting OpenApi paths
 trait PathsJsonProtocol
     extends ParametersJsonProtocol
-    with ResponsesJsonProtocol {
+    with ResponsesJsonProtocol
+    with SecurityDefinitionsJsonProtocol {
 
   private def operationWriter[Params <: HList, EndpointFunction, Responses](
       implicit ev1: ParameterJsonFormat[Params],

@@ -26,20 +26,11 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import net.jtownson.swakka.OpenApiModel.{OpenApi, Operation, PathItem}
-import net.jtownson.swakka.RouteGen.openApiRoute
-import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
-import net.jtownson.swakka.jsonschema.SchemaWriter._
-import net.jtownson.swakka.model.Parameters.{
-  BodyParameter,
-  PathParameter,
-  QueryParameter
-}
-import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
-import net.jtownson.swakka.model.{Info, License}
-import net.jtownson.swakka.routegen.CorsUseCases.SpecificallyThese
-import net.jtownson.swakka.routegen.SwaggerRouteSettings
+
+import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.RouteGen._
 import net.jtownson.swakka.OpenApiJsonProtocol._
+
 import shapeless.{::, HNil}
 import spray.json._
 

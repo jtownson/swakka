@@ -23,12 +23,11 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.RouteGen
-import net.jtownson.swakka.model.Parameters.HeaderParameter
-import net.jtownson.swakka.model.Responses.{Header, ResponseValue}
-import net.jtownson.swakka.routegen.{CorsUseCases, SwaggerRouteSettings}
+import net.jtownson.swakka.RouteGen._
+
 import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
@@ -75,8 +74,8 @@ object HeadersInHeadersOut extends App {
       )
     )
 
-  val route: Route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings(
-    corsUseCase = CorsUseCases.SpecificallyThese(corsHeaders))))
+  val route: Route = openApiRoute(api, Some(SwaggerRouteSettings(
+    corsUseCase = SpecificallyThese(corsHeaders))))
 
   val bindingFuture = Http().bindAndHandle(
     route,

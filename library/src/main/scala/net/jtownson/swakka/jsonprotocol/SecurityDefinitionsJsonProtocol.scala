@@ -17,7 +17,7 @@
 package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.misc.jsObject
-import net.jtownson.swakka.model.SecurityDefinitions._
+import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.jsonprotocol.SecurityDefinitionsJsonFormat._
 
 import shapeless.labelled.FieldType

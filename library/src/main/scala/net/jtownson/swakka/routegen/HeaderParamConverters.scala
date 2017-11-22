@@ -18,7 +18,7 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives.{headerValueByName, optionalHeaderValueByName}
 import akka.http.scaladsl.server.MissingHeaderRejection
-import net.jtownson.swakka.model.Parameters.HeaderParameter
+import net.jtownson.swakka.OpenApiModel._
 import net.jtownson.swakka.routegen.RouteGenTemplates._
 
 trait HeaderParamConverters {

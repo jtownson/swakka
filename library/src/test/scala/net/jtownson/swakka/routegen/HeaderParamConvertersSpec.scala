@@ -2,7 +2,7 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
 import akka.http.scaladsl.model.headers.RawHeader
-import net.jtownson.swakka.model.Parameters.HeaderParameter
+import net.jtownson.swakka.OpenApiModel._
 import org.scalatest.FlatSpec
 
 class HeaderParamConvertersSpec extends FlatSpec with ConverterTest {

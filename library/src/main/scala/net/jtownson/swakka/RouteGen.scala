@@ -16,16 +16,18 @@
 
 package net.jtownson.swakka
 
-import akka.http.scaladsl.model.HttpMethod
+import akka.http.scaladsl.model.ContentTypes.`application/json`
+import akka.http.scaladsl.model.{HttpEntity, HttpMethod, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server._
-import shapeless.{HList, HNil, ::}
-import OpenApiModel._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
-import net.jtownson.swakka.model.Invoker.AkkaHttpInvoker
-import net.jtownson.swakka.routegen.SwaggerRoute.swaggerRoute
-import net.jtownson.swakka.routegen.{hostDirective, _}
 import spray.json.JsonFormat
+
+import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.model.Invoker.AkkaHttpInvoker
+import net.jtownson.swakka.routegen.PathHandling.pathWithSplit
+import net.jtownson.swakka.routegen.{hostDirective, _}
+import shapeless.{::, HList, HNil}
 
 /**
   * RouteGen is a type class that supports the conversion of an OpenApi model into a Akka-Http Route.
@@ -37,7 +39,9 @@ trait RouteGen[T] {
   def toRoute(t: T): Route
 }
 
-object RouteGen {
+object RouteGen extends CorsUseCases {
+
+  case class SwaggerRouteSettings(endpointPath: String = "/swagger.json", corsUseCase: CorsUseCase = NoCors)
 
   /**
     * This is the hook to generate a Route for an OpenApi definition.
@@ -56,14 +60,47 @@ object RouteGen {
     hostDirective(api.host) {
       schemesDirective(api.schemes) {
         basePathDirective(api.basePath) {
-          swaggerRouteSettings match {
-            case Some(settings) => ev1.toRoute(api.paths) ~ swaggerRoute(api, settings)
-            case None => ev1.toRoute(api.paths)
+          swaggerRouteSettings map {
+            ev1.toRoute(api.paths) ~ swaggerRoute(api, _)
+          } getOrElse {
+            ev1.toRoute(api.paths)
           }
         }
       }
     }
 
+  /**
+    * swaggerRoute defines a Route that serves the swagger file, generated for an API definition.
+    * This endpoint will serve the swagger file without appending any base path defined in the swagger
+    * and will not check host or protocol requirements in the swagger.
+    * swaggerRoute is called from within openApiRoute to provide an overall Route combining the API
+    * definition and the swagger metadata. In that context requests hosts and protcols are checked
+    * and the swagger basePath is appended (e.g. if you swagger file defines basePath as /root and
+    * swaggerRouteSettings define the swagger path as /swagger.json, swaggerRoute will serve the
+    * file from /swagger.json, whereas openApiRoute will serve the file from /root/swagger.json.
+    *
+    * @param api the API definition
+    * @param swaggerRouteSettings CORS and endpoint URL settings for the Route
+    * @tparam Paths
+    * @tparam SecurityDefinitions
+    * @return An Akka-Http Route serving the swagger file.
+    */
+  def swaggerRoute[Paths, SecurityDefinitions]
+  (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: SwaggerRouteSettings)
+  (implicit ev: JsonFormat[OpenApi[Paths, SecurityDefinitions]]): Route = {
+
+    get {
+      pathWithSplit(swaggerRouteSettings.endpointPath) {
+        complete(HttpResponse(
+          status = StatusCodes.OK,
+          headers = swaggerRouteSettings.corsUseCase.headers,
+          entity = HttpEntity(`application/json`, ev.write(api).prettyPrint))
+        )
+      }
+    }
+  }
+
+  // Implicit RouteGen instances
   implicit def hconsRouteGen[H, T <: HList](
       implicit ev1: RouteGen[H],
       ev2: RouteGen[T]): RouteGen[H :: T] =

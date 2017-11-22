@@ -21,24 +21,18 @@ import akka.http.scaladsl.model.HttpMethods.{GET, POST, PUT}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
+import spray.json._
+
 import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.RouteGen._
 import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.RouteGen.openApiRoute
-import net.jtownson.swakka.jsonschema.SchemaWriter._
-import net.jtownson.swakka.jsonschema.SwaggerAnnotationClassDoc._
-import net.jtownson.swakka.model.Parameters.{BodyParameter, MultiValued, QueryParameter}
-import net.jtownson.swakka.model.Responses.ResponseValue
-import net.jtownson.swakka.model.SecurityDefinitions.{ApiKeyInHeaderSecurity, Oauth2ImplicitSecurity, SecurityRequirement}
-import net.jtownson.swakka.model.{ExternalDocs, Info, License, Tag}
-import net.jtownson.swakka.routegen.SwaggerRouteSettings
-import net.jtownson.swakka.routegen.ConvertibleToDirective._
-import net.jtownson.swakka.model.ParameterValue._
 import net.jtownson.swakka.model.Invoker._
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+
 import shapeless.syntax.singleton._
 import shapeless.HNil
-import spray.json._
 
 class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface {
 

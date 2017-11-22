@@ -16,12 +16,16 @@
 
 package net.jtownson.swakka.routegen
 
-import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, Rejection}
+import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, Rejection, ValidationRejection}
 import akka.http.scaladsl.server.Directives.{provide, reject}
-import net.jtownson.swakka.model.Parameters.FormFieldParameter.OpenFormFieldParameter
-import net.jtownson.swakka.model.Parameters.{FormFieldParameter, HeaderParameter, QueryParameter}
-import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
-import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
+import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.OpenApiModel.HeaderParameter._
+import net.jtownson.swakka.OpenApiModel.QueryParameter._
+import net.jtownson.swakka.OpenApiModel.FormFieldParameter._
+import net.jtownson.swakka.OpenApiModel.BodyParameter._
+import net.jtownson.swakka.OpenApiModel.PathParameter._
+import net.jtownson.swakka.OpenApiModel.MultiValued._
+
 
 object RouteGenTemplates {
 
@@ -109,5 +113,26 @@ object RouteGenTemplates {
 
   def close[T](fp: FormFieldParameter[T]): T => FormFieldParameter[T] =
     t => fp.asInstanceOf[OpenFormFieldParameter[T]].closeWith(t)
+
+  def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
+    t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
+
+  def enumCase[T](bp: BodyParameter[T])(value: T): Directive1[T] = bp.enum match {
+    case None => provide(value)
+    case Some(seq) if seq.contains(value) => provide(value)
+    case _ => reject(ValidationRejection(s"The request body $value is not allowed by this request. They are limited to ${bp.enum}"))
+  }
+
+  def close[T, U <: Parameter[T]](mp: MultiValued[T, U]): Seq[T] => MultiValued[T, U] =
+    t => mp.asInstanceOf[OpenMultiValued[T, U]].closeWith(t)
+
+  def close[T](pp: PathParameter[T]): T => PathParameter[T] =
+    t => pp.asInstanceOf[OpenPathParameter[T]].closeWith(t)
+
+  def enumCase[T](pp: PathParameter[T])(value: T): Directive1[T] = pp.enum match {
+    case None => provide(value)
+    case Some(seq) if seq.contains(value) => provide(value)
+    case _ => reject(ValidationRejection(s"The path value $value is not allowed by this request. They are limited to ${pp.enum}"))
+  }
 
 }

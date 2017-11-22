@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.model
+package net.jtownson.swakka.routegen
 
-object ModelDefaults {
-  val pointlessInfo = Info(version = "", title = "")
+import akka.http.scaladsl.model.HttpHeader
+import scala.collection.immutable.Seq
+
+trait CorsUseCase {
+
+  def headers: Seq[HttpHeader]
 }

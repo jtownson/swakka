@@ -1,7 +1,7 @@
 package net.jtownson.swakka.model
 
 import akka.http.scaladsl.server.Route
-import net.jtownson.swakka.model.Parameters._
+import net.jtownson.swakka.OpenApiModel._
 import shapeless.ops.function.FnToProduct
 import shapeless.{::, HList, HNil}
 

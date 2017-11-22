@@ -16,12 +16,12 @@
 
 package net.jtownson.swakka.model
 
-import net.jtownson.swakka.model.Parameters.BodyParameter.OpenBodyParameter
-import net.jtownson.swakka.model.Parameters.FormFieldParameter.OpenFormFieldParameter
-import net.jtownson.swakka.model.Parameters.HeaderParameter.OpenHeaderParameter
-import net.jtownson.swakka.model.Parameters.PathParameter.OpenPathParameter
-import net.jtownson.swakka.model.Parameters.QueryParameter.OpenQueryParameter
-import net.jtownson.swakka.model.Parameters.{QueryParameter, _}
+import net.jtownson.swakka.OpenApiModel.BodyParameter.OpenBodyParameter
+import net.jtownson.swakka.OpenApiModel.FormFieldParameter.OpenFormFieldParameter
+import net.jtownson.swakka.OpenApiModel.HeaderParameter.OpenHeaderParameter
+import net.jtownson.swakka.OpenApiModel.PathParameter.OpenPathParameter
+import net.jtownson.swakka.OpenApiModel.QueryParameter.OpenQueryParameter
+import net.jtownson.swakka.OpenApiModel.{QueryParameter, _}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
