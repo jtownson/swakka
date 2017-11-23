@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka
 
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.jsonprotocol._
 import spray.json._
 

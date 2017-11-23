@@ -18,13 +18,13 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.{Directive1, MalformedQueryParamRejection, Rejection, ValidationRejection}
 import akka.http.scaladsl.server.Directives.{provide, reject}
-import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.OpenApiModel.HeaderParameter._
-import net.jtownson.swakka.OpenApiModel.QueryParameter._
-import net.jtownson.swakka.OpenApiModel.FormFieldParameter._
-import net.jtownson.swakka.OpenApiModel.BodyParameter._
-import net.jtownson.swakka.OpenApiModel.PathParameter._
-import net.jtownson.swakka.OpenApiModel.MultiValued._
+import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.openapimodel.HeaderParameter._
+import net.jtownson.swakka.openapimodel.QueryParameter._
+import net.jtownson.swakka.openapimodel.FormFieldParameter._
+import net.jtownson.swakka.openapimodel.BodyParameter._
+import net.jtownson.swakka.openapimodel.PathParameter._
+import net.jtownson.swakka.openapimodel.MultiValued._
 
 
 object RouteGenTemplates {

@@ -23,8 +23,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
 import spray.json.JsonFormat
 
-import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.model.Invoker.AkkaHttpInvoker
+import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.openapimodel.Invoker.AkkaHttpInvoker
 import net.jtownson.swakka.routegen.PathHandling.pathWithSplit
 import net.jtownson.swakka.routegen.{hostDirective, _}
 import shapeless.{::, HList, HNil}

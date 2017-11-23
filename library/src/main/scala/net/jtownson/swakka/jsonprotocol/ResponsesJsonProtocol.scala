@@ -20,7 +20,7 @@ import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
 import net.jtownson.swakka.jsonprotocol.ResponseJsonFormat._
 import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter, SchemaWriters}
 import net.jtownson.swakka.misc.jsObject
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 

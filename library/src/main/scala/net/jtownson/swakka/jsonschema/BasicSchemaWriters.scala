@@ -17,7 +17,7 @@
 package net.jtownson.swakka.jsonschema
 
 import net.jtownson.swakka.jsonschema.Schemas.{arraySchema, numericSchema, stringSchema, unitSchema}
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 
 trait BasicSchemaWriters {
 

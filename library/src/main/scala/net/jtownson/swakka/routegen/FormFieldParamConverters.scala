@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.routegen
 
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import RouteGenTemplates._
 import AdditionalDirectives._
 import akka.http.scaladsl.server.Directives._

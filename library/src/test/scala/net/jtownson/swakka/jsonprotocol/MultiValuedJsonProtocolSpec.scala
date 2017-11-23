@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.jsonprotocol
 
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import ParametersJsonProtocol._
 
 import org.scalatest.FlatSpec

@@ -19,7 +19,7 @@ package net.jtownson.swakka.routegen
 import akka.http.scaladsl.model.StatusCodes.{BadRequest, NotFound, OK}
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route.seal
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective.stringReqQueryConverter
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

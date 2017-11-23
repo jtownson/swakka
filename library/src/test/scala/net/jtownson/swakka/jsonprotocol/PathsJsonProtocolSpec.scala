@@ -21,7 +21,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import spray.json.{JsArray, JsObject, JsString, _}
 
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.jsonprotocol.PathsJsonProtocol._
 
 import org.scalatest.FlatSpec

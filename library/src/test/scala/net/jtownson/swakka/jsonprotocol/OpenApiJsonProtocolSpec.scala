@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.{JsArray, JsObject, JsString, JsTrue, _}
 
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 
 import org.scalatest.FlatSpec

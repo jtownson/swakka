@@ -23,7 +23,7 @@ import akka.util.ByteString
 import spray.json.{JsBoolean, JsString, JsValue}
 
 import net.jtownson.swakka.misc.jsObject
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 
 trait FormFieldParametersJsonProtocol {
 

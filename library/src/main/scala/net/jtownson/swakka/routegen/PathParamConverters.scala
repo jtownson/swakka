@@ -18,7 +18,7 @@ package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.server.Directives.{DoubleNumber, rawPathPrefixTest}
 import akka.http.scaladsl.server.{PathMatcher, PathMatcher1}
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.routegen.PathHandling.pathWithParamMatcher
 import akka.http.scaladsl.server.PathMatchers.{IntNumber, LongNumber, Segment}
 import RouteGenTemplates._

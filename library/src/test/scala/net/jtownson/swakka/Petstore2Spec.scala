@@ -25,8 +25,7 @@ import spray.json._
 
 import net.jtownson.swakka.OpenApiJsonProtocol._
 import net.jtownson.swakka.RouteGen._
-import net.jtownson.swakka.OpenApiModel._
-import net.jtownson.swakka.model.Invoker._
+import net.jtownson.swakka.openapimodel._
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

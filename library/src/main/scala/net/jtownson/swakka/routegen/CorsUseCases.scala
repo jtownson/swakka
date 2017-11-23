@@ -54,5 +54,4 @@ trait CorsUseCases {
       ).flatten
     }
   }
-
 }

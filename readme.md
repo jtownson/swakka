@@ -27,7 +27,7 @@ Here's how it works...
 // Some akka imports ...	
 
 // Some Swakka imports
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.RouteGen._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 	
@@ -243,7 +243,7 @@ This provides a declarative, type-level approach to generating swagger response 
 Here is an example:
 
 ```scala
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 
 import spray.json._
@@ -424,7 +424,7 @@ Here is some example code showing these two steps (taken from the Petstore2 test
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 
 // This defines the OpenApi model (i.e. the structure of a swagger file)
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 
 // Imports JsonProtocols that convert the openapi model case classes 
 // (OpenApi, Path, Operation, QueryParameter[T], PathParameter[T], ...)
@@ -666,7 +666,7 @@ implicit val jsonFormat = jsonFormatN(T) // where N is 1, 2, 3, according to the
 
 If you want just the serialization to Swagger JSON, you can write code like this
 ```scala
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json._
 
@@ -711,7 +711,7 @@ e.g. ```val f: String => Route = ...```. Any other return type will break implic
 
 Check you have included the Swakka imports. Unless you need to get into low-level details, include the following 
 imports
-1) ```OpenApiModel._``` to bring in the swagger model case classes.
+1) ```openapimodel._``` to bring in the swagger model case classes.
 2) ```OpenApiJsonProtocol._``` to enable Swagger generation
 3) ```RouteGen._``` to enable Akka Http Route generation
 

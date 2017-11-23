@@ -17,7 +17,7 @@
 package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.misc.jsObject
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import spray.json._
 
 trait MultiValuedJsonProtocol {

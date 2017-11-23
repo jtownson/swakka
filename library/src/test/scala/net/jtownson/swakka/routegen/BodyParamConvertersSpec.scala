@@ -23,7 +23,7 @@ import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
 import spray.json._
 
 import net.jtownson.swakka.OpenApiJsonProtocol._
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective.{bodyOptParamConverter, bodyParamConverter}
 
 import org.scalatest.FlatSpec

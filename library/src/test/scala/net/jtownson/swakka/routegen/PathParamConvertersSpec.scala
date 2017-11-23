@@ -3,7 +3,7 @@ package net.jtownson.swakka.routegen
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.model.StatusCodes._
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective.hNilConverter
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

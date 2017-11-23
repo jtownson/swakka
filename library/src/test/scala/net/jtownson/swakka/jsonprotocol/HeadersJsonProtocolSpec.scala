@@ -20,7 +20,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json._
 import HeadersJsonProtocol._
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import shapeless.{::, HNil}
 
 class HeadersJsonProtocolSpec extends FlatSpec {

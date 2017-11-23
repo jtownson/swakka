@@ -36,7 +36,7 @@ import org.scalamock.function.{MockFunction0, MockFunction1}
 
 import shapeless.{::, HNil}
 
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.RouteGen._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 

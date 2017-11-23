@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.model
+package net.jtownson.swakka.openapimodel
 
-import net.jtownson.swakka.OpenApiModel.BodyParameter.OpenBodyParameter
-import net.jtownson.swakka.OpenApiModel.FormFieldParameter.OpenFormFieldParameter
-import net.jtownson.swakka.OpenApiModel.HeaderParameter.OpenHeaderParameter
-import net.jtownson.swakka.OpenApiModel.PathParameter.OpenPathParameter
-import net.jtownson.swakka.OpenApiModel.QueryParameter.OpenQueryParameter
-import net.jtownson.swakka.OpenApiModel.{QueryParameter, _}
+import net.jtownson.swakka.openapimodel.BodyParameter.OpenBodyParameter
+import net.jtownson.swakka.openapimodel.FormFieldParameter.OpenFormFieldParameter
+import net.jtownson.swakka.openapimodel.HeaderParameter.OpenHeaderParameter
+import net.jtownson.swakka.openapimodel.PathParameter.OpenPathParameter
+import net.jtownson.swakka.openapimodel.QueryParameter.OpenQueryParameter
+import net.jtownson.swakka.openapimodel.{QueryParameter, _}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._

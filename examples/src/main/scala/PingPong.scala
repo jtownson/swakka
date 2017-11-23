@@ -37,7 +37,7 @@ import scala.collection.immutable.Seq
 // Usage: curl -i http://localhost:8080/ping
 
 // Core OpenAPI case classes
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 
 // Generates an akka-http Route from an API definition
 import net.jtownson.swakka.RouteGen._

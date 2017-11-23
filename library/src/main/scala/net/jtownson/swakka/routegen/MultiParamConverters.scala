@@ -21,7 +21,7 @@ import akka.http.scaladsl.server.Directives.{onComplete, provide, reject}
 import akka.http.scaladsl.server.directives.BasicDirectives.extract
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
 import akka.stream.Materializer
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import RouteGenTemplates._
 
 import scala.concurrent.{ExecutionContext, Future}

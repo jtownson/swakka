@@ -34,7 +34,7 @@ import scala.collection.immutable.Seq
 // Usage: curl -i http://localhost:8080/greet?name=John
 
 // API model
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 
 // Akka http route generation
 import net.jtownson.swakka.RouteGen._

@@ -27,7 +27,7 @@ import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 
-import net.jtownson.swakka.OpenApiModel._
+import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.RouteGen._
 import net.jtownson.swakka.OpenApiJsonProtocol._
 
