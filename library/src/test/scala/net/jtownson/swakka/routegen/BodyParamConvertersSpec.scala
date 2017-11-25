@@ -22,7 +22,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
 import spray.json._
 
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonprotocol._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.routegen.ConvertibleToDirective.{bodyOptParamConverter, bodyParamConverter}
 

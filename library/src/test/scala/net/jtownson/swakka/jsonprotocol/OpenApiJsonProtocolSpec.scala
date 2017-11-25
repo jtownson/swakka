@@ -7,7 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.{JsArray, JsObject, JsString, JsTrue, _}
 
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonprotocol._
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

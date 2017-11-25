@@ -28,8 +28,8 @@ Here's how it works...
 
 // Some Swakka imports
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.RouteGen._
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.routegen._
+import net.jtownson.swakka.jsonprotocol._
 	
 object Greeter1 extends App {
 
@@ -244,7 +244,7 @@ Here is an example:
 
 ```scala
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonprotocol._
 
 import spray.json._
 
@@ -322,7 +322,7 @@ If a parameter in your API is optional then declare it using scala's _Option_, a
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = f)))
 
-    val route = RouteGen.openApiRoute(api)
+    val route = openApiRoute(api)
 
     // The q parameter is missing from the request
     // Our endpoint implementation will be called with q=None
@@ -397,7 +397,7 @@ as the parameter value. This provides support for Swagger's ```collectionFormat=
 Swakka defines implicit (Spray) JsonFormats to convert the types above (and their Optional variants) into Swagger json.
 To enable this, you import these conversions: 
 ```scala
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonprotocol._
 ``` 
 
 ### Body parameters (and _SchemaWriter_)
@@ -430,10 +430,10 @@ import net.jtownson.swakka.openapimodel._
 // (OpenApi, Path, Operation, QueryParameter[T], PathParameter[T], ...)
 // into their swagger json equivalents.
 // OpenApiJsonProtocol extends akka's DefaultJsonProtocol, so you should avoid importing DefaultJsonProtocol.
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonprotocol._
 
 // Imports the route generation feature
-import net.jtownson.swakka.RouteGen._
+import net.jtownson.swakka.routegen._
 
 class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface {
 
@@ -472,7 +472,7 @@ import io.swagger.annotations.ApiModelProperty
 // Then import the json generation feature. Internally, 
 // this brings into scope an instance of the ClassDoc typeclass
 // which reads @ApiModelProperty annotations using reflection.
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonprotocol._
 
 
 case class A(@ApiModelProperty("some docs about foo") foo: Int)
@@ -542,7 +542,7 @@ and layer your OpenApi definition on top of existing Routes.
 When generating the Akka Route, you can pass a couple of options for the swagger endpoint:
 
 ```scala
-import net.jtownson.swakka.RouteGen._
+import net.jtownson.swakka.routegen._
 import akka.http.scaladsl.model.headers.RawHeader
     
 val corsHeaders = Seq(
@@ -635,12 +635,12 @@ Once you get a feel for those, here is a checklist of the implicit values (and o
 
 * The JsonFormats to convert the OpenApi model classes (to swagger json)
 ```scala
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonprotocol._
 ```
 * The RouteGen instances to convert the API definition to an Akka Route
 that will match and extract parameters, etc from HTTP requests.
 ```scala
-import net.jtownson.swakka.Routegen._
+import net.jtownson.swakka.routegen._
 ```
 
 * Imports for shapeless HLists
@@ -712,8 +712,8 @@ e.g. ```val f: String => Route = ...```. Any other return type will break implic
 Check you have included the Swakka imports. Unless you need to get into low-level details, include the following 
 imports
 1) ```openapimodel._``` to bring in the swagger model case classes.
-2) ```OpenApiJsonProtocol._``` to enable Swagger generation
-3) ```RouteGen._``` to enable Akka Http Route generation
+2) ```jsonprotocol._``` to enable Swagger generation
+3) ```routegen._``` to enable Akka Http Route generation
 
 
 #### Akka rejects requests for the swagger file

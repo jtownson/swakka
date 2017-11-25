@@ -14,37 +14,36 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka
+package net.jtownson.swakka.routegen
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.HttpMethods.{GET, POST, PUT}
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.{NotFound, OK}
 import akka.http.scaladsl.model.headers.RawHeader
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest}
+import akka.http.scaladsl.server.Directives.{complete, optionalHeaderValueByName, reject}
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.Directives.{complete, optionalHeaderValueByName, reject}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import spray.json._
 
+import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.routegen._
+
+import org.scalamock.function.{MockFunction0, MockFunction1}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Inside._
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
-import org.scalamock.function.{MockFunction0, MockFunction1}
 
 import shapeless.{::, HNil}
-
-import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.RouteGen._
-import net.jtownson.swakka.OpenApiJsonProtocol._
 
 import scala.collection.immutable.Seq
 
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
-  import OpenApiJsonProtocol._
   import net.jtownson.swakka.routegen.ConvertibleToDirective._
 
   private def f0: MockFunction0[Route] = mockFunction[Route]
@@ -252,7 +251,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val api = OpenApi(paths = path1 :: path2 :: HNil)
 
-    val route = RouteGen.openApiRoute(api)
+    val route = openApiRoute(api)
 
     val e1Request = get("/app/e1?q=10")
     val e2Request = get("/app/e2?q=str")
@@ -283,7 +282,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           parameters = QueryParameter[Int]('q) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f)))
 
-    val route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings()))
+    val route = openApiRoute(api, Some(SwaggerRouteSettings()))
 
     val swaggerRequest = get("/swagger.json")
 
@@ -313,7 +312,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           HNil
       )
 
-    val route: Route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings()))
+    val route: Route = openApiRoute(api, Some(SwaggerRouteSettings()))
 
     Get("http://localhost:8080/") ~> seal(route) ~> check {
       status shouldBe NotFound
@@ -344,7 +343,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           HNil
       )
 
-    val route: Route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings()))
+    val route: Route = openApiRoute(api, Some(SwaggerRouteSettings()))
 
     Get("http://localhost:8080/greet/Katharine") ~> seal(route) ~> check {
       status shouldBe OK
@@ -364,7 +363,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           operation = Operation(
             endpointImplementation = f)))
 
-    val route = RouteGen.openApiRoute(api)
+    val route = openApiRoute(api)
 
     val request0 = get("bar", "/app")
     request0 ~> seal(route) ~> check {
@@ -390,7 +389,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           operation = Operation(
             endpointImplementation = f)))
 
-    val route = RouteGen.openApiRoute(api)
+    val route = openApiRoute(api)
 
     f.expects().returning(complete("x"))
 
@@ -420,7 +419,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
             endpointImplementation = f))
     )
 
-    val route = RouteGen.openApiRoute(api, Some(SwaggerRouteSettings()))
+    val route = openApiRoute(api, Some(SwaggerRouteSettings()))
 
     val request0 = Get("https://foo.com/app")
     request0 ~> route ~> check {
@@ -454,7 +453,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = f)))
 
-    val route = RouteGen.openApiRoute(api)
+    val route = openApiRoute(api)
 
     Get("http://localhost:8080/app/e1") ~> seal(route) ~> check {
       status shouldBe OK
@@ -479,7 +478,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = f)))
 
-    val route = RouteGen.openApiRoute(api)
+    val route = openApiRoute(api)
 
     Get("http://localhost:8080/app/e1") ~> seal(route) ~> check {
       status shouldBe OK
@@ -506,7 +505,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
       RawHeader("Access-Control-Allow-Origin", "*"),
       RawHeader("Access-Control-Allow-Methods", "GET"))
 
-    val route = RouteGen.openApiRoute(
+    val route = openApiRoute(
       api,
       Some(SwaggerRouteSettings(
         endpointPath = "my/path/to/my/swagger-file.json",

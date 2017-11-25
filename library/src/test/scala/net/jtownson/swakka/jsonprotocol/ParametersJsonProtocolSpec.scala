@@ -21,12 +21,11 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import spray.json.{JsArray, JsBoolean, JsObject, JsString, JsValue, _}
 
-import net.jtownson.swakka.jsonprotocol.ParametersJsonProtocol._
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
 
-import org.scalatest.Matchers._
 import org.scalatest._
+import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
 
 import shapeless.HNil
@@ -261,7 +260,7 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     ),
 
     ("HNil",
-      (HNil: HNil).toJson,
+      ParametersJsonProtocol.hNilParamFormat.write(HNil: HNil),
       JsArray())
   )
 

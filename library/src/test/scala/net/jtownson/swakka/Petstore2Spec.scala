@@ -23,8 +23,8 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import spray.json._
 
-import net.jtownson.swakka.OpenApiJsonProtocol._
-import net.jtownson.swakka.RouteGen._
+import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.routegen._
 import net.jtownson.swakka.openapimodel._
 
 import org.scalatest.FlatSpec

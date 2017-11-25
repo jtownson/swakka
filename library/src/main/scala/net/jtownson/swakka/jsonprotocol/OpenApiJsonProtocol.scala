@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka
+package net.jtownson.swakka.jsonprotocol
 
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.jsonprotocol._
@@ -26,11 +26,9 @@ trait OpenApiJsonProtocol extends
   PathsJsonProtocol with
   HeadersJsonProtocol with
   SecurityDefinitionsJsonProtocol with
-  DefaultJsonProtocol
+  DefaultJsonProtocol {
 
-object OpenApiJsonProtocol extends OpenApiJsonProtocol {
-
-  private val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
+  val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
     val fields: List[(String, JsValue)] = List(
       contact.name.map("name" -> JsString(_)),
       contact.url.map("url" -> JsString(_)),
@@ -40,7 +38,7 @@ object OpenApiJsonProtocol extends OpenApiJsonProtocol {
     JsObject(fields: _*)
   }
 
-  private val licenceWriter: JsonWriter[License] = (licence: License) => {
+  val licenceWriter: JsonWriter[License] = (licence: License) => {
     val fields: List[(String, JsValue)] = List(
       Some("name" -> JsString(licence.name)),
       licence.url.map("url" -> JsString(_))).flatten
@@ -48,7 +46,7 @@ object OpenApiJsonProtocol extends OpenApiJsonProtocol {
     JsObject(fields: _*)
   }
 
-  private val infoWriter: JsonWriter[Info] = (info: Info) => {
+  val infoWriter: JsonWriter[Info] = (info: Info) => {
 
     val fields: List[(String, JsValue)] = List(
       Some("title" -> JsString(info.title)),
@@ -92,3 +90,5 @@ object OpenApiJsonProtocol extends OpenApiJsonProtocol {
   }
 
 }
+
+object OpenApiJsonProtocol extends OpenApiJsonProtocol

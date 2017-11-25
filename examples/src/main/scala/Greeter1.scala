@@ -37,10 +37,10 @@ import scala.collection.immutable.Seq
 import net.jtownson.swakka.openapimodel._
 
 // Akka http route generation
-import net.jtownson.swakka.RouteGen._
+import net.jtownson.swakka.routegen._
 
 // Serialization of swagger.json
-import net.jtownson.swakka.OpenApiJsonProtocol._
+import net.jtownson.swakka.jsonprotocol._
 
 
 object Greeter1 extends App {

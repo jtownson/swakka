@@ -21,7 +21,7 @@ import net.jtownson.swakka.openapimodel.FormFieldParameter.OpenFormFieldParamete
 import net.jtownson.swakka.openapimodel.HeaderParameter.OpenHeaderParameter
 import net.jtownson.swakka.openapimodel.PathParameter.OpenPathParameter
 import net.jtownson.swakka.openapimodel.QueryParameter.OpenQueryParameter
-import net.jtownson.swakka.openapimodel.{QueryParameter, _}
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
