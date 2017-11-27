@@ -46,6 +46,7 @@ trait PathsJsonProtocol
         optionalArrayField("consumes", operation.consumes),
         optionalArrayField("produces", operation.produces),
         operation.description.map("description" -> JsString(_)),
+        optionalBooleanField("deprecated", operation.deprecated),
         optionalArrayField("parameters", parameters),
         optionalObjectField("responses", responses),
         operation.security.map("security" -> _.toJson)
@@ -53,6 +54,9 @@ trait PathsJsonProtocol
 
       JsObject(fields: _*)
     }
+
+  private def optionalBooleanField(s: String, b: Boolean): Option[(String, JsBoolean)] =
+    Some(s -> JsBoolean(b)).filter(_ => b)
 
   private def optionalArrayField(
       s: String,

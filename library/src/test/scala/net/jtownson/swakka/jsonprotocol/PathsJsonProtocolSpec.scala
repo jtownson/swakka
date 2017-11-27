@@ -153,4 +153,27 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
     paths.toJson shouldBe expectedJson
   }
+
+  it should "write the deprecate flag" in {
+    val paths =
+      PathItem(
+        path = "/app",
+        method = GET,
+        operation = Operation(
+          deprecated = true,
+          endpointImplementation = dummyEndpoint
+        )
+      )
+
+    val expectedJson =
+      JsObject(
+        "/app" -> JsObject(
+          "get" -> JsObject(
+            "deprecated" -> JsBoolean(true)
+          )
+        )
+      )
+
+    paths.toJson shouldBe expectedJson
+  }
 }

@@ -41,5 +41,6 @@ case class Operation[Params, EndpointFunction, Responses](
     produces: Option[Seq[String]] = None,
     parameters: Params = HNil: HNil,
     responses: Responses = HNil: HNil,
+    deprecated: Boolean = false,
     security: Option[Seq[SecurityRequirement]] = None,
     endpointImplementation: EndpointFunction)

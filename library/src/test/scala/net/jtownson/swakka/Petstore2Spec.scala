@@ -17,19 +17,16 @@
 package net.jtownson.swakka
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.HttpMethods.{GET, POST, PUT}
+import akka.http.scaladsl.model.HttpMethods.{DELETE, GET, POST, PUT}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import spray.json._
-
 import net.jtownson.swakka.jsonprotocol._
 import net.jtownson.swakka.routegen._
 import net.jtownson.swakka.openapimodel._
-
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-
 import shapeless.syntax.singleton._
 import shapeless.HNil
 
@@ -51,13 +48,24 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
 
   implicit val errorJsonFormat = jsonFormat2(Error)
 
+
   "Swakka" should "support the petstore v2 example, which includes auth" in {
 
-    val createPet: Pet => Route = _ => complete("dummy")
+    val dummyRoute = complete("dummy")
 
-    val updatePet: Pet => Route = _ => complete("dummy")
+    val createPet: Pet => Route = _ => dummyRoute
 
-    val findByStatus: Seq[String] => Route = _ => complete("dummy")
+    val updatePet: Pet => Route = _ => dummyRoute
+
+    val findByStatus: Seq[String] => Route = _ => dummyRoute
+
+    val findByTags: Seq[String] => Route = _ => dummyRoute
+
+    val findById: Long => Route = _ => dummyRoute
+
+    val updatePetForm: (Long, Option[String], Option[String]) => Route = (_, _, _) => dummyRoute
+
+    val deletePet: (Option[String], Long) => Route = (_, _) => dummyRoute
 
     val securityDefinitions =
       'petstore_auth ->> Oauth2ImplicitSecurity(
@@ -120,59 +128,175 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
             endpointImplementation = createPet
           )
         ) ::
-        PathItem(
-          path = "/pets",
-          method = PUT,
-          operation = Operation(
-            summary = Some("Update an existing pet"),
-            description = Some(""),
-            operationId = Some("updatePet"),
-            tags = Some(Seq("pet")),
-            consumes = Some(Seq("application/json", "application/xml")),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters = BodyParameter[Pet]('body, Some("Pet object that needs to be added to the store")) :: HNil,
-            responses =
-              ResponseValue[HNil, HNil](
-                responseCode = "400",
-                description = "Invalid ID supplied"
-              ) ::
-              ResponseValue[HNil, HNil](
-                responseCode = "404",
-                description = "Pet not found"
-              ) ::
-              ResponseValue[HNil, HNil](
-                responseCode = "405",
-                description = "Validation exception"
-              ) ::
-              HNil,
-            security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets")))),
-            endpointImplementation = updatePet
-          )
-        ) ::
-        PathItem(
-          path = "/pet/findByStatus",
-          method = GET,
-          operation = Operation(
-            summary = Some("Finds Pets by status"),
-            description = Some("Multiple status values can be provided with comma separated strings"),
-            operationId = Some("findPetsByStatus"),
-            tags = Some(Seq("pet")),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters = MultiValued[String, QueryParameter[String]](
-              QueryParameter[String](
-                name = 'status,
-                description = Some("Status values that need to be considered for filter"),
-                default = Some("available"),
-                enum = Some(Seq("available", "pending", "sold"))
-              )) :: HNil,
-            responses =
-              ResponseValue[Seq[Pet], HNil]("200", "successful operation") ::
-                ResponseValue[HNil, HNil]("400", "Invalid status value") ::
+          PathItem(
+            path = "/pets",
+            method = PUT,
+            operation = Operation(
+              summary = Some("Update an existing pet"),
+              description = Some(""),
+              operationId = Some("updatePet"),
+              tags = Some(Seq("pet")),
+              consumes = Some(Seq("application/json", "application/xml")),
+              produces = Some(Seq("application/xml", "application/json")),
+              parameters = BodyParameter[Pet]('body, Some("Pet object that needs to be added to the store")) :: HNil,
+              responses =
+                ResponseValue[HNil, HNil](
+                  responseCode = "400",
+                  description = "Invalid ID supplied"
+                ) ::
+                  ResponseValue[HNil, HNil](
+                    responseCode = "404",
+                    description = "Pet not found"
+                  ) ::
+                  ResponseValue[HNil, HNil](
+                    responseCode = "405",
+                    description = "Validation exception"
+                  ) ::
+                  HNil,
+              security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets")))),
+              endpointImplementation = updatePet
+            )
+          ) ::
+          PathItem(
+            path = "/pet/findByStatus",
+            method = GET,
+            operation = Operation(
+              summary = Some("Finds Pets by status"),
+              description = Some("Multiple status values can be provided with comma separated strings"),
+              operationId = Some("findPetsByStatus"),
+              tags = Some(Seq("pet")),
+              produces = Some(Seq("application/xml", "application/json")),
+              parameters = MultiValued[String, QueryParameter[String]](
+                QueryParameter[String](
+                  name = 'status,
+                  description = Some("Status values that need to be considered for filter"),
+                  default = Some("available"),
+                  enum = Some(Seq("available", "pending", "sold"))
+                )) :: HNil,
+              responses =
+                ResponseValue[Seq[Pet], HNil]("200", "successful operation") ::
+                  ResponseValue[HNil, HNil]("400", "Invalid status value") ::
+                  HNil,
+              endpointImplementation = findByStatus,
+              security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets"))))
+            )
+          ) ::
+          PathItem(
+            path = "/pet/findByTags",
+            method = GET,
+            operation = Operation(
+              deprecated = true,
+              summary = Some("Finds Pets by tags"),
+              tags = Some(Seq("pet")),
+              description = Some("Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing."),
+              operationId = Some("findPetsByTags"),
+              produces = Some(Seq("application/xml", "application/json")),
+              parameters = MultiValued[String, QueryParameter[String]](
+                QueryParameter[String](
+                  name = 'tags,
+                  description = Some("Tags to filter by"))) :: HNil,
+              responses = ResponseValue[Seq[Pet], HNil]("200", "successful operation") ::
+                ResponseValue[HNil, HNil]("400", "Invalid tag value") ::
                 HNil,
-            endpointImplementation = findByStatus,
-            security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets"))))
+              endpointImplementation = findByTags,
+              security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets"))))
+            )
+          ) ::
+          PathItem(
+            path = "/pet/{petId}",
+            method = GET,
+            operation = Operation(
+              summary = Some("Find pet by ID"),
+              description = Some("Returns a single pet"),
+              operationId = Some("getPetById"),
+              tags = Some(Seq("pet")),
+              produces = Some(Seq("application/xml", "application/json")),
+              parameters =
+                PathParameter[Long](
+                  name = 'petId,
+                  description = Some("ID of pet to return"))
+                  :: HNil,
+              responses =
+                ResponseValue[Pet, HNil](
+                  responseCode = "200",
+                  description = "successful operation") ::
+                  ResponseValue[HNil, HNil](
+                    responseCode = "400",
+                    description = "Invalid ID supplied"
+                  ) ::
+                  ResponseValue[HNil, HNil](
+                    responseCode = "404",
+                    description = "Pet not found") ::
+                  HNil,
+              endpointImplementation = findById,
+              security = Some(Seq(SecurityRequirement('api_key, Seq())))
+            )
+          ) ::
+          PathItem(
+            path = "/pet/{petId}",
+            method = POST,
+            operation = Operation(
+              tags = Some(Seq("pet")),
+              summary = Some("Updates a pet in the store with form data"),
+              description = Some(""),
+              operationId = Some("updatePetWithForm"),
+              consumes = Some(Seq("application/x-www-form-urlencoded")),
+              produces = Some(Seq("application/xml", "application/json")),
+              parameters =
+                PathParameter[Long](
+                  name = 'petId,
+                  description = Some("ID of pet that needs to be updated")
+                ) ::
+                FormFieldParameter[Option[String]](
+                  name = 'name,
+                  description = Some("Updated name of the pet")
+                ) ::
+                FormFieldParameter[Option[String]](
+                  name = 'status,
+                  description = Some("Updated status of the pet")
+                ) ::
+                HNil,
+              responses = ResponseValue[HNil, HNil](
+                responseCode = "405",
+                description = "Invalid input"
+              ),
+              security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets")))),
+              endpointImplementation = updatePetForm
+            )
+          ) ::
+          PathItem(
+            path = "/pet/{petId}",
+            method = DELETE,
+            operation = Operation(
+              tags = Some(Seq("pet")),
+              summary = Some("Deletes a pet"),
+              description = Some(""),
+              operationId = Some("deletePet"),
+              produces = Some(Seq("application/xml", "application/json")),
+              parameters =
+                HeaderParameter[Option[String]](
+                  name = 'api_key) ::
+                PathParameter[Long](
+                  name = 'petId,
+                  description = Some("Pet id to delete")
+                ) ::
+                HNil,
+              responses =
+                  ResponseValue[HNil, HNil](
+                    responseCode = "400",
+                    description = "Invalid ID supplied"
+                  ) ::
+                  ResponseValue[HNil, HNil](
+                    responseCode = "404",
+                    description = "Pet not found"
+                  ) ::
+                  HNil,
+              security = Some(Seq(SecurityRequirement('petstore_auth, Seq("write:pets", "read:pets")))),
+              endpointImplementation = deletePet
+            )
+
           )
-        ) :: HNil,
+          :: HNil,
       securityDefinitions = Some(securityDefinitions)
     )
 
@@ -324,10 +448,10 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
                     JsString("pending"),
                     JsString("sold")
                   )
-// The petstorev2 sample has that required = true but there is also a default value.
-// This seems to make no sense because if the user always provides a value, the default is redundant.
-//                  ,
-//                  "default" -> JsString("available")
+                  // The petstorev2 sample has that required = true but there is also a default value.
+                  // This seems to make no sense because if the user always provides a value, the default is redundant.
+                  //                  ,
+                  //                  "default" -> JsString("available")
                 ),
                 "collectionFormat" -> JsString("multi")
               )
@@ -362,6 +486,198 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
               )
             )
           )
+        ),
+        "/pet/findByTags" -> JsObject(
+          "get" -> JsObject(
+            "tags" -> JsArray(JsString("pet")),
+            "summary" -> JsString("Finds Pets by tags"),
+            "description" -> JsString("Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing."),
+            "operationId" -> JsString("findPetsByTags"),
+            "produces" -> JsArray(JsString("application/xml"), JsString("application/json")),
+            "parameters" -> JsArray(
+              JsObject(
+                "name" -> JsString("tags"),
+                "in" -> JsString("query"),
+                "description" -> JsString("Tags to filter by"),
+                "required" -> JsBoolean(true),
+                "type" -> JsString("array"),
+                "items" -> JsObject(
+                  "type" -> JsString("string")
+                ),
+                "collectionFormat" -> JsString("multi")
+              )
+            ),
+            "responses" -> JsObject(
+              "200" -> JsObject(
+                "description" -> JsString("successful operation"),
+                "schema" -> JsObject(
+                  "type" -> JsString("array"),
+                  "items" -> JsObject(
+                    "type" -> JsString("object"),
+                    "required" -> JsArray(JsString("id"), JsString("name")),
+                    "properties" -> JsObject(
+                      "id" -> JsObject(
+                        "type" -> JsString("integer"),
+                        "format" -> JsString("int64")),
+                      "name" -> JsObject(
+                        "type" -> JsString("string")),
+                      "tag" -> JsObject(
+                        "type" -> JsString("string"))
+                    )
+                  )
+                )
+              ),
+              "400" -> JsObject(
+                "description" -> JsString("Invalid tag value")
+              )
+            ),
+            "security" -> JsArray(
+              JsObject(
+                "petstore_auth" -> JsArray(JsString("write:pets"), JsString("read:pets"))
+              )
+            ),
+            "deprecated" -> JsBoolean(true)
+          )
+        ),
+        "/pet/{petId}" -> JsObject(
+          "get" -> JsObject(
+                "security" -> JsArray(
+                  JsObject(
+                    "api_key" -> JsArray()
+                  )
+                ),
+                "description" -> JsString("Returns a single pet"),
+                "tags" -> JsArray(JsString("pet")),
+                "operationId" -> JsString("getPetById"),
+                "produces" -> JsArray(JsString("application/xml"),
+                  JsString("application/json")),
+                "parameters" -> JsArray(
+                  JsObject(
+                    "format" -> JsString("int64"),
+                    "name" -> JsString("petId"),
+                    "in" -> JsString("path"),
+                    "description" -> JsString("ID of pet to return"),
+                    "type" -> JsString("integer"),
+                    "required" -> JsBoolean(true)
+                  )
+                ),
+                "summary" -> JsString("Find pet by ID"),
+                "responses" ->
+                  JsObject(
+                    "200" ->
+                      JsObject(
+                        "description" -> JsString("successful operation"),
+                        "schema" -> JsObject(
+                          "type" -> JsString("object"),
+                          "required" -> JsArray(JsString("id"), JsString("name")),
+                          "properties" -> JsObject(
+                            "id" -> JsObject(
+                              "type" -> JsString("integer"),
+                              "format" -> JsString("int64")),
+                            "name" -> JsObject(
+                              "type" -> JsString("string")),
+                            "tag" -> JsObject(
+                              "type" -> JsString("string"))
+                          )
+                        )
+                      ),
+                    "400" ->
+                      JsObject(
+                        "description" -> JsString("Invalid ID supplied")
+                      ),
+                    "404" ->
+                      JsObject(
+                        "description" -> JsString("Pet not found")
+                      )
+                  )
+              ),
+          "post" -> JsObject(
+              "security" -> JsArray(
+                JsObject(
+                  "petstore_auth" -> JsArray(JsString("write:pets"),
+                    JsString("read:pets"))
+                )
+              ),
+              "description" -> JsString(""),
+              "tags" -> JsArray(JsString("pet")),
+              "operationId" -> JsString("updatePetWithForm"),
+              "produces" -> JsArray(JsString("application/xml"),
+                JsString("application/json")),
+              "consumes" -> JsArray(JsString("application/x-www-form-urlencoded")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "format" -> JsString("int64"),
+                  "name" -> JsString("petId"),
+                  "in" -> JsString("path"),
+                  "description" -> JsString("ID of pet that needs to be updated"),
+                  "type" -> JsString("integer"),
+                  "required" -> JsBoolean(true)
+                ),
+                JsObject(
+                  "name" -> JsString("name"),
+                  "in" -> JsString("formData"),
+                  "description" -> JsString("Updated name of the pet"),
+                  "type" -> JsString("string"),
+                  "required" -> JsBoolean(false)
+                ),
+                JsObject(
+                  "name" -> JsString("status"),
+                  "in" -> JsString("formData"),
+                  "description" -> JsString("Updated status of the pet"),
+                  "type" -> JsString("string"),
+                  "required" -> JsBoolean(false)
+                )
+              ),
+              "summary" -> JsString("Updates a pet in the store with form data"),
+              "responses" ->
+                JsObject(
+                  "405" ->
+                    JsObject(
+                      "description" -> JsString("Invalid input")
+                    )
+                )
+            ),
+          "delete" -> JsObject(
+              "security" -> JsArray(
+                JsObject(
+                  "petstore_auth" -> JsArray(JsString("write:pets"),
+                    JsString("read:pets"))
+                )
+              ),
+              "description" -> JsString(""),
+              "tags" -> JsArray(JsString("pet")),
+              "operationId" -> JsString("deletePet"),
+              "produces" -> JsArray(JsString("application/xml"),
+                JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "name" -> JsString("api_key"),
+                  "in" -> JsString("header"),
+                  "required" -> JsBoolean(false),
+                  "type" -> JsString("string")
+                ),
+                JsObject(
+                  "format" -> JsString("int64"),
+                  "name" -> JsString("petId"),
+                  "in" -> JsString("path"),
+                  "description" -> JsString("Pet id to delete"),
+                  "type" -> JsString("integer"),
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString("Deletes a pet"),
+              "responses" ->
+                JsObject(
+                  "400" ->
+                    JsObject(
+                      "description" -> JsString("Invalid ID supplied")
+                    ),
+                  "404" ->
+                    JsObject(
+                      "description" -> JsString("Pet not found")
+                    )
+                )
+            )
         )
       )
     )
