@@ -54,10 +54,11 @@ class Petstore2Spec
       message: Option[String]
   )
 
-  object OrderStatus extends Enumeration {
+  implicit object OrderStatus extends Enumeration {
     type OrderStatus = Value
     val placed, approved, delivered = Value
   }
+
   import OrderStatus._
   case class Order(
                   id: Long,
@@ -74,9 +75,9 @@ class Petstore2Spec
 
   implicit val apiResponseJsonFormat = jsonFormat3(ApiResponse)
 
-//  implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
-//
-//  implicit val orderJsonFormat = jsonFormat5(Order)
+  implicit val orderStatusSchemaWriter = enumSchemaWriter(OrderStatus)
+  implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
+  implicit val orderJsonFormat = jsonFormat5(Order)
 
 
   val dummyRoute: Route = complete("dummy")
@@ -415,35 +416,35 @@ class Petstore2Spec
               endpointImplementation = () => dummyRoute
             )
           )
-//          ::
-//          PathItem(
-//            path = "/store/order",
-//            method = POST,
-//            operation = Operation(
-//              tags = Some(Seq("store")),
-//              summary = Some("Place an order for a pet"),
-//              description = Some(""),
-//              operationId = Some("placeOrder"),
-//              produces = Some(Seq("application/xml", "application/json")),
-//              parameters =
-//                BodyParameter[Order](
-//                  name = 'body,
-//                  description = Some("order placed for purchasing the pet")
-//                ) ::
-//                HNil,
-//              responses =
-//                ResponseValue[Order, HNil](
-//                  responseCode = "200",
-//                  description = "successful operation"
-//                ) ::
-//                ResponseValue[HNil, HNil](
-//                  responseCode = "400",
-//                  description = "Invalid Order"
-//                ) ::
-//                HNil,
-//              endpointImplementation = storeOrder
-//            )
-//          )
+          ::
+          PathItem(
+            path = "/store/order",
+            method = POST,
+            operation = Operation(
+              tags = Some(Seq("store")),
+              summary = Some("Place an order for a pet"),
+              description = Some(""),
+              operationId = Some("placeOrder"),
+              produces = Some(Seq("application/xml", "application/json")),
+              parameters =
+                BodyParameter[Order](
+                  name = 'body,
+                  description = Some("order placed for purchasing the pet")
+                ) ::
+                HNil,
+              responses =
+                ResponseValue[Order, HNil](
+                  responseCode = "200",
+                  description = "successful operation"
+                ) ::
+                ResponseValue[HNil, HNil](
+                  responseCode = "400",
+                  description = "Invalid Order"
+                ) ::
+                HNil,
+              endpointImplementation = storeOrder
+            )
+          )
           :: HNil,
       securityDefinitions = Some(securityDefinitions)
     )

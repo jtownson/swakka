@@ -4,10 +4,9 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json._
 
-class EnumSchemaWritersSpec extends FlatSpec {
+import JsonSchemaJsonProtocol._
 
-  import JsonSchemaJsonProtocol._
-  import EnumSchemaWriters._
+class EnumSchemaWritersSpec extends FlatSpec {
 
   implicit object status extends Enumeration {
     val good, bad, ugly = Value
