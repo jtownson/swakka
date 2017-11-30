@@ -17,56 +17,41 @@ class Temp extends FlatSpec {
 
     val s = JsonParser(
       """{
-        |      "delete": {
-        |        "tags": [
-        |          "pet"
-        |        ],
-        |        "summary": "Deletes a pet",
-        |        "description": "",
-        |        "operationId": "deletePet",
-        |        "produces": [
-        |          "application/xml",
-        |          "application/json"
-        |        ],
-        |        "parameters": [
-        |          {
-        |            "name": "api_key",
-        |            "in": "header",
-        |            "required": false,
-        |            "type": "string"
-        |          },
-        |          {
-        |            "name": "petId",
-        |            "in": "path",
-        |            "description": "Pet id to delete",
-        |            "required": true,
-        |            "type": "integer",
-        |            "format": "int64"
-        |          }
-        |        ],
-        |        "responses": {
-        |          "400": {
-        |            "description": "Invalid ID supplied"
-        |          },
-        |          "404": {
-        |            "description": "Pet not found"
-        |          }
+        |      "type": "object",
+        |      "properties": {
+        |        "id": {
+        |          "type": "integer",
+        |          "format": "int64"
         |        },
-        |        "security": [
-        |          {
-        |            "petstore_auth": [
-        |              "write:pets",
-        |              "read:pets"
-        |            ]
-        |          }
-        |        ]
-        |      }
-        |    }
-        | 
-      """.stripMargin
+        |        "petId": {
+        |          "type": "integer",
+        |          "format": "int64"
+        |        },
+        |        "quantity": {
+        |          "type": "integer",
+        |          "format": "int32"
+        |        },
+        |        "shipDate": {
+        |          "type": "string",
+        |          "format": "date-time"
+        |        },
+        |        "status": {
+        |          "type": "string",
+        |          "description": "Order Status",
+        |          "enum": [
+        |            "placed",
+        |            "approved",
+        |            "delivered"
+        |          ]
+        |        },
+        |        "complete": {
+        |          "type": "boolean",
+        |          "default": false
+        |        }
+                |    }}       """.stripMargin
     )
 
-//    println(s.toString(printer))
+    println(s.toString(printer))
   }
 
   def printer(jsValue: JsValue): String = jsValue match {
@@ -92,46 +77,41 @@ class Temp extends FlatSpec {
   }
 
   val x = JsObject(
-    "delete" ->
+    "type" -> JsString("object"),
+    "properties" ->
       JsObject(
-        "security" -> JsArray(
+        "shipDate" ->
           JsObject(
-            "petstore_auth" -> JsArray(JsString("write:pets"),
-                                       JsString("read:pets"))
-          )
-        ),
-        "description" -> JsString(""),
-        "tags" -> JsArray(JsString("pet")),
-        "operationId" -> JsString("deletePet"),
-        "produces" -> JsArray(JsString("application/xml"),
-                              JsString("application/json")),
-        "parameters" -> JsArray(
-          JsObject(
-            "name" -> JsString("api_key"),
-            "in" -> JsString("header"),
-            "required" -> JsBoolean(false),
-            "type" -> JsString("string")
+            "type" -> JsString("string"),
+            "format" -> JsString("date-time")
           ),
+        "quantity" ->
           JsObject(
-            "format" -> JsString("int64"),
-            "name" -> JsString("petId"),
-            "in" -> JsString("path"),
-            "description" -> JsString("Pet id to delete"),
             "type" -> JsString("integer"),
-            "required" -> JsBoolean(true)
-          )
-        ),
-        "summary" -> JsString("Deletes a pet"),
-        "responses" ->
+            "format" -> JsString("int32")
+          ),
+        "petId" ->
           JsObject(
-            "400" ->
-              JsObject(
-                "description" -> JsString("Invalid ID supplied")
-              ),
-            "404" ->
-              JsObject(
-                "description" -> JsString("Pet not found")
-              )
+            "type" -> JsString("integer"),
+            "format" -> JsString("int64")
+          ),
+        "id" ->
+          JsObject(
+            "type" -> JsString("integer"),
+            "format" -> JsString("int64")
+          ),
+        "complete" ->
+          JsObject(
+            "type" -> JsString("boolean"),
+            "default" -> JsBoolean(false)
+          ),
+        "status" ->
+          JsObject(
+            "type" -> JsString("string"),
+            "description" -> JsString("Order Status"),
+            "enum" -> JsArray(JsString("placed"),
+                              JsString("approved"),
+                              JsString("delivered"))
           )
       )
   )

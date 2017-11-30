@@ -180,4 +180,33 @@ class SchemaWriterSpec extends FlatSpec {
       )
     )
   }
+
+  object OrderStatus extends Enumeration {
+    type OrderStatus = Value
+    val placed, approved, delivered = Value
+  }
+  implicit val implicitOrderStatus = OrderStatus
+  import OrderStatus._
+  case class Order(id: Long,
+                   status: OrderStatus)
+
+  it should "describe a case class containing an Enum" in {
+
+    JsonSchema[Order]().toJson shouldBe JsObject(
+      "type" -> JsString("object"),
+      "required" -> JsArray(JsString("id"), JsString("status")),
+      "properties" -> JsObject(
+        "id" -> JsObject(
+          "type" -> JsString("integer"),
+          "format" -> JsString("int64")),
+        "status" -> JsObject(
+          "type" -> JsString("string"),
+          "enum" -> JsArray(
+            JsString("placed"),
+            JsString("approved"),
+            JsString("delivered")
+          )
+        )
+      ))
+  }
 }
