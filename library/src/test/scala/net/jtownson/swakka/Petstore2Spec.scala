@@ -32,7 +32,7 @@ import net.jtownson.swakka.openapimodel._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.syntax.singleton._
-import shapeless.HNil
+import shapeless.{HNil, ::}
 
 class Petstore2Spec
     extends FlatSpec
@@ -54,19 +54,19 @@ class Petstore2Spec
       message: Option[String]
   )
 
-  implicit object OrderStatus extends Enumeration {
-    type OrderStatus = Value
-    val placed, approved, delivered = Value
-  }
-
-  import OrderStatus._
+//  implicit object OrderStatus extends Enumeration {
+//    type OrderStatus = Value
+//    val placed, approved, delivered = Value
+//  }
+//
+//  import OrderStatus._
   case class Order(
                   id: Long,
                   petId: Long,
                   quantity: Int,
 //                  shipDate: DateTime,
-                  status: OrderStatus,
-                  complete: Boolean = false
+//                  status: OrderStatus,
+                  complete: Boolean/* = false*/
                   )
 
   implicit val petJsonFormat = jsonFormat3(Pet)
@@ -75,10 +75,13 @@ class Petstore2Spec
 
   implicit val apiResponseJsonFormat = jsonFormat3(ApiResponse)
 
-  implicit val orderStatusSchemaWriter = enumSchemaWriter(OrderStatus)
-  implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
-  implicit val orderJsonFormat = jsonFormat5(Order)
+//  implicit val orderStatusSchemaWriter = enumSchemaWriter(OrderStatus)
+//  implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
+  implicit val orderJsonFormat = jsonFormat4(Order)
 
+  type Params = BodyParameter[Order] :: HNil
+  type Responses = ResponseValue[Order, HNil] :: ResponseValue[HNil, HNil] :: HNil
+  type Endpoint = Order => Route
 
   val dummyRoute: Route = complete("dummy")
 
@@ -416,35 +419,35 @@ class Petstore2Spec
               endpointImplementation = () => dummyRoute
             )
           )
-          ::
-          PathItem(
-            path = "/store/order",
-            method = POST,
-            operation = Operation(
-              tags = Some(Seq("store")),
-              summary = Some("Place an order for a pet"),
-              description = Some(""),
-              operationId = Some("placeOrder"),
-              produces = Some(Seq("application/xml", "application/json")),
-              parameters =
-                BodyParameter[Order](
-                  name = 'body,
-                  description = Some("order placed for purchasing the pet")
-                ) ::
-                HNil,
-              responses =
-                ResponseValue[Order, HNil](
-                  responseCode = "200",
-                  description = "successful operation"
-                ) ::
-                ResponseValue[HNil, HNil](
-                  responseCode = "400",
-                  description = "Invalid Order"
-                ) ::
-                HNil,
-              endpointImplementation = storeOrder
-            )
-          )
+//          ::
+//          PathItem(
+//            path = "/store/order",
+//            method = POST,
+//            operation = Operation(
+//              tags = Some(Seq("store")),
+//              summary = Some("Place an order for a pet"),
+//              description = Some(""),
+//              operationId = Some("placeOrder"),
+//              produces = Some(Seq("application/xml", "application/json")),
+//              parameters = HNil,
+//                BodyParameter[Order](
+//                  name = 'body,
+//                  description = Some("order placed for purchasing the pet")
+//                ) ::
+//                HNil,
+//              responses = HNil,
+//                ResponseValue[Order, HNil](
+//                  responseCode = "200",
+//                  description = "successful operation"
+//                ) ::
+//                ResponseValue[HNil, HNil](
+//                  responseCode = "400",
+//                  description = "Invalid Order"
+//                ) ::
+//                HNil,
+//              endpointImplementation = () => dummyRoute //storeOrder
+//            )
+//          )
           :: HNil,
       securityDefinitions = Some(securityDefinitions)
     )

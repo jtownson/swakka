@@ -20,10 +20,10 @@ lazy val commonSettings = Seq(
   organization := "net.jtownson",
   version := "0.1a-SNAPSHOT",
 
-  scalaOrganization := "org.typelevel",
-  scalaVersion := "2.12.4-bin-typelevel-4",
+//  scalaOrganization := "org.typelevel",
+//  scalaVersion := "2.12.4-bin-typelevel-4",
 
-  //scalaVersion := 2.12.4
+  scalaVersion := "2.12.4",
   scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 )
 

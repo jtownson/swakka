@@ -24,12 +24,12 @@ class EnumSchemaWritersSpec extends FlatSpec {
     )
   )
 
-  "EnumSchemaWriter" should "write enum Status implicitly" in {
-    JsonSchema[status.Value](Some("descriptive string")).toJson shouldBe expectedStatusJson
-  }
-
-  it should "write enum Status explicitly" in {
-    enumSchemaWriter(status).write(JsonSchema[status.Value](
-      Some("descriptive string"))) shouldBe expectedStatusJson
-  }
+//  "EnumSchemaWriter" should "write enum Status implicitly" in {
+//    JsonSchema[status.Value](Some("descriptive string")).toJson shouldBe expectedStatusJson
+//  }
+//
+//  it should "write enum Status explicitly" in {
+//    enumSchemaWriter(status).write(JsonSchema[status.Value](
+//      Some("descriptive string"))) shouldBe expectedStatusJson
+//  }
 }
