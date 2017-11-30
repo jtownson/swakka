@@ -59,6 +59,13 @@ object Schemas {
     )
   }
 
+  def dateSchema(description: Option[String]) =
+    jsObject(
+      Some("type" -> JsString("string")),
+      description.map("description" -> JsString(_)),
+      Some("format" -> JsString("date-time"))
+    )
+
   private def optionalJsArray(requiredFields: List[String]): Option[JsArray] =
     optionally(requiredFields).map(requiredFields => requiredFields.map(JsString(_))).map(JsArray(_: _*))
 
