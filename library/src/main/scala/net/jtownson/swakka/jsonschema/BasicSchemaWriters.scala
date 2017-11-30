@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.jsonschema
 
-import net.jtownson.swakka.jsonschema.Schemas.{arraySchema, numericSchema, stringSchema, unitSchema}
+import net.jtownson.swakka.jsonschema.Schemas.{mapSchema, arraySchema, numericSchema, stringSchema, unitSchema}
 import net.jtownson.swakka.openapimodel._
 
 trait BasicSchemaWriters {
@@ -44,6 +44,9 @@ trait BasicSchemaWriters {
 
   implicit def seqWriter[T](implicit ev: SchemaWriter[T]): SchemaWriter[Seq[T]] =
     (s: JsonSchema[Seq[T]]) => arraySchema(s.description, ev.write(JsonSchema[T]()))
+
+  implicit def mapWriter[K, V](implicit ev: SchemaWriter[K]): SchemaWriter[Map[K, V]] =
+    (s: JsonSchema[Map[K, V]]) => mapSchema(s.description, ev.write(JsonSchema[K]()))
 
   implicit def responseValueWriter[T, Headers](implicit ev: SchemaWriter[T]):
   SchemaWriter[ResponseValue[T, Headers]] =

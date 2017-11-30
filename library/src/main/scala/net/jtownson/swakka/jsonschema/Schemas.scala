@@ -43,6 +43,13 @@ object Schemas {
       Some("items" -> itemSchema)
     )
 
+  def mapSchema(description: Option[String], keySchema: JsValue) =
+    jsObject(
+      Some("type", JsString("object")),
+      description.map("description" -> JsString(_)),
+      Some("additionalProperties" -> keySchema)
+    )
+
   def objectSchema(description: Option[String], requiredFields: List[String], fieldSchemas: List[(String, JsValue)]) = {
     jsObject(
       Some("type" -> JsString("object")),
