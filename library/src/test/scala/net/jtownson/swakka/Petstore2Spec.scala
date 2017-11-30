@@ -17,7 +17,8 @@
 package net.jtownson.swakka
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.DateTime
+import io.swagger.annotations.ApiModelProperty
+//import akka.http.scaladsl.model.DateTime
 import akka.http.scaladsl.model.HttpMethods.{DELETE, GET, POST, PUT}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
@@ -54,33 +55,33 @@ class Petstore2Spec
       message: Option[String]
   )
 
-//  implicit object OrderStatus extends Enumeration {
-//    type OrderStatus = Value
-//    val placed, approved, delivered = Value
-//  }
-//
-//  import OrderStatus._
-  case class Order(
-                  id: Long,
-                  petId: Long,
-                  quantity: Int,
-//                  shipDate: DateTime,
-//                  status: OrderStatus,
-                  complete: Boolean/* = false*/
-                  )
+  implicit object OrderStatus extends Enumeration {
+    type OrderStatus = Value
+    val placed, approved, delivered = Value
+  }
 
-  implicit val petJsonFormat = jsonFormat3(Pet)
+  import OrderStatus._
+  //                  shipDate: DateTime,
+  //                  status: OrderStatus,
 
-  implicit val errorJsonFormat = jsonFormat2(Error)
+  case class Order(id: Option[Long],
+                   petId: Option[Long],
+                   quantity: Option[Int],
+                   @ApiModelProperty("Order Status") status: Option[OrderStatus])
 
-  implicit val apiResponseJsonFormat = jsonFormat3(ApiResponse)
+  implicit val petJsonFormat: RootJsonFormat[Pet] = jsonFormat3(Pet)
 
-//  implicit val orderStatusSchemaWriter = enumSchemaWriter(OrderStatus)
-//  implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
-  implicit val orderJsonFormat = jsonFormat4(Order)
+  implicit val errorJsonFormat: RootJsonFormat[Error] = jsonFormat2(Error)
+
+  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(
+    ApiResponse)
+
+  implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
+  implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat4(Order)
 
   type Params = BodyParameter[Order] :: HNil
-  type Responses = ResponseValue[Order, HNil] :: ResponseValue[HNil, HNil] :: HNil
+  type Responses =
+    ResponseValue[Order, HNil] :: ResponseValue[HNil, HNil] :: HNil
   type Endpoint = Order => Route
 
   val dummyRoute: Route = complete("dummy")
@@ -101,11 +102,13 @@ class Petstore2Spec
   val deletePet: (Option[String], Long) => Route = (_, _) => dummyRoute
 
   val uploadImage: (Long,
-    Option[String],
-    Option[(FileInfo, Source[ByteString, Any])]) => Route =
+                    Option[String],
+                    Option[(FileInfo, Source[ByteString, Any])]) => Route =
     (_, _, _) => dummyRoute
 
   val storeOrder: Order => Route = _ => dummyRoute
+
+  val emptyEndpoint: () => Route = () => dummyRoute
 
   "Swakka" should "support the petstore v2 example" in {
 
@@ -401,53 +404,53 @@ class Petstore2Spec
           )
         ) ::
           PathItem(
-            path = "/store/inventory",
-            method = GET,
-            operation = Operation(
-              tags = Some(Seq("store")),
-              summary = Some("Returns pet inventories by status"),
-              description = Some("Returns a map of status codes to quantities"),
-              operationId = Some("getInventory"),
-              produces = Some(Seq("application/json")),
-              responses =
-                ResponseValue[Map[Int, String], HNil](
-                  responseCode = "200",
-                  description = "successful operation"
-                ) ::
+          path = "/store/inventory",
+          method = GET,
+          operation = Operation(
+            tags = Some(Seq("store")),
+            summary = Some("Returns pet inventories by status"),
+            description = Some("Returns a map of status codes to quantities"),
+            operationId = Some("getInventory"),
+            produces = Some(Seq("application/json")),
+            responses =
+              ResponseValue[Map[Int, String], HNil](
+                responseCode = "200",
+                description = "successful operation"
+              ) ::
                 HNil,
-              security = Some(Seq(SecurityRequirement('api_key))),
-              endpointImplementation = () => dummyRoute
-            )
+            security = Some(Seq(SecurityRequirement('api_key))),
+            endpointImplementation = () => dummyRoute
           )
-//          ::
-//          PathItem(
-//            path = "/store/order",
-//            method = POST,
-//            operation = Operation(
-//              tags = Some(Seq("store")),
-//              summary = Some("Place an order for a pet"),
-//              description = Some(""),
-//              operationId = Some("placeOrder"),
-//              produces = Some(Seq("application/xml", "application/json")),
-//              parameters = HNil,
-//                BodyParameter[Order](
-//                  name = 'body,
-//                  description = Some("order placed for purchasing the pet")
-//                ) ::
-//                HNil,
-//              responses = HNil,
-//                ResponseValue[Order, HNil](
-//                  responseCode = "200",
-//                  description = "successful operation"
-//                ) ::
-//                ResponseValue[HNil, HNil](
-//                  responseCode = "400",
-//                  description = "Invalid Order"
-//                ) ::
-//                HNil,
-//              endpointImplementation = () => dummyRoute //storeOrder
-//            )
-//          )
+        )
+          ::
+            PathItem(
+          path = "/store/order",
+          method = POST,
+          operation = Operation(
+            tags = Some(Seq("store")),
+            summary = Some("Place an order for a pet"),
+            description = Some(""),
+            operationId = Some("placeOrder"),
+            produces = Some(Seq("application/xml", "application/json")),
+            parameters =
+              BodyParameter[Order](
+                name = 'body,
+                description = Some("order placed for purchasing the pet")
+              ) ::
+                HNil,
+            responses =
+              ResponseValue[Order, HNil](
+                responseCode = "200",
+                description = "successful operation"
+              ) ::
+                ResponseValue[HNil, HNil](
+                responseCode = "400",
+                description = "Invalid Order"
+              ) ::
+                HNil,
+            endpointImplementation = storeOrder
+          )
+        )
           :: HNil,
       securityDefinitions = Some(securityDefinitions)
     )
