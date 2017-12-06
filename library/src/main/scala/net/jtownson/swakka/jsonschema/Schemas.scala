@@ -36,6 +36,12 @@ object Schemas {
       format.map("format" -> JsString(_))
     )
 
+  def booleanSchema(description: Option[String]) =
+    jsObject(
+      Some("type" -> JsString("boolean")),
+      description.map("description" -> JsString(_))
+    )
+
   def arraySchema(description: Option[String], itemSchema: JsValue) =
     jsObject(
       Some("type", JsString("array")),

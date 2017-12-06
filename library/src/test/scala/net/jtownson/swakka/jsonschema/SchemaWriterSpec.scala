@@ -32,6 +32,10 @@ class SchemaWriterSpec extends FlatSpec {
     JsonSchema[String]().toJson shouldBe JsObject("type" -> JsString("string"))
   }
 
+  it should "describe a Boolean" in {
+    JsonSchema[Boolean]().toJson shouldBe JsObject("type" -> JsString("boolean"))
+  }
+
   it should "describe an Int" in {
     JsonSchema[Int]().toJson shouldBe JsObject("type" -> JsString("integer"), "format" -> JsString("int32"))
   }
