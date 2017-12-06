@@ -16,6 +16,7 @@
 
 package net.jtownson.swakka.jsonschema
 
+import akka.http.scaladsl.model.DateTime
 import io.swagger.annotations.ApiModelProperty
 import net.jtownson.swakka.jsonschema.JsonSchemaJsonProtocol._
 import org.scalatest.FlatSpec
@@ -212,5 +213,12 @@ class SchemaWriterSpec extends FlatSpec {
           )
         )
       ))
+  }
+
+  it should "describe and akka datetime" in {
+    JsonSchema[DateTime]().toJson shouldBe JsObject(
+      "type" -> JsString("§string"),
+      "format" -> JsString("date-time")
+    )
   }
 }

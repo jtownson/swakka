@@ -61,8 +61,6 @@ class Petstore2Spec
   }
 
   import OrderStatus._
-  //                  shipDate: DateTime,
-  //                  status: OrderStatus,
 
   case class Order(id: Option[Long],
                    petId: Option[Long],
@@ -75,16 +73,10 @@ class Petstore2Spec
 
   implicit val errorJsonFormat: RootJsonFormat[Error] = jsonFormat2(Error)
 
-  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(
-    ApiResponse)
+  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(ApiResponse)
 
   implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
   implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat6(Order)
-
-  type Params = BodyParameter[Order] :: HNil
-  type Responses =
-    ResponseValue[Order, HNil] :: ResponseValue[HNil, HNil] :: HNil
-  type Endpoint = Order => Route
 
   val dummyRoute: Route = complete("dummy")
 
@@ -414,6 +406,7 @@ class Petstore2Spec
             description = Some("Returns a map of status codes to quantities"),
             operationId = Some("getInventory"),
             produces = Some(Seq("application/json")),
+            parameters = HNil: HNil,
             responses =
               ResponseValue[Map[Int, String], HNil](
                 responseCode = "200",

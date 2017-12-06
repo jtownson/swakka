@@ -4,7 +4,7 @@ import akka.http.scaladsl.model.DateTime
 
 trait DateSchemaWriters {
 
-  val akkaHttpDateSchemaWriter: SchemaWriter[DateTime] =
+  implicit val akkaHttpDateSchemaWriter: SchemaWriter[DateTime] =
     (schema: JsonSchema[DateTime]) => Schemas.dateSchema(schema.description)
 }
 
