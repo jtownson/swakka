@@ -26,6 +26,7 @@ trait OpenApiJsonProtocol extends
   PathsJsonProtocol with
   HeadersJsonProtocol with
   SecurityDefinitionsJsonProtocol with
+  DateTimeJsonProtocol with
   DefaultJsonProtocol {
 
   val contactWriter: JsonWriter[Contact] = (contact: Contact) => {

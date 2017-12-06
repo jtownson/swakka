@@ -3,8 +3,8 @@ package net.jtownson.swakka.jsonprotocol
 import akka.http.scaladsl.model.DateTime
 import spray.json.RootJsonFormat
 
-trait DateTimeJsonConverters {
+trait DateTimeJsonProtocol {
   implicit val akkaDateTimeJsonConverter: RootJsonFormat[DateTime] = new AkkaDateTimeJsonConverter()
 }
 
-object DateTimeJsonConverters extends DateTimeJsonConverters
+object DateTimeJsonProtocol extends DateTimeJsonProtocol

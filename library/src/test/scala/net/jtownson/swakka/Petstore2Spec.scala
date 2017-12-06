@@ -17,8 +17,8 @@
 package net.jtownson.swakka
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+import akka.http.scaladsl.model.DateTime
 import io.swagger.annotations.ApiModelProperty
-//import akka.http.scaladsl.model.DateTime
 import akka.http.scaladsl.model.HttpMethods.{DELETE, GET, POST, PUT}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
@@ -67,7 +67,9 @@ class Petstore2Spec
   case class Order(id: Option[Long],
                    petId: Option[Long],
                    quantity: Option[Int],
-                   @ApiModelProperty("Order Status") status: Option[OrderStatus])
+                   @ApiModelProperty("Order Status") status: Option[OrderStatus],
+                   shipDate: Option[DateTime],
+                   complete: Option[Boolean])
 
   implicit val petJsonFormat: RootJsonFormat[Pet] = jsonFormat3(Pet)
 
@@ -77,7 +79,7 @@ class Petstore2Spec
     ApiResponse)
 
   implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
-  implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat4(Order)
+  implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat6(Order)
 
   type Params = BodyParameter[Order] :: HNil
   type Responses =
