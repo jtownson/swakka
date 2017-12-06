@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.jsonschema
 
-import net.jtownson.swakka.jsonschema.Schemas.{mapSchema, arraySchema, numericSchema, stringSchema, unitSchema}
+import net.jtownson.swakka.jsonschema.Schemas._
 import net.jtownson.swakka.openapimodel._
 
 trait BasicSchemaWriters {
@@ -26,6 +26,9 @@ trait BasicSchemaWriters {
 
   implicit val stringWriter: SchemaWriter[String] =
     (s: JsonSchema[String]) => stringSchema(s.description)
+
+  implicit def booleanWriter: SchemaWriter[Boolean] =
+    (s: JsonSchema[Boolean]) => booleanSchema(s.description)
 
   implicit def intWriter: SchemaWriter[Int] =
     (s: JsonSchema[Int]) => numericSchema(s.description, "integer", Some("int32"))

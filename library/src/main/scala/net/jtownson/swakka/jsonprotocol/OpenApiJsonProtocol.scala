@@ -21,6 +21,7 @@ import net.jtownson.swakka.jsonprotocol._
 import spray.json._
 
 trait OpenApiJsonProtocol extends
+  DateTimeJsonProtocol with
   ParametersJsonProtocol with
   ResponsesJsonProtocol with
   PathsJsonProtocol with

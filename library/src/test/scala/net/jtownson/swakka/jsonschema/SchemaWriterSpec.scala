@@ -48,6 +48,10 @@ class SchemaWriterSpec extends FlatSpec {
     JsonSchema[Double]().toJson shouldBe JsObject("type" -> JsString("number"), "format" -> JsString("double"))
   }
 
+  it should "describe a Boolean" in {
+    JsonSchema[Boolean]().toJson shouldBe JsObject("type" -> JsString("boolean"))
+  }
+
   case class A()
 
   it should "describe an empty case class" in {
@@ -125,7 +129,6 @@ class SchemaWriterSpec extends FlatSpec {
 
   case class F(@ApiModelProperty("the nested e") e: E)
 
-
   it should "produce annotated docs for nested classes" in {
 
     JsonSchema[F](Some("the parent F")).toJson shouldBe JsObject(
@@ -165,7 +168,6 @@ class SchemaWriterSpec extends FlatSpec {
 
   case class H(s: Seq[String])
 
-
   it should "produce a schema for Seq" in {
     JsonSchema[H]().toJson shouldBe JsObject(
       "type" -> JsString("object"),
@@ -185,6 +187,7 @@ class SchemaWriterSpec extends FlatSpec {
     type OrderStatus = Value
     val placed, approved, delivered = Value
   }
+
   implicit val implicitOrderStatus = OrderStatus
   import OrderStatus._
   case class Order(id: Long,

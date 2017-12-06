@@ -3,7 +3,7 @@ package net.jtownson.swakka.jsonprotocol
 import akka.http.scaladsl.model.DateTime
 import spray.json.{DeserializationException, JsString, JsValue, RootJsonFormat}
 
-class DateTimeJsonConverter extends RootJsonFormat[DateTime] {
+class AkkaDateTimeJsonConverter extends RootJsonFormat[DateTime] {
 
   override def write(dateTime: DateTime): JsValue =
     JsString(dateTime.toIsoDateTimeString())

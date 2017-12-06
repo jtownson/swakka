@@ -29,6 +29,12 @@ object Schemas {
       description.map("description" -> JsString(_))
     )
 
+  def booleanSchema(description: Option[String]) =
+    jsObject(
+      Some("type" -> JsString("boolean")),
+      description.map("description" -> JsString(_))
+    )
+
   def numericSchema(description: Option[String], `type`: String, format: Option[String]) =
     jsObject(
       Some("type" -> JsString(`type`)),

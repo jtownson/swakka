@@ -20,11 +20,11 @@ lazy val commonSettings = Seq(
   organization := "net.jtownson",
   version := "0.1a-SNAPSHOT",
 
-//  scalaOrganization := "org.typelevel",
-//  scalaVersion := "2.12.4-bin-typelevel-4",
+  scalaOrganization := "org.typelevel",
+  scalaVersion := "2.12.4-bin-typelevel-4",
 
-  scalaVersion := "2.12.4",
-  scalacOptions := Seq("-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
+//  scalaVersion := "2.12.4",
+  scalacOptions := Seq("-Yliteral-types", "-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 )
 
 lazy val sonatypeCredentials = (sys.env.get("SONATYPE_USER"), sys.env.get("SONATYPE_PASSWORD")) match {
@@ -83,10 +83,6 @@ val swaggerAnnotations = Seq(
   "io.swagger" % "swagger-annotations" % "1.5.13"
 )
 
-val jsonPath = Seq(
-  "com.jayway.jsonpath" % "json-path" % "2.2.0"
-)
-
 lazy val library = project
   .settings(
     name := "swakka",
@@ -97,8 +93,7 @@ lazy val library = project
         scalatest ++
         scalaReflection ++
         shapeless ++
-        swaggerAnnotations ++
-        jsonPath)
+        swaggerAnnotations)
 
 lazy val examples = project
   .settings(
