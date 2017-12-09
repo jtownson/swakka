@@ -13,7 +13,7 @@ import spray.json.{
 
 class Temp extends FlatSpec {
 
-  "json" should "be easy to ser" in {
+  ignore should "be easy to ser" in {
 
     val s = JsonParser(
       """{
@@ -51,7 +51,7 @@ class Temp extends FlatSpec {
                 |    }}       """.stripMargin
     )
 
-    println(s.toString(printer))
+//    println(s.toString(printer))
   }
 
   def printer(jsValue: JsValue): String = jsValue match {

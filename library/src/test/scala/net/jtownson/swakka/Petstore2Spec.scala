@@ -104,7 +104,7 @@ class Petstore2Spec
 
   val emptyEndpoint: () => Route = () => dummyRoute
 
-  "Swakka" should "support the petstore v2 example" in {
+  ignore /*"Swakka"*/ should "support the petstore v2 example" in {
 
     val securityDefinitions =
       'petstore_auth ->> Oauth2ImplicitSecurity(

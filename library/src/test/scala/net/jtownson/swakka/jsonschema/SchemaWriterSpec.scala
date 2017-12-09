@@ -217,7 +217,7 @@ class SchemaWriterSpec extends FlatSpec {
 
   it should "describe and akka datetime" in {
     JsonSchema[DateTime]().toJson shouldBe JsObject(
-      "type" -> JsString("§string"),
+      "type" -> JsString("string"),
       "format" -> JsString("date-time")
     )
   }

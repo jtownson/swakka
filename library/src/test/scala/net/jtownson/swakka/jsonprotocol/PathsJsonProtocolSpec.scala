@@ -29,8 +29,6 @@ import org.scalatest.Matchers._
 
 import shapeless.HNil
 
-import scala.reflect.runtime.universe._
-
 class PathsJsonProtocolSpec extends FlatSpec {
 
   val dummyEndpoint: () => Route =
@@ -66,9 +64,8 @@ class PathsJsonProtocolSpec extends FlatSpec {
         )
       )
     )
-  println(reify(pathItem.toJson))
 
-  pathItem.toJson shouldBe expectedSwagger
+    pathItem.toJson shouldBe expectedSwagger
   }
 
   it should "write a responseless pathItem as an empty object" in {
