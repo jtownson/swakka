@@ -27,8 +27,8 @@ trait BasicSchemaWriters {
   implicit val stringWriter: SchemaWriter[String] =
     (s: JsonSchema[String]) => stringSchema(s.description)
 
-  implicit def booleanWriter: SchemaWriter[Boolean] =
-    (s: JsonSchema[Boolean]) => booleanSchema(s.description)
+//  implicit def booleanWriter: SchemaWriter[Boolean] =
+//    (s: JsonSchema[Boolean]) => booleanSchema(s.description)
 
   implicit def intWriter: SchemaWriter[Int] =
     (s: JsonSchema[Int]) => numericSchema(s.description, "integer", Some("int32"))

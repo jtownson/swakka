@@ -47,7 +47,6 @@ class Petstore2Spec
                    complete: Option[Boolean],
                    shipDate: Option[String])
 
-//  implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
   implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat6(Order)
 
   val dummyRoute: Route = complete("dummy")
@@ -69,35 +68,26 @@ class Petstore2Spec
     endpointImplementation = storeOrder
   )
 
-  type P2 = PathItem[HNil, () => Route, ResponseValue[Order, HNil]] :: HNil
+  type P = PathItem[HNil, () => Route, ResponseValue[Order, HNil]] :: HNil
 
-  val paths: P2 = PathItem(
+  val paths: P = PathItem(
     path = "/store/order",
     method = POST,
     operation = operation
   ) :: HNil
 
   "Swakka" should "support the petstore v2 example" in {
-    val paramsJsonFormat: ParameterJsonFormat[HNil] = hNilParamFormat
-    val headersJsonFormat: HeadersJsonFormat[HNil] = hNilHeaderFormat
 
-//    val orderSchemaWriter = genericObjectEncoder
-//    val responsesJsonFormat: ResponseJsonFormat[ResponseValue[Order, HNil]] = responseFormat[Order, HNil]
-//    val hJsonFormat = singlePathItemFormat(paramsJsonFormat, responsesJsonFormat)
-//    val tailJsonFormat: PathsJsonFormat[HNil] = hNilPathItemFormat
-//    val pathsFormat = hConsPathItemFormat(hJsonFormat, tailJsonFormat)
-//
-//    val apiJsonFormat = apiFormat(pathsFormat)
-//
-//    val routeGen: RouteGen[P2] = implicitly[RouteGen[P2]]
-//
-//    val petstoreApi: OpenApi[P2, Nothing] = OpenApi(paths = paths)
+//    val i1 = implicitly[RouteGen[P]]
+//    val i2 = implicitly[JsonFormat[OpenApi[P, Nothing]]]
 
-//    val apiRoutes = openApiRoute(petstoreApi, Some(SwaggerRouteSettings()))(routeGen, apiFormat)
-//
-//    Get("http://petstore.swagger.io/v2/swagger.json") ~> apiRoutes ~> check {
-//      JsonParser(responseAs[String]) shouldBe "foo"
-//    }
+    val petstoreApi: OpenApi[P, Nothing] = OpenApi(paths = paths)
+
+    val apiRoutes = openApiRoute(petstoreApi, Some(SwaggerRouteSettings()))()
+
+    Get("http://petstore.swagger.io/v2/swagger.json") ~> apiRoutes ~> check {
+      JsonParser(responseAs[String]) shouldBe "foo"
+    }
   }
 
   override def failTest(msg: String): Nothing = throw new AssertionError(msg)
