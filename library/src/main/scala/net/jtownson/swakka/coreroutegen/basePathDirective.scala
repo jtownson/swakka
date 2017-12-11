@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.openapiroutegen
+package net.jtownson.swakka.coreroutegen
 
 import akka.http.scaladsl.server.Directive0
 import akka.http.scaladsl.server.Directives._
+import net.jtownson.swakka.openapiroutegen.PathHandling
 
 object basePathDirective {
   def apply(apiBasePath: Option[String]): Directive0 =

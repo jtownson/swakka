@@ -4,10 +4,8 @@ import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{HttpEntity, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-
 import spray.json._
-
-import net.jtownson.swakka.coreroutegen.{CorsUseCases, DocRouteSettings}
+import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen.PathHandling._
 

@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.openapiroutegen
+package net.jtownson.swakka.coreroutegen
 
 import akka.http.scaladsl.server.Directive0
-import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Directives.{host, pass}
 
-object schemesDirective {
-  def apply(apiSchemes: Option[Seq[String]]): Directive0 = {
-    apiSchemes match {
-      case Some(schemes) => schemes.foldLeft(reject.toDirective[Unit])(appendScheme)
+object hostDirective {
+
+  def apply(apiHost: Option[String]): Directive0 =
+    apiHost match {
+      case Some(hostName) => host(removePort(hostName))
       case None => pass
     }
-  }
 
-  private def appendScheme(d: Directive0, s: String): Directive0 = d | scheme(s)
+  private def removePort(hostName: String) =
+    hostName.replaceFirst("\\:\\d+", "")
 }
