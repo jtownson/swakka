@@ -20,23 +20,23 @@ import net.jtownson.swakka.coreroutegen._
 
 trait ParameterValues {
 
-  implicit def queryParameterValue[T]: ParameterValue.Aux[QueryParameter[T], T] =
-    ParameterValue.instance(p => p.value)
-
-  implicit def pathParameterValue[T]: ParameterValue.Aux[PathParameter[T], T] =
-    ParameterValue.instance(p => p.value)
-
-  implicit def headerParameterValue[T]: ParameterValue.Aux[HeaderParameter[T], T] =
-    ParameterValue.instance(p => p.value)
-
-  implicit def formParameterValue[T]: ParameterValue.Aux[FormFieldParameter[T], T] =
-    ParameterValue.instance(p => p.value)
-
-  implicit def bodyParameterValue[T]: ParameterValue.Aux[BodyParameter[T], T] =
-    ParameterValue.instance(p => p.value)
-
-  implicit def multiParameterValue[T, U <: Parameter[T]]: ParameterValue.Aux[MultiValued[T, U], Seq[T]] =
-    ParameterValue.instance(p => p.value)
+//  implicit def queryParameterValue[T]: ParameterValue.Aux[QueryParameter[T], T] =
+//    ParameterValue.instance(p => p.value)
+//
+//  implicit def pathParameterValue[T]: ParameterValue.Aux[PathParameter[T], T] =
+//    ParameterValue.instance(p => p.value)
+//
+//  implicit def headerParameterValue[T]: ParameterValue.Aux[HeaderParameter[T], T] =
+//    ParameterValue.instance(p => p.value)
+//
+//  implicit def formParameterValue[T]: ParameterValue.Aux[FormFieldParameter[T], T] =
+//    ParameterValue.instance(p => p.value)
+//
+//  implicit def bodyParameterValue[T]: ParameterValue.Aux[BodyParameter[T], T] =
+//    ParameterValue.instance(p => p.value)
+//
+//  implicit def multiParameterValue[T, U <: Parameter[T]]: ParameterValue.Aux[MultiValued[T, U], Seq[T]] =
+//    ParameterValue.instance(p => p.value)
 }
 
 object ParameterValues extends ParameterValues

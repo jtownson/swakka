@@ -26,6 +26,8 @@ import RouteGenTemplates._
 
 trait PathParamConverters {
 
+  type PathParamConverter[T] = ConvertibleToDirective.Aux[PathParameter[T], T]
+
   val BooleanSegment: PathMatcher1[Boolean] =
     PathMatcher("""^(?i)(true|false)$""".r) flatMap (s => Some(s.toBoolean))
 
@@ -37,28 +39,26 @@ trait PathParamConverters {
       }
     }
 
-  implicit val stringReqPathConverter: ConvertibleToDirective[PathParameter[String]] =
+  implicit val stringReqPathConverter: PathParamConverter[String] =
     pathParamDirective(Segment)
 
-  implicit val floatPathConverter: ConvertibleToDirective[PathParameter[Float]] =
+  implicit val floatPathConverter: PathParamConverter[Float] =
     pathParamDirective(FloatNumber)
 
-  implicit val doublePathConverter: ConvertibleToDirective[PathParameter[Double]] =
+  implicit val doublePathConverter: PathParamConverter[Double] =
     pathParamDirective(DoubleNumber)
 
-  implicit val booleanPathConverter: ConvertibleToDirective[PathParameter[Boolean]] =
+  implicit val booleanPathConverter: PathParamConverter[Boolean] =
     pathParamDirective(BooleanSegment)
 
-  implicit val intPathConverter: ConvertibleToDirective[PathParameter[Int]] =
+  implicit val intPathConverter: PathParamConverter[Int] =
     pathParamDirective(IntNumber)
 
-  implicit val longPathConverter: ConvertibleToDirective[PathParameter[Long]] =
+  implicit val longPathConverter: PathParamConverter[Long] =
     pathParamDirective(LongNumber)
 
-  private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
-    (modelPath: String, pp: PathParameter[T]) =>
+  private def pathParamDirective[T](pm: PathMatcher1[T]): PathParamConverter[T] =
+    ConvertibleToDirective.instance((modelPath: String, pp: PathParameter[T]) =>
       rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).
-        flatMap(enumCase(pp)).
-        map(close(pp))
-  }
+        flatMap(enumCase(pp)))
 }

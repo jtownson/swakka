@@ -21,18 +21,21 @@ import akka.http.scaladsl.server.Directives.{onComplete, provide, reject}
 import akka.http.scaladsl.server.directives.BasicDirectives.extract
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
 import akka.stream.Materializer
+import net.jtownson.swakka.coreroutegen.ConvertibleToDirective.instance
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.coreroutegen._
-import RouteGenTemplates._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 trait MultiParamConverters {
 
-  implicit def multiValuedConverter[T, U <: QueryParameter[T]](implicit um: FromStringUnmarshaller[T], mat: Materializer, ec: ExecutionContext):
-  ConvertibleToDirective[MultiValued[T, U]] =
-    (_: String, mp: MultiValued[T, U]) => {
+  type MultiParamConverter[T, U <: Parameter[T]] = ConvertibleToDirective.Aux[MultiValued[T, U], Seq[T]]
+
+  implicit def multiValuedConverter[T, U <: QueryParameter[T]]
+  (implicit um: FromStringUnmarshaller[T], mat: Materializer, ec: ExecutionContext):
+  MultiParamConverter[T, U] =
+    instance((_: String, mp: MultiValued[T, U]) => {
 
       val marshalledParams: Directive1[Try[Seq[T]]] = queryParamsWithName(mp.name.name).
         map(params => Future.sequence(params.map(param => Unmarshal(param).to[T]))).
@@ -40,28 +43,27 @@ trait MultiParamConverters {
 
       marshalledParams.flatMap({
         case Success(Nil) => mp.singleParam.default match {
-          case Some(default) => provideWithCheck(close(mp)(Seq(default)))
+          case Some(default) => provideWithCheck(Seq(default), mp)
           case _ => mp.default match {
-            case Some(defaultSeq) => provideWithCheck(close(mp)(defaultSeq))
-            case _ => provideWithCheck(close(mp)(Nil))
+            case Some(defaultSeq) => provideWithCheck(defaultSeq, mp)
+            case _ => provideWithCheck(Nil, mp)
           }
         }
-        case Success(seq) => provideWithCheck(close(mp)(seq))
+        case Success(seq) => provideWithCheck(seq, mp)
         case Failure(t) => reject(
           MalformedQueryParamRejection(mp.name.name,
             s"Failed to marshal multivalued parameter ${mp.name.name}. The following error occurred: $t",
             Some(t)))
       })
-    }
+    })
 
-  private def provideWithCheck[T, U <: Parameter[T]](p: MultiValued[T, U]): Directive1[MultiValued[T, U]] =
-    provideWithCheck(p, parameterRejection(p))
+  private def provideWithCheck[T, U <: Parameter[T]](s: Seq[T], p: MultiValued[T, U]): Directive1[Seq[T]] =
+    provideWithCheck(s, p, parameterRejection(p))
 
-  private def provideWithCheck[T, U <: Parameter[T]](p: MultiValued[T, U], errHandler: => Rejection): Directive1[MultiValued[T, U]] = {
-    val values: Seq[T] = p.value
+  private def provideWithCheck[T, U <: Parameter[T]](values: Seq[T], p: MultiValued[T, U], errHandler: => Rejection): Directive1[Seq[T]] = {
     p.singleParam.enum match {
-      case None => provide(p)
-      case Some(enum) if values.forall(enum.contains) => provide(p)
+      case None => provide(values)
+      case Some(enum) if values.forall(enum.contains) => provide(values)
       case _ => reject(errHandler)
     }
   }

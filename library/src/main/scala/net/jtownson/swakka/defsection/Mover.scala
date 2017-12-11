@@ -20,7 +20,12 @@ import com.jayway.jsonpath.{JsonPath, ReadContext}
 import net.minidev.json.JSONArray
 import spray.json.{JsArray, JsObject, JsString, JsValue, JsonParser}
 
-
+/**
+  * TODO: Get this working. It should factorise a swagger document with duplicated
+  * schema definitions into a swagger document containing a definitions section,
+  * with each schema written once. The original schema locations should be replaced
+  * by refs.
+  */
 object Mover {
 
   def move(v: JsValue): JsValue = {

@@ -42,10 +42,11 @@ object RouteGen extends CorsUseCases {
       ev2: RouteGen[T]): RouteGen[H :: T] =
     (l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  implicit def pathItemRouteGen[Params <: HList: ConvertibleToDirective,
+  implicit def pathItemRouteGen[Params <: HList,
+                                EndpointParams <: HList,
                                 EndpointFunction,
                                 Responses](
-      implicit ev: AkkaHttpInvoker[Params, EndpointFunction])
+      implicit ev1: AkkaHttpInvoker[EndpointParams, EndpointFunction], ev2: ConvertibleToDirective.Aux[Params, EndpointParams])
     : RouteGen[PathItem[Params, EndpointFunction, Responses]] =
     (pathItem: PathItem[Params, EndpointFunction, Responses]) =>
       pathItemRoute(pathItem)
@@ -53,26 +54,27 @@ object RouteGen extends CorsUseCases {
   implicit val hNilRouteGen: RouteGen[HNil] =
     (_: HNil) => RouteDirectives.reject
 
-  def pathItemRoute[Params <: HList: ConvertibleToDirective,
+  def pathItemRoute[Params <: HList,
+                    EndpointParams <: HList,
                     EndpointFunction,
                     Responses](
       pathItem: PathItem[Params, EndpointFunction, Responses])(
-      implicit ev: AkkaHttpInvoker[Params, EndpointFunction]): Route =
+      implicit ev1: AkkaHttpInvoker[EndpointParams, EndpointFunction], ev2: ConvertibleToDirective.Aux[Params, EndpointParams]): Route =
     pathItemRoute(pathItem.method, pathItem.path, pathItem.operation)
 
-  private def pathItemRoute[Params <: HList: ConvertibleToDirective,
+  private def pathItemRoute[Params <: HList,
+                            EndpointParams <: HList,
                             EndpointFunction,
                             Responses](
       httpMethod: HttpMethod,
       modelPath: String,
       operation: Operation[Params, EndpointFunction, Responses])(
-                                        implicit ev1: ConvertibleToDirective[Params],
-                                        ev2: AkkaHttpInvoker[Params, EndpointFunction]) = {
+                                        implicit converter: ConvertibleToDirective.Aux[Params, EndpointParams],
+                                        invoker: AkkaHttpInvoker[EndpointParams, EndpointFunction]) = {
 
     method(httpMethod) {
-
-      ev1.convertToDirective(modelPath, operation.parameters) { params =>
-        ev2.apply(operation.endpointImplementation, params)
+      converter.convertToDirective(modelPath, operation.parameters) { params: EndpointParams =>
+        invoker.apply(operation.endpointImplementation, params)
       }
     }
   }

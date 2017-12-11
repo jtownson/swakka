@@ -20,30 +20,34 @@ import akka.http.scaladsl.server.Directives.{as, entity}
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.coreroutegen._
+import net.jtownson.swakka.coreroutegen.ConvertibleToDirective.instance
+
 
 import RouteGenTemplates._
 
 trait BodyParamConverters {
 
-  implicit def bodyParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[T]] =
-    (_: String, bp: BodyParameter[T]) => {
-      bp.default match {
-        case None =>
-          entity(as[T]).flatMap(enumCase(bp)).map(close(bp))
-        case Some(default) =>
-          optionalEntity[T](as[T]).map(_.getOrElse(default)).flatMap(enumCase(bp)).map(close(bp))
-      }
-    }
+  type BodyParamConverter[U] = ConvertibleToDirective.Aux[BodyParameter[U], U]
 
-  implicit def bodyOptParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[Option[T]]] =
-    (_: String, bp: BodyParameter[Option[T]]) => {
+  implicit def bodyParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): BodyParamConverter[T] =
+    instance((_: String, bp: BodyParameter[T]) => {
       bp.default match {
         case None =>
-          optionalEntity[T](as[T]).flatMap(enumCase(bp)).map(close(bp))
+          entity(as[T]).flatMap(enumCase(bp))
         case Some(default) =>
-          optionalEntity[T](as[T]).map(returnOrElse(default)).flatMap(enumCase(bp)).map(close(bp))
+          optionalEntity[T](as[T]).map(_.getOrElse(default)).flatMap(enumCase(bp))
       }
-    }
+    })
+
+  implicit def bodyOptParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): BodyParamConverter[Option[T]] =
+    instance((_: String, bp: BodyParameter[Option[T]]) => {
+      bp.default match {
+        case None =>
+          optionalEntity[T](as[T]).flatMap(enumCase(bp))
+        case Some(default) =>
+          optionalEntity[T](as[T]).map(returnOrElse(default)).flatMap(enumCase(bp))
+      }
+    })
 
   private def returnOrElse[T](default: Option[T])(maybeEntity: Option[T]) = maybeEntity match {
     case v@Some(_) => v

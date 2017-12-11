@@ -22,11 +22,23 @@ import akka.http.scaladsl.server.Directive1
   * of parameter entities (query params, path params, etc) into Akka-Http directives
   * that extract the values of those entities.
   * These Directives are composed by RouteGen into a single Route.
+  * The T type param is the parameter entity type (e.g. QueryParameter[Int])
+  * The U type param is the extraction entity type (e.g. Int)
   */
 trait ConvertibleToDirective[T] {
-  def convertToDirective(modelPath: String, t: T): Directive1[T]
+  type U
+  def convertToDirective(modelPath: String, t: T): Directive1[U]
 }
 
 object ConvertibleToDirective {
-  def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
+  type Aux[T, UU] = ConvertibleToDirective[T]{ type U = UU }
+
+  def instance[T, UU](f: (String, T) => Directive1[UU]): ConvertibleToDirective.Aux[T, UU] =
+    new ConvertibleToDirective[T] {
+      type U = UU
+
+      override def convertToDirective(modelPath: String, t: T): Directive1[UU] = f(modelPath, t)
+    }
+
+  def converter[T, U](implicit ev: Aux[T, U]): ConvertibleToDirective.Aux[T, U] = ev
 }

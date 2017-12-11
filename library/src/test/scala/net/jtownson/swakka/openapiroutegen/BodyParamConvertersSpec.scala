@@ -17,15 +17,14 @@
 package net.jtownson.swakka.openapiroutegen
 
 import akka.http.scaladsl.server.Directives.complete
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.server.{Directive1, Route}
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
+import net.jtownson.swakka.coreroutegen.ConvertibleToDirective.{Aux, converter}
 import spray.json._
-
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.coreroutegen._
-
 import org.scalatest.FlatSpec
 
 class BodyParamConvertersSpec extends FlatSpec with ConverterTest {
@@ -48,13 +47,10 @@ class BodyParamConvertersSpec extends FlatSpec with ConverterTest {
 
   they should "convert an optional body param of a case class" in {
 
-    val conv = implicitly[ConvertibleToDirective[BodyParameter[Option[Pet]]]]
+    val c: Aux[BodyParameter[Option[Pet]], Option[Pet]] = converter[BodyParameter[Option[Pet]], Option[Pet]]
 
-    val route: Route = conv.convertToDirective("", BodyParameter[Option[Pet]]('p)) { bp =>
-      bp.value match {
-        case Some(_) => fail("should have got nothing")
-        case None => complete("got nothing")
-      }
+    val route: Route = c.convertToDirective("", BodyParameter[Option[Pet]]('p)) { (maybePet: Option[Pet]) =>
+      maybePet.map(_ => fail("should have got nothing")).getOrElse(complete("got nothing"))
     }
 
     converterTest[Option[Pet], BodyParameter[Option[Pet]]](post("/p"), route, "got nothing")

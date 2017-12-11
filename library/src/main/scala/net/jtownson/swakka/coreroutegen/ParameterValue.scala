@@ -53,6 +53,9 @@ object ParameterValue {
     override def get(p: P) = f(p)
   }
 
+  implicit def bareParameterValue[T]: ParameterValue.Aux[T, T] =
+    instance((t: T) => t)
+
   implicit val hNilParameterValue: Aux[HNil, HNil] =
     instance(_ => HNil)
 

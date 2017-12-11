@@ -32,15 +32,14 @@ object RouteGenTemplates {
   def headerTemplate[T](fNoDefault: () => Directive1[T],
                                 fDefault: T => Directive1[T],
                                 fEnum: T => Directive1[T],
-                                hp: HeaderParameter[T]): Directive1[HeaderParameter[T]] = {
+                                hp: HeaderParameter[T]): Directive1[T] = {
 
-    val extraction: Directive1[T] = hp.default match {
+    hp.default match {
       case Some(default) =>
         fDefault(default).flatMap(fEnum)
       case None =>
         fNoDefault().flatMap(fEnum)
     }
-    extraction.map(close(hp))
   }
 
   def enumCase[T](rejection: Rejection, hp: HeaderParameter[T], value: T): Directive1[T] = {
@@ -52,22 +51,17 @@ object RouteGenTemplates {
   }
 
 
-  private def close[T](hp: HeaderParameter[T]): T => HeaderParameter[T] =
-    t => hp.asInstanceOf[OpenHeaderParameter[T]].closeWith(t)
-
-
   def parameterTemplate[T](fNoDefault: () => Directive1[T],
                                    fDefault: T => Directive1[T],
                                    fEnum: T => Directive1[T],
-                                   qp: QueryParameter[T]): Directive1[QueryParameter[T]] = {
+                                   qp: QueryParameter[T]): Directive1[T] = {
 
-    val extraction: Directive1[T] = qp.default match {
+    qp.default match {
       case Some(default) =>
         fDefault(default).flatMap(fEnum)
       case None =>
         fNoDefault().flatMap(fEnum)
     }
-    extraction.map(close(qp))
   }
 
   def enumCase[T](qp: QueryParameter[T], value: T): Directive1[T] = {
@@ -81,23 +75,18 @@ object RouteGenTemplates {
   private def enumErrMsg[T](value: T, qp: QueryParameter[T]): String =
     s"The parameter value $value is not allowed by this request. They are limited to ${qp.enum}."
 
-  private def close[T](qp: QueryParameter[T]): T => QueryParameter[T] =
-    t => qp.asInstanceOf[OpenQueryParameter[T]].closeWith(t)
-
-
 
   def formFieldTemplate[T](fNoDefault: () => Directive1[T],
                            fDefault: T => Directive1[T],
                            fEnum: T => Directive1[T],
-                           fp: FormFieldParameter[T]): Directive1[FormFieldParameter[T]] = {
+                           fp: FormFieldParameter[T]): Directive1[T] = {
 
-    val extraction: Directive1[T] = fp.default match {
+    fp.default match {
       case Some(default) =>
         fDefault(default).flatMap(fEnum)
       case None =>
         fNoDefault().flatMap(fEnum)
     }
-    extraction.map(close(fp))
   }
 
   def enumCase[T](fp: FormFieldParameter[T], value: T): Directive1[T] = {
@@ -111,23 +100,11 @@ object RouteGenTemplates {
   private def enumErrMsg[T](value: T, fp: FormFieldParameter[T]): String =
     s"The form field value $value is not allowed by this request. They are limited to ${fp.enum}."
 
-  def close[T](fp: FormFieldParameter[T]): T => FormFieldParameter[T] =
-    t => fp.asInstanceOf[OpenFormFieldParameter[T]].closeWith(t)
-
-  def close[T](bp: BodyParameter[T]): T => BodyParameter[T] =
-    t => bp.asInstanceOf[OpenBodyParameter[T]].closeWith(t)
-
   def enumCase[T](bp: BodyParameter[T])(value: T): Directive1[T] = bp.enum match {
     case None => provide(value)
     case Some(seq) if seq.contains(value) => provide(value)
     case _ => reject(ValidationRejection(s"The request body $value is not allowed by this request. They are limited to ${bp.enum}"))
   }
-
-  def close[T, U <: Parameter[T]](mp: MultiValued[T, U]): Seq[T] => MultiValued[T, U] =
-    t => mp.asInstanceOf[OpenMultiValued[T, U]].closeWith(t)
-
-  def close[T](pp: PathParameter[T]): T => PathParameter[T] =
-    t => pp.asInstanceOf[OpenPathParameter[T]].closeWith(t)
 
   def enumCase[T](pp: PathParameter[T])(value: T): Directive1[T] = pp.enum match {
     case None => provide(value)
