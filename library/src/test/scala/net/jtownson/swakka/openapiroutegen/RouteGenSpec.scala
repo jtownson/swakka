@@ -29,6 +29,7 @@ import spray.json._
 
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen._
 
 import org.scalamock.function.{MockFunction0, MockFunction1}
@@ -282,7 +283,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           parameters = QueryParameter[Int]('q) :: HNil,
           responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f)))
 
-    val route = openApiRoute(api, Some(SwaggerRouteSettings()))
+    val route = openApiRoute(api, Some(DocRouteSettings()))
 
     val swaggerRequest = get("/swagger.json")
 
@@ -312,7 +313,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           HNil
       )
 
-    val route: Route = openApiRoute(api, Some(SwaggerRouteSettings()))
+    val route: Route = openApiRoute(api, Some(DocRouteSettings()))
 
     Get("http://localhost:8080/") ~> seal(route) ~> check {
       status shouldBe NotFound
@@ -343,7 +344,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
           HNil
       )
 
-    val route: Route = openApiRoute(api, Some(SwaggerRouteSettings()))
+    val route: Route = openApiRoute(api, Some(DocRouteSettings()))
 
     Get("http://localhost:8080/greet/Katharine") ~> seal(route) ~> check {
       status shouldBe OK
@@ -419,7 +420,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
             endpointImplementation = f))
     )
 
-    val route = openApiRoute(api, Some(SwaggerRouteSettings()))
+    val route = openApiRoute(api, Some(DocRouteSettings()))
 
     val request0 = Get("https://foo.com/app")
     request0 ~> route ~> check {
@@ -507,7 +508,7 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
 
     val route = openApiRoute(
       api,
-      Some(SwaggerRouteSettings(
+      Some(DocRouteSettings(
         endpointPath = "my/path/to/my/swagger-file.json",
         corsUseCase = SpecificallyThese(corsHeaders))))
 

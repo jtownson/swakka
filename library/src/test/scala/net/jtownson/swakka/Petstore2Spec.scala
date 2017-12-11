@@ -16,9 +16,10 @@
 
 package net.jtownson.swakka
 
+import io.swagger.annotations.ApiModelProperty
+
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.DateTime
-import io.swagger.annotations.ApiModelProperty
 import akka.http.scaladsl.model.HttpMethods.{DELETE, GET, POST, PUT}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
@@ -27,13 +28,17 @@ import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import spray.json._
+
 import net.jtownson.swakka.openapijson._
+import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen._
 import net.jtownson.swakka.openapimodel._
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+
 import shapeless.syntax.singleton._
-import shapeless.{HNil, ::}
+import shapeless.{::, HNil}
 
 class Petstore2Spec
     extends FlatSpec
@@ -450,7 +455,7 @@ class Petstore2Spec
       securityDefinitions = Some(securityDefinitions)
     )
 
-    val apiRoutes = openApiRoute(petstoreApi, Some(SwaggerRouteSettings()))
+    val apiRoutes = openApiRoute(petstoreApi, Some(DocRouteSettings()))
 
     val expectedJson = JsObject(
       "swagger" -> JsString("2.0"),

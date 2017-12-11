@@ -4,8 +4,10 @@ import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.{HttpEntity, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import net.jtownson.swakka.coreroutegen.CorsUseCases
+
 import spray.json._
+
+import net.jtownson.swakka.coreroutegen.{CorsUseCases, DocRouteSettings}
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen.PathHandling._
 
@@ -23,7 +25,7 @@ package object openapiroutegen extends CorsUseCases {
     *         defined therein.
     */
   def openApiRoute[Paths, SecurityDefinitions]
-  (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: Option[SwaggerRouteSettings] = None)
+  (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: Option[DocRouteSettings] = None)
   (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths, SecurityDefinitions]]): Route =
     hostDirective(api.host) {
       schemesDirective(api.schemes) {
@@ -54,7 +56,7 @@ package object openapiroutegen extends CorsUseCases {
     * @return An Akka-Http Route serving the swagger file.
     */
   def swaggerRoute[Paths, SecurityDefinitions]
-  (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: SwaggerRouteSettings)
+  (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: DocRouteSettings)
   (implicit ev: JsonFormat[OpenApi[Paths, SecurityDefinitions]]): Route = {
 
     get {

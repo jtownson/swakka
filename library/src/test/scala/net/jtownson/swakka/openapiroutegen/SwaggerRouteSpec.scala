@@ -24,14 +24,17 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import spray.json._
+
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapiroutegen._
 import net.jtownson.swakka.coreroutegen._
+
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
+
 import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
@@ -65,7 +68,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
 
   "Swagger route" should "return a swagger file" in {
 
-    val route = swaggerRoute(api, SwaggerRouteSettings())
+    val route = swaggerRoute(api, DocRouteSettings())
 
     Get(s"http://example.com/swagger.json") ~> route ~> check {
       status shouldBe OK
@@ -83,7 +86,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   it should "allow swagger endpoint url to be configured" in {
     forAll(paths) { (path, request, expectedStatus) =>
 
-      val route = swaggerRoute(api, SwaggerRouteSettings(endpointPath = path))
+      val route = swaggerRoute(api, DocRouteSettings(endpointPath = path))
 
       request ~> seal(route) ~> check {
         status shouldBe expectedStatus
@@ -104,7 +107,7 @@ class SwaggerRouteSpec extends FlatSpec with MockFactory with RouteTest with Tes
   it should "return CORS headers as configured" in {
     forAll(corsCases) { (useCase, expectedHeaders) =>
 
-      val route = swaggerRoute(api, SwaggerRouteSettings(corsUseCase = useCase))
+      val route = swaggerRoute(api, DocRouteSettings(corsUseCase = useCase))
 
       Get(s"http://example.com/swagger.json") ~> route ~> check {
         headers shouldBe expectedHeaders

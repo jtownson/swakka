@@ -26,13 +26,14 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+import spray.json._
 
+import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen._
 import net.jtownson.swakka.openapijson._
 
 import shapeless.{::, HNil}
-import spray.json._
 
 import scala.collection.mutable
 
@@ -156,7 +157,7 @@ object PetstoreV1 extends App {
   val apiRoutes = openApiRoute(
     api = petstoreApi,
     swaggerRouteSettings =
-      Some(SwaggerRouteSettings(corsUseCase = SpecificallyThese(corsHeaders)))
+      Some(DocRouteSettings(corsUseCase = SpecificallyThese(corsHeaders)))
   )
 
   implicit val system = ActorSystem()

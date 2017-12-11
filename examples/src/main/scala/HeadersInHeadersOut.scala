@@ -26,6 +26,7 @@ import akka.stream.ActorMaterializer
 
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen._
 
 import shapeless.{::, HNil}
@@ -74,7 +75,7 @@ object HeadersInHeadersOut extends App {
       )
     )
 
-  val route: Route = openApiRoute(api, Some(SwaggerRouteSettings(
+  val route: Route = openApiRoute(api, Some(DocRouteSettings(
     corsUseCase = SpecificallyThese(corsHeaders))))
 
   val bindingFuture = Http().bindAndHandle(

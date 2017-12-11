@@ -40,6 +40,7 @@ import scala.collection.immutable.Seq
 import net.jtownson.swakka.openapimodel._
 
 // Generates an akka-http Route from an API definition
+import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen._
 
 // Implicit json formats for serializing the swagger.json
@@ -77,7 +78,7 @@ object PingPong extends App {
 
   val route: Route = openApiRoute(
     api,
-    swaggerRouteSettings = Some(SwaggerRouteSettings(corsUseCase = SpecificallyThese(corsHeaders))))
+    swaggerRouteSettings = Some(DocRouteSettings(corsUseCase = SpecificallyThese(corsHeaders))))
 
   val bindingFuture = Http().bindAndHandle(
     route,
