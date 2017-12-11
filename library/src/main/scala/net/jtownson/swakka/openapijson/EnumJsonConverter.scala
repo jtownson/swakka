@@ -1,4 +1,4 @@
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import spray.json.{DeserializationException, JsString, JsValue, RootJsonFormat}
 

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapijson._
 import spray.json._
 
 trait OpenApiJsonProtocol extends

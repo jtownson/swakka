@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import akka.http.scaladsl.server.directives.FileInfo
 import akka.stream.scaladsl.Source

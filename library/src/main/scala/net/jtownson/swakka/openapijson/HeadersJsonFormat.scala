@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import spray.json.{JsValue, JsonFormat}
 
-trait PathsJsonFormat[T] extends JsonFormat[T] {
+trait HeadersJsonFormat[T] extends JsonFormat[T] {
   def read(json: JsValue): T = throw new UnsupportedOperationException("Cannot read swagger files (yet).")
 }
 
-object PathsJsonFormat {
-  def instance[T](f: T => JsValue): PathsJsonFormat[T] = (obj: T) => f(obj)
+object HeadersJsonFormat {
+  def instance[T](f: T => JsValue): HeadersJsonFormat[T] = (obj: T) => f(obj)
 }

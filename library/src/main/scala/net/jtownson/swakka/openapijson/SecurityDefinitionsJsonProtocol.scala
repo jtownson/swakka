@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.jsonprotocol.SecurityDefinitionsJsonFormat._
+import net.jtownson.swakka.openapijson.SecurityDefinitionsJsonFormat._
 
 import shapeless.labelled.FieldType
 import shapeless.{::, HList, HNil, Lazy, Witness}

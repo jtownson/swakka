@@ -1,4 +1,4 @@
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import akka.http.scaladsl.model.HttpMethods.GET
 import akka.http.scaladsl.server.Directives.complete
@@ -7,7 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json.{JsArray, JsObject, JsString, JsTrue, _}
 
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapijson._
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

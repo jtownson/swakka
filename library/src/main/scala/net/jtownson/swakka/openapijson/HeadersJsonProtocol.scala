@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
+import net.jtownson.swakka.openapijson.Flattener.flattenToObject
 import net.jtownson.swakka.misc.jsObject
 import HeadersJsonFormat._
 

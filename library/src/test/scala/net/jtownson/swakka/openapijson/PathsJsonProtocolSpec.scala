@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import akka.http.scaladsl.model.HttpMethods.{GET, POST}
 import akka.http.scaladsl.server.Directives._
@@ -22,7 +22,7 @@ import akka.http.scaladsl.server.Route
 import spray.json.{JsArray, JsObject, JsString, _}
 
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.jsonprotocol.PathsJsonProtocol._
+import net.jtownson.swakka.openapijson.PathsJsonProtocol._
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

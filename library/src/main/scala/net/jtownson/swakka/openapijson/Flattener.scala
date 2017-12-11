@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import spray.json.{JsArray, JsObject, JsValue}
 

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
-import net.jtownson.swakka.jsonprotocol.Flattener.{flattenToArray, flattenToObject}
+import net.jtownson.swakka.openapijson.Flattener.{flattenToArray, flattenToObject}
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._

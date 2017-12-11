@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.jsonprotocol
+package net.jtownson.swakka.openapijson
 
 import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.jsonprotocol.Flattener.flattenToObject
-import net.jtownson.swakka.jsonprotocol.PathsJsonFormat.instance
+import net.jtownson.swakka.openapijson.Flattener.flattenToObject
+import net.jtownson.swakka.openapijson.PathsJsonFormat.instance
 import shapeless.{::, HList, HNil}
 import spray.json._
 import spray.json.{JsArray, JsObject, JsString, JsValue, JsonWriter}

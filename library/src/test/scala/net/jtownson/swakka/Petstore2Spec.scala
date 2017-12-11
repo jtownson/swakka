@@ -27,7 +27,7 @@ import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import spray.json._
-import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.routegen._
 import net.jtownson.swakka.openapimodel._
 import org.scalatest.FlatSpec
