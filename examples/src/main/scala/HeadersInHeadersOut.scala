@@ -26,7 +26,7 @@ import akka.stream.ActorMaterializer
 
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.routegen._
+import net.jtownson.swakka.openapiroutegen._
 
 import shapeless.{::, HNil}
 

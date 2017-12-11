@@ -37,7 +37,7 @@ import scala.collection.immutable.Seq
 import net.jtownson.swakka.openapimodel._
 
 // Akka http route generation
-import net.jtownson.swakka.routegen._
+import net.jtownson.swakka.openapiroutegen._
 
 // Serialization of swagger.json
 import net.jtownson.swakka.openapijson._

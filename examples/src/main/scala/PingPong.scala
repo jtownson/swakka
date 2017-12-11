@@ -40,7 +40,7 @@ import scala.collection.immutable.Seq
 import net.jtownson.swakka.openapimodel._
 
 // Generates an akka-http Route from an API definition
-import net.jtownson.swakka.routegen._
+import net.jtownson.swakka.openapiroutegen._
 
 // Implicit json formats for serializing the swagger.json
 import net.jtownson.swakka.openapijson._
