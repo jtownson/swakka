@@ -3,7 +3,6 @@ package net.jtownson.swakka.openapiroutegen
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route.seal
-import net.jtownson.swakka.openapiroutegen.OpenApiDirective.hNilConverter
 import org.scalatest.FlatSpec
 import shapeless.HNil
 import org.scalatest.Matchers._

@@ -19,11 +19,12 @@ package net.jtownson.swakka.openapiroutegen
 import akka.http.scaladsl.server.Directives.{parameter, _}
 import akka.http.scaladsl.unmarshalling.PredefinedFromStringUnmarshallers._
 import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.coreroutegen._
 import RouteGenTemplates._
 
 trait QueryParamConverters {
 
-  implicit val stringReqQueryConverter: OpenApiDirective[QueryParameter[String]] =
+  implicit val stringReqQueryConverter: ConvertibleToDirective[QueryParameter[String]] =
     (_: String, qp: QueryParameter[String]) => {
       parameterTemplate(
         () => parameter(qp.name),
@@ -33,7 +34,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val stringOptQueryConverter: OpenApiDirective[QueryParameter[Option[String]]] = {
+  implicit val stringOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[String]]] = {
     (_: String, qp: QueryParameter[Option[String]]) => {
       parameterTemplate(
         () => parameter(qp.name.?),
@@ -44,7 +45,7 @@ trait QueryParamConverters {
     }
   }
 
-  implicit val floatReqQueryConverter: OpenApiDirective[QueryParameter[Float]] =
+  implicit val floatReqQueryConverter: ConvertibleToDirective[QueryParameter[Float]] =
     (_: String, qp: QueryParameter[Float]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Float]),
@@ -54,7 +55,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val floatOptQueryConverter: OpenApiDirective[QueryParameter[Option[Float]]] =
+  implicit val floatOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Float]]] =
     (_: String, qp: QueryParameter[Option[Float]]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Float].?),
@@ -64,7 +65,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val doubleReqQueryConverter: OpenApiDirective[QueryParameter[Double]] =
+  implicit val doubleReqQueryConverter: ConvertibleToDirective[QueryParameter[Double]] =
     (_: String, qp: QueryParameter[Double]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Double]),
@@ -74,7 +75,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val doubleOptQueryConverter: OpenApiDirective[QueryParameter[Option[Double]]] =
+  implicit val doubleOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Double]]] =
     (_: String, qp: QueryParameter[Option[Double]]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Double].?),
@@ -84,7 +85,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val booleanReqQueryConverter: OpenApiDirective[QueryParameter[Boolean]] =
+  implicit val booleanReqQueryConverter: ConvertibleToDirective[QueryParameter[Boolean]] =
     (_: String, qp: QueryParameter[Boolean]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Boolean]),
@@ -94,7 +95,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val booleanOptQueryConverter: OpenApiDirective[QueryParameter[Option[Boolean]]] =
+  implicit val booleanOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Boolean]]] =
     (_: String, qp: QueryParameter[Option[Boolean]]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Boolean].?),
@@ -104,7 +105,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val intReqQueryConverter: OpenApiDirective[QueryParameter[Int]] =
+  implicit val intReqQueryConverter: ConvertibleToDirective[QueryParameter[Int]] =
     (_: String, qp: QueryParameter[Int]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Int]),
@@ -114,7 +115,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val intOptQueryConverter: OpenApiDirective[QueryParameter[Option[Int]]] =
+  implicit val intOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Int]]] =
     (_: String, qp: QueryParameter[Option[Int]]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Int].?),
@@ -124,7 +125,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val longReqQueryConverter: OpenApiDirective[QueryParameter[Long]] =
+  implicit val longReqQueryConverter: ConvertibleToDirective[QueryParameter[Long]] =
     (_: String, qp: QueryParameter[Long]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Long]),
@@ -134,7 +135,7 @@ trait QueryParamConverters {
       )
     }
 
-  implicit val longOptQueryConverter: OpenApiDirective[QueryParameter[Option[Long]]] =
+  implicit val longOptQueryConverter: ConvertibleToDirective[QueryParameter[Option[Long]]] =
     (_: String, qp: QueryParameter[Option[Long]]) => {
       parameterTemplate(
         () => parameter(qp.name.as[Long].?),

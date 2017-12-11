@@ -25,7 +25,7 @@ import RouteGenTemplates._
 
 trait BodyParamConverters {
 
-  implicit def bodyParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): OpenApiDirective[BodyParameter[T]] =
+  implicit def bodyParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[T]] =
     (_: String, bp: BodyParameter[T]) => {
       bp.default match {
         case None =>
@@ -35,7 +35,7 @@ trait BodyParamConverters {
       }
     }
 
-  implicit def bodyOptParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): OpenApiDirective[BodyParameter[Option[T]]] =
+  implicit def bodyOptParamConverter[T](implicit ev: FromRequestUnmarshaller[T]): ConvertibleToDirective[BodyParameter[Option[T]]] =
     (_: String, bp: BodyParameter[Option[T]]) => {
       bp.default match {
         case None =>

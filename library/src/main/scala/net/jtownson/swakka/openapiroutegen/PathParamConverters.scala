@@ -20,6 +20,7 @@ import akka.http.scaladsl.server.Directives.{DoubleNumber, rawPathPrefixTest}
 import akka.http.scaladsl.server.{PathMatcher, PathMatcher1}
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen.PathHandling.pathWithParamMatcher
+import net.jtownson.swakka.coreroutegen._
 import akka.http.scaladsl.server.PathMatchers.{IntNumber, LongNumber, Segment}
 import RouteGenTemplates._
 
@@ -36,25 +37,25 @@ trait PathParamConverters {
       }
     }
 
-  implicit val stringReqPathConverter: OpenApiDirective[PathParameter[String]] =
+  implicit val stringReqPathConverter: ConvertibleToDirective[PathParameter[String]] =
     pathParamDirective(Segment)
 
-  implicit val floatPathConverter: OpenApiDirective[PathParameter[Float]] =
+  implicit val floatPathConverter: ConvertibleToDirective[PathParameter[Float]] =
     pathParamDirective(FloatNumber)
 
-  implicit val doublePathConverter: OpenApiDirective[PathParameter[Double]] =
+  implicit val doublePathConverter: ConvertibleToDirective[PathParameter[Double]] =
     pathParamDirective(DoubleNumber)
 
-  implicit val booleanPathConverter: OpenApiDirective[PathParameter[Boolean]] =
+  implicit val booleanPathConverter: ConvertibleToDirective[PathParameter[Boolean]] =
     pathParamDirective(BooleanSegment)
 
-  implicit val intPathConverter: OpenApiDirective[PathParameter[Int]] =
+  implicit val intPathConverter: ConvertibleToDirective[PathParameter[Int]] =
     pathParamDirective(IntNumber)
 
-  implicit val longPathConverter: OpenApiDirective[PathParameter[Long]] =
+  implicit val longPathConverter: ConvertibleToDirective[PathParameter[Long]] =
     pathParamDirective(LongNumber)
 
-  private def pathParamDirective[T](pm: PathMatcher1[T]): OpenApiDirective[PathParameter[T]] = {
+  private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
     (modelPath: String, pp: PathParameter[T]) =>
       rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).
         flatMap(enumCase(pp)).

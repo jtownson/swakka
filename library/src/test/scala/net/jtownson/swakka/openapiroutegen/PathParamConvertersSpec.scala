@@ -4,7 +4,6 @@ import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.model.StatusCodes._
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.openapiroutegen.OpenApiDirective.hNilConverter
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import shapeless.HNil

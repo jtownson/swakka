@@ -19,7 +19,6 @@ package net.jtownson.swakka.openapiroutegen
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{PathMatcher1, Route}
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
-import net.jtownson.swakka.openapiroutegen.OpenApiDirective.BooleanSegment
 import net.jtownson.swakka.openapiroutegen.PathHandling.containsParamToken
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

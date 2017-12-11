@@ -16,18 +16,13 @@
 
 package net.jtownson.swakka.openapiroutegen
 
-import net.jtownson.swakka.coreroutegen.ConvertibleToDirective
-
-trait OpenApiDirective[T] extends ConvertibleToDirective[T]
-
-object OpenApiDirective
+trait OpenApiConverters
   extends BodyParamConverters
     with FormFieldParamConverters
     with HeaderParamConverters
     with HListParamConverters
     with PathParamConverters
     with QueryParamConverters
-    with MultiParamConverters {
+    with MultiParamConverters
 
-  def converter[T](t: T)(implicit ev: OpenApiDirective[T]): OpenApiDirective[T] = ev
-}
+object OpenApiConverters extends OpenApiConverters

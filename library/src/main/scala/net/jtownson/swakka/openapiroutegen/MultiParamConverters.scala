@@ -22,6 +22,7 @@ import akka.http.scaladsl.server.directives.BasicDirectives.extract
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
 import akka.stream.Materializer
 import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.coreroutegen._
 import RouteGenTemplates._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,7 +31,7 @@ import scala.util.{Failure, Success, Try}
 trait MultiParamConverters {
 
   implicit def multiValuedConverter[T, U <: QueryParameter[T]](implicit um: FromStringUnmarshaller[T], mat: Materializer, ec: ExecutionContext):
-  OpenApiDirective[MultiValued[T, U]] =
+  ConvertibleToDirective[MultiValued[T, U]] =
     (_: String, mp: MultiValued[T, U]) => {
 
       val marshalledParams: Directive1[Try[Seq[T]]] = queryParamsWithName(mp.name.name).

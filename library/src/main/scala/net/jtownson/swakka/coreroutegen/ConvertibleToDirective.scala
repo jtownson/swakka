@@ -26,3 +26,7 @@ import akka.http.scaladsl.server.Directive1
 trait ConvertibleToDirective[T] {
   def convertToDirective(modelPath: String, t: T): Directive1[T]
 }
+
+object ConvertibleToDirective {
+  def converter[T](t: T)(implicit ev: ConvertibleToDirective[T]): ConvertibleToDirective[T] = ev
+}

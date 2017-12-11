@@ -45,8 +45,6 @@ import scala.collection.immutable.Seq
 
 class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
-  import net.jtownson.swakka.openapiroutegen.OpenApiDirective._
-
   private def f0: MockFunction0[Route] = mockFunction[Route]
 
   private def defaultOp = Operation[HNil, () => Route, ResponseValue[String, HNil]](

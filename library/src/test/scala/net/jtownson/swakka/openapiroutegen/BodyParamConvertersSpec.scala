@@ -24,7 +24,7 @@ import spray.json._
 
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.openapiroutegen.OpenApiDirective.{bodyOptParamConverter, bodyParamConverter}
+import net.jtownson.swakka.coreroutegen._
 
 import org.scalatest.FlatSpec
 
@@ -48,7 +48,7 @@ class BodyParamConvertersSpec extends FlatSpec with ConverterTest {
 
   they should "convert an optional body param of a case class" in {
 
-    val conv = implicitly[OpenApiDirective[BodyParameter[Option[Pet]]]]
+    val conv = implicitly[ConvertibleToDirective[BodyParameter[Option[Pet]]]]
 
     val route: Route = conv.convertToDirective("", BodyParameter[Option[Pet]]('p)) { bp =>
       bp.value match {

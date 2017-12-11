@@ -19,48 +19,49 @@ package net.jtownson.swakka.openapiroutegen
 import akka.http.scaladsl.server.Directives.{headerValueByName, optionalHeaderValueByName}
 import akka.http.scaladsl.server.MissingHeaderRejection
 import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen.RouteGenTemplates._
 
 trait HeaderParamConverters {
 
-  implicit val stringReqHeaderConverter: OpenApiDirective[HeaderParameter[String]] =
+  implicit val stringReqHeaderConverter: ConvertibleToDirective[HeaderParameter[String]] =
     requiredHeaderParamDirective(s => s)
 
-  implicit val stringOptHeaderConverter: OpenApiDirective[HeaderParameter[Option[String]]] =
+  implicit val stringOptHeaderConverter: ConvertibleToDirective[HeaderParameter[Option[String]]] =
     optionalHeaderParamDirective(s => s)
 
-  implicit val floatReqHeaderConverter: OpenApiDirective[HeaderParameter[Float]] =
+  implicit val floatReqHeaderConverter: ConvertibleToDirective[HeaderParameter[Float]] =
     requiredHeaderParamDirective(_.toFloat)
 
-  implicit val floatOptHeaderConverter: OpenApiDirective[HeaderParameter[Option[Float]]] =
+  implicit val floatOptHeaderConverter: ConvertibleToDirective[HeaderParameter[Option[Float]]] =
     optionalHeaderParamDirective(_.toFloat)
 
-  implicit val doubleReqHeaderConverter: OpenApiDirective[HeaderParameter[Double]] =
+  implicit val doubleReqHeaderConverter: ConvertibleToDirective[HeaderParameter[Double]] =
     requiredHeaderParamDirective(_.toDouble)
 
-  implicit val doubleOptHeaderConverter: OpenApiDirective[HeaderParameter[Option[Double]]] =
+  implicit val doubleOptHeaderConverter: ConvertibleToDirective[HeaderParameter[Option[Double]]] =
     optionalHeaderParamDirective(_.toDouble)
 
-  implicit val booleanReqHeaderConverter: OpenApiDirective[HeaderParameter[Boolean]] =
+  implicit val booleanReqHeaderConverter: ConvertibleToDirective[HeaderParameter[Boolean]] =
     requiredHeaderParamDirective(_.toBoolean)
 
-  implicit val booleanOptHeaderConverter: OpenApiDirective[HeaderParameter[Option[Boolean]]] =
+  implicit val booleanOptHeaderConverter: ConvertibleToDirective[HeaderParameter[Option[Boolean]]] =
     optionalHeaderParamDirective(_.toBoolean)
 
-  implicit val intReqHeaderConverter: OpenApiDirective[HeaderParameter[Int]] =
+  implicit val intReqHeaderConverter: ConvertibleToDirective[HeaderParameter[Int]] =
     requiredHeaderParamDirective(_.toInt)
 
-  implicit val intOptHeaderConverter: OpenApiDirective[HeaderParameter[Option[Int]]] =
+  implicit val intOptHeaderConverter: ConvertibleToDirective[HeaderParameter[Option[Int]]] =
     optionalHeaderParamDirective(_.toInt)
 
-  implicit val longReqHeaderConverter: OpenApiDirective[HeaderParameter[Long]] =
+  implicit val longReqHeaderConverter: ConvertibleToDirective[HeaderParameter[Long]] =
     requiredHeaderParamDirective(_.toLong)
 
-  implicit val longOptHeaderConverter: OpenApiDirective[HeaderParameter[Option[Long]]] =
+  implicit val longOptHeaderConverter: ConvertibleToDirective[HeaderParameter[Option[Long]]] =
     optionalHeaderParamDirective(_.toLong)
 
   private def requiredHeaderParamDirective[T](valueParser: String => T):
-  OpenApiDirective[HeaderParameter[T]] = (_: String, hp: HeaderParameter[T]) => {
+  ConvertibleToDirective[HeaderParameter[T]] = (_: String, hp: HeaderParameter[T]) => {
     headerTemplate(
       () => headerValueByName(hp.name).map(valueParser(_)),
       (default: T) => optionalHeaderValueByName(hp.name).map(extractIfPresent(valueParser, default)),
@@ -70,7 +71,7 @@ trait HeaderParamConverters {
   }
 
   private def optionalHeaderParamDirective[T](valueParser: String => T):
-  OpenApiDirective[HeaderParameter[Option[T]]] = (_: String, hp: HeaderParameter[Option[T]]) => {
+  ConvertibleToDirective[HeaderParameter[Option[T]]] = (_: String, hp: HeaderParameter[Option[T]]) => {
 
     headerTemplate(
       () => optionalHeaderValueByName(hp.name).map(os => os.map(valueParser(_))),
