@@ -16,10 +16,18 @@
 
 package net.jtownson.swakka.openapiroutegen
 
-import akka.http.scaladsl.model.HttpHeader
-import scala.collection.immutable.Seq
+import net.jtownson.swakka.coreroutegen.ConvertibleToDirective
 
-trait CorsUseCase {
+trait OpenApiDirective[T] extends ConvertibleToDirective[T]
 
-  def headers: Seq[HttpHeader]
+object OpenApiDirective
+  extends BodyParamConverters
+    with FormFieldParamConverters
+    with HeaderParamConverters
+    with HListParamConverters
+    with PathParamConverters
+    with QueryParamConverters
+    with MultiParamConverters {
+
+  def converter[T](t: T)(implicit ev: OpenApiDirective[T]): OpenApiDirective[T] = ev
 }

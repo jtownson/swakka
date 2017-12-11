@@ -20,10 +20,9 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.RouteDirectives
-
+import net.jtownson.swakka.coreroutegen.CorsUseCases
 import net.jtownson.swakka.openapimodel.Invoker.AkkaHttpInvoker
 import net.jtownson.swakka.openapimodel._
-
 import shapeless.{::, HList, HNil}
 
 /**
@@ -43,7 +42,7 @@ object RouteGen extends CorsUseCases {
       ev2: RouteGen[T]): RouteGen[H :: T] =
     (l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
 
-  implicit def pathItemRouteGen[Params <: HList: ConvertibleToDirective,
+  implicit def pathItemRouteGen[Params <: HList: OpenApiDirective,
                                 EndpointFunction,
                                 Responses](
       implicit ev: AkkaHttpInvoker[Params, EndpointFunction])
@@ -54,21 +53,21 @@ object RouteGen extends CorsUseCases {
   implicit val hNilRouteGen: RouteGen[HNil] =
     (_: HNil) => RouteDirectives.reject
 
-  def pathItemRoute[Params <: HList: ConvertibleToDirective,
+  def pathItemRoute[Params <: HList: OpenApiDirective,
                     EndpointFunction,
                     Responses](
       pathItem: PathItem[Params, EndpointFunction, Responses])(
       implicit ev: AkkaHttpInvoker[Params, EndpointFunction]): Route =
     pathItemRoute(pathItem.method, pathItem.path, pathItem.operation)
 
-  private def pathItemRoute[Params <: HList: ConvertibleToDirective,
+  private def pathItemRoute[Params <: HList: OpenApiDirective,
                             EndpointFunction,
                             Responses](
       httpMethod: HttpMethod,
       modelPath: String,
       operation: Operation[Params, EndpointFunction, Responses])(
-      implicit ev1: ConvertibleToDirective[Params],
-      ev2: AkkaHttpInvoker[Params, EndpointFunction]) = {
+                                        implicit ev1: OpenApiDirective[Params],
+                                        ev2: AkkaHttpInvoker[Params, EndpointFunction]) = {
 
     method(httpMethod) {
 

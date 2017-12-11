@@ -23,7 +23,7 @@ import akka.http.scaladsl.server.directives.FileInfo
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.openapiroutegen.ConvertibleToDirective._
+import net.jtownson.swakka.openapiroutegen.OpenApiDirective._
 import org.scalatest.{Assertion, FlatSpec}
 import org.scalatest.Matchers._
 

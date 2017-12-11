@@ -30,7 +30,7 @@ import scala.util.{Failure, Success, Try}
 trait MultiParamConverters {
 
   implicit def multiValuedConverter[T, U <: QueryParameter[T]](implicit um: FromStringUnmarshaller[T], mat: Materializer, ec: ExecutionContext):
-  ConvertibleToDirective[MultiValued[T, U]] =
+  OpenApiDirective[MultiValued[T, U]] =
     (_: String, mp: MultiValued[T, U]) => {
 
       val marshalledParams: Directive1[Try[Seq[T]]] = queryParamsWithName(mp.name.name).

@@ -26,7 +26,7 @@ import akka.util.ByteString
 
 trait FormFieldParamConverters {
 
-  implicit val stringReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[String]] =
+  implicit val stringReqFormFieldConverter: OpenApiDirective[FormFieldParameter[String]] =
     (_: String, fp: FormFieldParameter[String]) => {
       formFieldTemplate(
         () => formField(fp.name),
@@ -36,7 +36,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val booleanReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Boolean]] =
+  implicit val booleanReqFormFieldConverter: OpenApiDirective[FormFieldParameter[Boolean]] =
     (_: String, fp: FormFieldParameter[Boolean]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Boolean]),
@@ -46,7 +46,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val intReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Int]] =
+  implicit val intReqFormFieldConverter: OpenApiDirective[FormFieldParameter[Int]] =
     (_: String, fp: FormFieldParameter[Int]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Int]),
@@ -56,7 +56,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val longReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Long]] =
+  implicit val longReqFormFieldConverter: OpenApiDirective[FormFieldParameter[Long]] =
     (_: String, fp: FormFieldParameter[Long]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Long]),
@@ -66,7 +66,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val floatReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Float]] =
+  implicit val floatReqFormFieldConverter: OpenApiDirective[FormFieldParameter[Float]] =
     (_: String, fp: FormFieldParameter[Float]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Float]),
@@ -76,7 +76,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val doubleReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Double]] =
+  implicit val doubleReqFormFieldConverter: OpenApiDirective[FormFieldParameter[Double]] =
     (_: String, fp: FormFieldParameter[Double]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Double]),
@@ -86,7 +86,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val fileReqFormFieldConverter: ConvertibleToDirective[FormFieldParameter[(FileInfo, Source[ByteString, Any])]] =
+  implicit val fileReqFormFieldConverter: OpenApiDirective[FormFieldParameter[(FileInfo, Source[ByteString, Any])]] =
     (_: String, fp: FormFieldParameter[(FileInfo, Source[ByteString, Any])]) => {
       formFieldTemplate(
         () => fileUpload(fp.name.name),
@@ -96,7 +96,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val fileOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]] =
+  implicit val fileOptFormFieldConverter: OpenApiDirective[FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]] =
     (_: String, fp: FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]) =>
       formFieldTemplate(
         () => optionalFileUpload(fp.name.name),
@@ -106,7 +106,7 @@ trait FormFieldParamConverters {
       )
 
 
-  implicit val stringOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[String]]] =
+  implicit val stringOptFormFieldConverter: OpenApiDirective[FormFieldParameter[Option[String]]] =
     (_: String, fp: FormFieldParameter[Option[String]]) => {
       formFieldTemplate(
         () => formField(fp.name.?),
@@ -116,7 +116,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val booleanOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Boolean]]] =
+  implicit val booleanOptFormFieldConverter: OpenApiDirective[FormFieldParameter[Option[Boolean]]] =
     (_: String, fp: FormFieldParameter[Option[Boolean]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Boolean].?),
@@ -126,7 +126,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val intOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Int]]] =
+  implicit val intOptFormFieldConverter: OpenApiDirective[FormFieldParameter[Option[Int]]] =
     (_: String, fp: FormFieldParameter[Option[Int]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Int].?),
@@ -136,7 +136,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val longOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Long]]] =
+  implicit val longOptFormFieldConverter: OpenApiDirective[FormFieldParameter[Option[Long]]] =
     (_: String, fp: FormFieldParameter[Option[Long]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Long].?),
@@ -146,7 +146,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val floatOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Float]]] =
+  implicit val floatOptFormFieldConverter: OpenApiDirective[FormFieldParameter[Option[Float]]] =
     (_: String, fp: FormFieldParameter[Option[Float]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Float].?),
@@ -156,7 +156,7 @@ trait FormFieldParamConverters {
       )
     }
 
-  implicit val doubleOptFormFieldConverter: ConvertibleToDirective[FormFieldParameter[Option[Double]]] =
+  implicit val doubleOptFormFieldConverter: OpenApiDirective[FormFieldParameter[Option[Double]]] =
     (_: String, fp: FormFieldParameter[Option[Double]]) => {
       formFieldTemplate(
         () => formField(fp.name.as[Double].?),

@@ -36,25 +36,25 @@ trait PathParamConverters {
       }
     }
 
-  implicit val stringReqPathConverter: ConvertibleToDirective[PathParameter[String]] =
+  implicit val stringReqPathConverter: OpenApiDirective[PathParameter[String]] =
     pathParamDirective(Segment)
 
-  implicit val floatPathConverter: ConvertibleToDirective[PathParameter[Float]] =
+  implicit val floatPathConverter: OpenApiDirective[PathParameter[Float]] =
     pathParamDirective(FloatNumber)
 
-  implicit val doublePathConverter: ConvertibleToDirective[PathParameter[Double]] =
+  implicit val doublePathConverter: OpenApiDirective[PathParameter[Double]] =
     pathParamDirective(DoubleNumber)
 
-  implicit val booleanPathConverter: ConvertibleToDirective[PathParameter[Boolean]] =
+  implicit val booleanPathConverter: OpenApiDirective[PathParameter[Boolean]] =
     pathParamDirective(BooleanSegment)
 
-  implicit val intPathConverter: ConvertibleToDirective[PathParameter[Int]] =
+  implicit val intPathConverter: OpenApiDirective[PathParameter[Int]] =
     pathParamDirective(IntNumber)
 
-  implicit val longPathConverter: ConvertibleToDirective[PathParameter[Long]] =
+  implicit val longPathConverter: OpenApiDirective[PathParameter[Long]] =
     pathParamDirective(LongNumber)
 
-  private def pathParamDirective[T](pm: PathMatcher1[T]): ConvertibleToDirective[PathParameter[T]] = {
+  private def pathParamDirective[T](pm: PathMatcher1[T]): OpenApiDirective[PathParameter[T]] = {
     (modelPath: String, pp: PathParameter[T]) =>
       rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).
         flatMap(enumCase(pp)).

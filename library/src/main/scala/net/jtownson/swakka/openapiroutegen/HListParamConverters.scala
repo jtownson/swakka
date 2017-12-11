@@ -23,7 +23,7 @@ import shapeless.{::, HList, HNil}
 
 trait HListParamConverters {
 
-  implicit val hNilConverter: ConvertibleToDirective[HNil] =
+  implicit val hNilConverter: OpenApiDirective[HNil] =
     (modelPath: String, _: HNil) => {
       if (containsParamToken(modelPath))
         pass.tmap[HNil](_ => HNil)
@@ -31,8 +31,8 @@ trait HListParamConverters {
         path(PathHandling.splittingPathMatcher(modelPath)).tmap[HNil](_ => HNil)
     }
 
-  implicit def hConsConverter[H, T <: HList](implicit head: ConvertibleToDirective[H],
-                                             tail: ConvertibleToDirective[T]): ConvertibleToDirective[H :: T] =
+  implicit def hConsConverter[H, T <: HList](implicit head: OpenApiDirective[H],
+                                             tail: OpenApiDirective[T]): OpenApiDirective[H :: T] =
     (modelPath: String, l: H :: T) => {
       val headDirective: Directive1[H] = head.convertToDirective(modelPath, l.head)
       val tailDirective: Directive1[T] = tail.convertToDirective(modelPath, l.tail)

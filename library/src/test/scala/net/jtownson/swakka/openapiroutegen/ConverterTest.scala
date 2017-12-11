@@ -24,7 +24,7 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.openapiroutegen.ConvertibleToDirective.converter
+import net.jtownson.swakka.openapiroutegen.OpenApiDirective.converter
 import org.scalatest.Assertion
 import org.scalatest.Matchers._
 
@@ -34,13 +34,13 @@ trait ConverterTest extends RouteTest with TestFrameworkInterface {
 
   def converterTest[T, U <: Parameter[T]]
   (request: HttpRequest, param: U, expectedResponse: String)
-  (implicit ev: ConvertibleToDirective[U]): Unit = {
+  (implicit ev: OpenApiDirective[U]): Unit = {
     converterTest(request, route[T, U]("", param), expectedResponse)
   }
 
   def converterTest[T, U <: Parameter[T]]
   (request: HttpRequest, param: U, modelPath: String, expectedResponse: String)
-  (implicit ev: ConvertibleToDirective[U]): Unit = {
+  (implicit ev: OpenApiDirective[U]): Unit = {
     converterTest(request, route[T, U](modelPath, param), expectedResponse)
   }
 
@@ -53,12 +53,12 @@ trait ConverterTest extends RouteTest with TestFrameworkInterface {
 
   def converterTest[T, U <: Parameter[T]]
   (request: HttpRequest, param: U, expectedStatus: StatusCode)
-  (implicit ev: ConvertibleToDirective[U]): Unit =
+  (implicit ev: OpenApiDirective[U]): Unit =
     converterTest[T, U](request, param, expectedStatus, "")
 
   def converterTest[T, U <: Parameter[T]]
   (request: HttpRequest, param: U, expectedStatus: StatusCode, modelPath: String)
-  (implicit ev: ConvertibleToDirective[U]): Unit = {
+  (implicit ev: OpenApiDirective[U]): Unit = {
     request ~> seal(route[T, U](modelPath, param)) ~> check {
       status shouldBe expectedStatus
     }
@@ -66,7 +66,7 @@ trait ConverterTest extends RouteTest with TestFrameworkInterface {
 
   def converterTest[T: ClassTag, U <: Parameter[T]]
   (request: HttpRequest, param: U, expectedStatus: StatusCode, extractionTest: T => Assertion)
-  (implicit ev: ConvertibleToDirective[U]): Unit = {
+  (implicit ev: OpenApiDirective[U]): Unit = {
     val route = converter(param)(ev).convertToDirective("", param) {
       extraction => {
         extractionTest(extraction.value)
@@ -79,7 +79,7 @@ trait ConverterTest extends RouteTest with TestFrameworkInterface {
   }
 
   def route[T, U <: Parameter[T]](modelPath: String, param: U)
-                                         (implicit ev: ConvertibleToDirective[U]): Route = {
+                                         (implicit ev: OpenApiDirective[U]): Route = {
     converter(param)(ev).convertToDirective(modelPath, param) {
       (qpc: U) => complete(qpc.value.toString)
     }

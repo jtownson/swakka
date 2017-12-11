@@ -24,16 +24,14 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Route.seal
 import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import spray.json._
-
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapiroutegen._
-
+import net.jtownson.swakka.coreroutegen._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks._
-
 import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
