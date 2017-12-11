@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.jtownson.swakka.openapimodel
+package net.jtownson.swakka.coreroutegen
 
-import akka.http.scaladsl.server.Route
-import shapeless.ops.function.FnToProduct
 import shapeless.{::, HList, HNil}
 
 /**
@@ -31,36 +29,13 @@ import shapeless.{::, HList, HNil}
   * AkkHttpInvoker is a specialization of Invoker where the return type of F
   * is an akka Route.
   */
-trait Invoker[Params] {
-  type F
-  type O
 
-  def apply(f: F, l: Params): O
-}
-
-object Invoker {
-
-  type Aux[L, FF, OO] = Invoker[L] {type F = FF; type O = OO}
-  type AkkaHttpInvoker[L, F] = Invoker.Aux[L, F, Route]
-
-  def apply[L](implicit invoker: Invoker[L]): Aux[L, invoker.F, invoker.O] = invoker
-
-  implicit def invoker[Params, RawParams, FF, OO]
-  (implicit
-   pv: ParameterValue.Aux[Params, RawParams],
-   fp: FnToProduct.Aux[FF, RawParams => OO]
-  ): Invoker.Aux[Params, FF, OO] =
-    new Invoker[Params] {
-      type F = FF
-      type O = OO
-
-      override def apply(f: F, l: Params): O = {
-        fp(f)(pv.get(l))
-      }
-    }
-}
-
-
+/**
+  * ParameterValue is a trait that works in combination with Invoker.
+  * As its name suggests, it's role is to extract the values of parameters
+  * to that Invoker can pass these to the endpoint function.
+  * @tparam P
+  */
 trait ParameterValue[P] {
   type Out
 
@@ -78,24 +53,6 @@ object ParameterValue {
     override def get(p: P) = f(p)
   }
 
-  implicit def queryParameterValue[T]: Aux[QueryParameter[T], T] =
-    instance(p => p.value)
-
-  implicit def pathParameterValue[T]: Aux[PathParameter[T], T] =
-    instance(p => p.value)
-
-  implicit def headerParameterValue[T]: Aux[HeaderParameter[T], T] =
-    instance(p => p.value)
-
-  implicit def formParameterValue[T]: Aux[FormFieldParameter[T], T] =
-    instance(p => p.value)
-
-  implicit def bodyParameterValue[T]: Aux[BodyParameter[T], T] =
-    instance(p => p.value)
-
-  implicit def multiParameterValue[T, U <: Parameter[T]]: Aux[MultiValued[T, U], Seq[T]] =
-    instance(p => p.value)
-
   implicit val hNilParameterValue: Aux[HNil, HNil] =
     instance(_ => HNil)
 
@@ -107,4 +64,3 @@ object ParameterValue {
       case (h :: t) => ph.get(h) :: pt.get(t)
     }
 }
-

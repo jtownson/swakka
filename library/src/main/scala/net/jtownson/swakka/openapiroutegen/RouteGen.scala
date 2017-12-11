@@ -20,8 +20,8 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.RouteDirectives
-import net.jtownson.swakka.coreroutegen.CorsUseCases
-import net.jtownson.swakka.openapimodel.Invoker.AkkaHttpInvoker
+import net.jtownson.swakka.coreroutegen._
+import Invoker.AkkaHttpInvoker
 import net.jtownson.swakka.openapimodel._
 import shapeless.{::, HList, HNil}
 
