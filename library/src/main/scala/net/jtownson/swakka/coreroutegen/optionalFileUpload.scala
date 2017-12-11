@@ -13,31 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package net.jtownson.swakka.openapiroutegen
+package net.jtownson.swakka.coreroutegen
 
 import akka.http.scaladsl.model.Multipart
 import akka.http.scaladsl.server.Directive1
 import akka.http.scaladsl.server.directives.BasicDirectives.{extractRequestContext, provide}
 import akka.http.scaladsl.server.directives.FileInfo
 import akka.http.scaladsl.server.directives.FutureDirectives.onSuccess
-import akka.http.scaladsl.server.directives.MarshallingDirectives.{as, entity}
-import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
+import akka.http.scaladsl.server.directives.MarshallingDirectives.as
 import akka.stream.scaladsl.{Sink, Source}
 import akka.util.ByteString
 
 import scala.concurrent.Future
 
-object AdditionalDirectives {
+object optionalFileUpload {
 
-  def optionalEntity[T](unmarshaller: FromRequestUnmarshaller[T]): Directive1[Option[T]] =
-    entity(as[String]).flatMap { stringEntity =>
-      if (stringEntity == null || stringEntity.isEmpty) {
-        provide(Option.empty[T])
-      } else {
-        entity(unmarshaller).flatMap(e => provide(Some(e)))
-      }
-    }
+  def apply(fieldName: String): Directive1[Option[(FileInfo, Source[ByteString, Any])]] = {
+    optionalEntity(as[Multipart.FormData]).flatMap({
+      case Some(formData) =>
+        processField(fieldName)(formData)
+      case _ =>
+        provide(None)
+    })
+  }
 
   private def processField(fieldName: String)(formData: Multipart.FormData): Directive1[Option[(FileInfo, Source[ByteString, Any])]] = {
     extractRequestContext.flatMap { ctx ⇒
@@ -53,14 +51,5 @@ object AdditionalDirectives {
 
       onSuccess(onePartF)
     }
-  }
-
-  def optionalFileUpload(fieldName: String): Directive1[Option[(FileInfo, Source[ByteString, Any])]] = {
-    optionalEntity(as[Multipart.FormData]).flatMap({
-      case Some(formData) =>
-        processField(fieldName)(formData)
-      case _ =>
-        provide(None)
-    })
   }
 }

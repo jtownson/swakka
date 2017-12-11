@@ -19,7 +19,8 @@ package net.jtownson.swakka.openapiroutegen
 import akka.http.scaladsl.server.Directives.{as, entity}
 import akka.http.scaladsl.unmarshalling.FromRequestUnmarshaller
 import net.jtownson.swakka.openapimodel._
-import AdditionalDirectives._
+import net.jtownson.swakka.coreroutegen._
+
 import RouteGenTemplates._
 
 trait BodyParamConverters {
