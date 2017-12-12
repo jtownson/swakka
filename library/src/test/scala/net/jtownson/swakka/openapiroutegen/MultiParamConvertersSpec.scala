@@ -20,7 +20,7 @@ import akka.http.scaladsl.model.StatusCodes.{OK, BadRequest}
 import net.jtownson.swakka.openapimodel._
 import org.scalatest.FlatSpec
 
-class MultiParamConvertersTest extends FlatSpec with ConverterTest {
+class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
 
   "MultiParamConverters" should "convert multi query parameters" in {
     converterTest(

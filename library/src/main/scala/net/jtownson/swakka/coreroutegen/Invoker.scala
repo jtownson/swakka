@@ -30,31 +30,36 @@ import shapeless.ops.function.FnToProduct
   * AkkHttpInvoker is a specialization of Invoker where the return type of F
   * is an akka Route.
   */
-trait Invoker[Params] {
+trait Invoker[RequestParams] {
+  type EndpointParams
   type F
   type O
 
-  def apply(f: F, l: Params): O
+  def apply(f: F, l: EndpointParams): O
 }
 
 object Invoker {
 
-  type Aux[L, FF, OO] = Invoker[L] {type F = FF; type O = OO}
-  type AkkaHttpInvoker[L, F] = Invoker.Aux[L, F, Route]
+  type Aux[RequestParams, EPs, FF, OO] = Invoker[RequestParams] {
+    type EndpointParams = EPs;
+    type F = FF;
+    type O = OO
+  }
 
-  def apply[L](implicit invoker: Invoker[L]): Aux[L, invoker.F, invoker.O] = invoker
+  type AkkaHttpInvoker[RequestParams, EndpointParams, F] = Invoker.Aux[RequestParams, EndpointParams, F, Route]
 
-  implicit def invoker[Params, RawParams, FF, OO]
-  (implicit
-   pv: ParameterValue.Aux[Params, RawParams],
-   fp: FnToProduct.Aux[FF, RawParams => OO]
-  ): Invoker.Aux[Params, FF, OO] =
-    new Invoker[Params] {
+  def apply[RequestParams](implicit invoker: Invoker[RequestParams])
+  : Aux[RequestParams, invoker.EndpointParams, invoker.F, invoker.O] = invoker
+
+  implicit def invoker[RequestParams, EPs, FF, OO]
+  (implicit fp: FnToProduct.Aux[FF, EPs => OO]): Invoker.Aux[RequestParams, EPs, FF, OO] =
+    new Invoker[RequestParams] {
+      type EndpointParams = EPs
       type F = FF
       type O = OO
 
-      override def apply(f: F, l: Params): O = {
-        fp(f)(pv.get(l))
+      override def apply(f: FF, l: EndpointParams) = {
+        fp(f)(l)
       }
     }
 }

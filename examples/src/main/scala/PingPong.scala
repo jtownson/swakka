@@ -23,7 +23,6 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives.complete
 import akka.stream.ActorMaterializer
-
 import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
@@ -60,15 +59,6 @@ object PingPong extends App {
     RawHeader("Access-Control-Allow-Origin", "*"),
     RawHeader("Access-Control-Allow-Methods", "GET"))
 
-/*
-ev1: net.jtownson.swakka.openapiroutegen.RouteGen[
-net.jtownson.swakka.openapimodel.PathItem[
-shapeless.HNil,
-() => akka.http.scaladsl.server.Route,
-net.jtownson.swakka.openapimodel.ResponseValue[String,shapeless.HNil]] :: shapeless.HNil]
- */
-
-  implicit val ev = hconsRouteGen
   val api =
     OpenApi(
       produces = Some(Seq("text/plain")),

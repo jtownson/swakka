@@ -24,7 +24,7 @@ import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen.PathHandling._
 
-package object openapiroutegen extends CorsUseCases with ParameterValues with OpenApiConverters {
+package object openapiroutegen extends CorsUseCases /*with ParameterValues*/ with OpenApiConverters {
 
 
   /**
