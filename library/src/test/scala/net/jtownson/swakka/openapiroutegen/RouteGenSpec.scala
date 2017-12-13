@@ -75,28 +75,26 @@ class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFra
     }
   }
 
-  def f1s: String => Route = mockFunction[String, Route]
+  "String param model" should "convert to a complete akka Route" in {
 
-  private val opWithQueryParam = Operation(
-    parameters = QueryParameter[String]('q) :: HNil,
-    responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f1s)
+    val f = mockFunction[String, Route]
+    val request = get("/app?q=x")
+    val response = "x"
+    val model = PathItem(
+      path = "/app",
+      method = GET,
+      operation = Operation(
+        parameters = QueryParameter[String]('q) :: HNil,
+        responses = ResponseValue[String, HNil]("200", "ok"),
+        endpointImplementation = f.asInstanceOf[String => Route]))
 
-  val oneStrParamModels = Table(
-    ("testcase name", "request", "model", "response"),
-    ("echo query", get("/app?q=x"), PathItem(path = "/app", method = GET, operation = opWithQueryParam), "x")
-  )
+    f.expects(*).returning(complete(response))
 
-  forAll(oneStrParamModels) { (testcaseName, request, apiModel, response) =>
-    testcaseName should "convert to a complete akka Route" in {
+    val route = pathItemRoute(model)
 
-      apiModel.operation.endpointImplementation.expects(*).returning(complete(response))
-
-      val route = pathItemRoute(apiModel)
-
-      request ~> route ~> check {
-        status shouldBe OK
-        responseAs[String] shouldBe response
-      }
+    request ~> route ~> check {
+      status shouldBe OK
+      responseAs[String] shouldBe response
     }
   }
 

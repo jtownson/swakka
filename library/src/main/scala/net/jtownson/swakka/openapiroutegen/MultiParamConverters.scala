@@ -58,7 +58,7 @@ trait MultiParamConverters {
     })
 
   private def provideWithCheck[T, U <: Parameter[T]](s: Seq[T], p: MultiValued[T, U]): Directive1[Seq[T]] =
-    provideWithCheck(s, p, parameterRejection(p))
+    provideWithCheck(s, p, parameterRejection(s, p))
 
   private def provideWithCheck[T, U <: Parameter[T]](values: Seq[T], p: MultiValued[T, U], errHandler: => Rejection): Directive1[Seq[T]] = {
     p.singleParam.enum match {
@@ -68,10 +68,10 @@ trait MultiParamConverters {
     }
   }
 
-  private def parameterRejection[T, U <: Parameter[T]](p: MultiValued[T, U]): Rejection =
+  private def parameterRejection[T, U <: Parameter[T]](s: Seq[T], p: MultiValued[T, U]): Rejection =
     MalformedQueryParamRejection(
       p.name.name,
-      s"The value ${p.value} is not allowed by this request. They are limited to ${p.enum}.")
+      s"The value $s is not allowed by this request. They are limited to ${p.enum}.")
 
   private def queryParamsWithName(name: String): Directive1[Seq[String]] =
     extract(_.request.uri.query().toSeq).
