@@ -87,12 +87,11 @@ object PetstoreV1 extends App {
           summary = Some("List all pets"),
           operationId = Some("listPets"),
           tags = Some(Seq("pets")),
-          parameters =
+          parameters = Tuple1(
             QueryParameter[Int](
               name = 'limit,
               description =
-                Some("How many items to return at one time (max 100)")) ::
-              HNil,
+                Some("How many items to return at one time (max 100)"))),
           responses =
             ResponseValue[Pets, Header[String]](
               responseCode = "200",

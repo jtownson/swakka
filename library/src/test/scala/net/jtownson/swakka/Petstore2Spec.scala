@@ -164,9 +164,9 @@ class Petstore2Spec
             tags = Some(Seq("pets")),
             consumes = Some(Seq("application/json", "application/xml")),
             produces = Some(Seq("application/xml", "application/json")),
-            parameters = BodyParameter[Pet](
+            parameters = Tuple1(BodyParameter[Pet](
               'body,
-              Some("Pet object that needs to be added to the store")) :: HNil,
+              Some("Pet object that needs to be added to the store"))),
             responses =
               ResponseValue[HNil, HNil](
                 responseCode = "201",
@@ -197,9 +197,9 @@ class Petstore2Spec
             tags = Some(Seq("pet")),
             consumes = Some(Seq("application/json", "application/xml")),
             produces = Some(Seq("application/xml", "application/json")),
-            parameters = BodyParameter[Pet](
+            parameters = Tuple1(BodyParameter[Pet](
               'body,
-              Some("Pet object that needs to be added to the store")) :: HNil,
+              Some("Pet object that needs to be added to the store"))),
             responses =
               ResponseValue[HNil, HNil](
                 responseCode = "400",
@@ -230,14 +230,14 @@ class Petstore2Spec
             operationId = Some("findPetsByStatus"),
             tags = Some(Seq("pet")),
             produces = Some(Seq("application/xml", "application/json")),
-            parameters = MultiValued[String, QueryParameter[String]](
+            parameters = Tuple1(MultiValued[String, QueryParameter[String]](
               QueryParameter[String](
                 name = 'status,
                 description =
                   Some("Status values that need to be considered for filter"),
                 default = Some("available"),
                 enum = Some(Seq("available", "pending", "sold"))
-              )) :: HNil,
+              ))),
             responses =
               ResponseValue[Seq[Pet], HNil]("200", "successful operation") ::
                 ResponseValue[HNil, HNil]("400", "Invalid status value") ::
@@ -259,10 +259,10 @@ class Petstore2Spec
               "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing."),
             operationId = Some("findPetsByTags"),
             produces = Some(Seq("application/xml", "application/json")),
-            parameters = MultiValued[String, QueryParameter[String]](
+            parameters = Tuple1(MultiValued[String, QueryParameter[String]](
               QueryParameter[String](
                 name = 'tags,
-                description = Some("Tags to filter by"))) :: HNil,
+                description = Some("Tags to filter by")))),
             responses = ResponseValue[Seq[Pet], HNil]("200",
                                                       "successful operation") ::
               ResponseValue[HNil, HNil]("400", "Invalid tag value") ::
@@ -283,9 +283,8 @@ class Petstore2Spec
             tags = Some(Seq("pet")),
             produces = Some(Seq("application/xml", "application/json")),
             parameters =
-              PathParameter[Long](name = 'petId,
-                                  description = Some("ID of pet to return"))
-                :: HNil,
+              Tuple1(PathParameter[Long](name = 'petId,
+                                  description = Some("ID of pet to return"))),
             responses =
               ResponseValue[Pet, HNil](responseCode = "200",
                                        description = "successful operation") ::
@@ -311,19 +310,20 @@ class Petstore2Spec
             consumes = Some(Seq("application/x-www-form-urlencoded")),
             produces = Some(Seq("application/xml", "application/json")),
             parameters =
-              PathParameter[Long](
+              Tuple3(
+                PathParameter[Long](
                 name = 'petId,
-                description = Some("ID of pet that needs to be updated")
-              ) ::
+                description = Some("ID of pet that needs to be updated")),
+
                 FormFieldParameter[Option[String]](
                 name = 'name,
-                description = Some("Updated name of the pet")
-              ) ::
+                description = Some("Updated name of the pet")),
+
                 FormFieldParameter[Option[String]](
                 name = 'status,
-                description = Some("Updated status of the pet")
-              ) ::
-                HNil,
+                description = Some("Updated status of the pet"))
+              ),
+
             responses = ResponseValue[HNil, HNil](
               responseCode = "405",
               description = "Invalid input"
@@ -344,12 +344,13 @@ class Petstore2Spec
             operationId = Some("deletePet"),
             produces = Some(Seq("application/xml", "application/json")),
             parameters =
-              HeaderParameter[Option[String]](name = 'api_key) ::
+              Tuple2(
+                HeaderParameter[Option[String]](name = 'api_key),
+
                 PathParameter[Long](
                 name = 'petId,
                 description = Some("Pet id to delete")
-              ) ::
-                HNil,
+              )),
             responses =
               ResponseValue[HNil, HNil](
                 responseCode = "400",
@@ -376,20 +377,19 @@ class Petstore2Spec
             operationId = Some("uploadFile"),
             consumes = Some(Seq("multipart/form-data")),
             produces = Some(Seq("application/json")),
-            parameters =
+            parameters = Tuple3(
               PathParameter[Long](
                 name = 'petId,
                 description = Some("ID of pet to update")
-              ) ::
+              ),
                 FormFieldParameter[Option[String]](
                 name = 'additionalMetadata,
                 description = Some("Additional data to pass to server")
-              ) ::
+              ),
                 FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]](
                 name = 'file,
                 description = Some("file to upload")
-              ) ::
-                HNil,
+              )),
             responses =
               ResponseValue[ApiResponse, HNil](
                 responseCode = "200",
@@ -411,7 +411,6 @@ class Petstore2Spec
             description = Some("Returns a map of status codes to quantities"),
             operationId = Some("getInventory"),
             produces = Some(Seq("application/json")),
-            parameters = HNil: HNil,
             responses =
               ResponseValue[Map[Int, String], HNil](
                 responseCode = "200",
@@ -432,12 +431,11 @@ class Petstore2Spec
             description = Some(""),
             operationId = Some("placeOrder"),
             produces = Some(Seq("application/xml", "application/json")),
-            parameters =
+            parameters = Tuple1(
               BodyParameter[Order](
                 name = 'body,
                 description = Some("order placed for purchasing the pet")
-              ) ::
-                HNil,
+              )),
             responses =
               ResponseValue[Order, HNil](
                 responseCode = "200",

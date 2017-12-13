@@ -82,7 +82,7 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
       path = "/app",
       method = GET,
       operation = Operation(
-        parameters = QueryParameter[String]('q) :: HNil,
+        parameters = Tuple1(QueryParameter[String]('q)),
         responses = ResponseValue[String, HNil]("200", "ok"),
         endpointImplementation = f.asInstanceOf[String => Route]))
 
@@ -97,9 +97,9 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
   }
 
   def opWithIntParam(endpointImplementation: Int => Route)
-  : Operation[QueryParameter[Int] :: HNil, Int => Route, ResponseValue[String, HNil]] =
+  : Operation[Tuple1[QueryParameter[Int]], Int => Route, ResponseValue[String, HNil]] =
     Operation(
-      parameters = QueryParameter[Int]('q) :: HNil,
+      parameters = Tuple1(QueryParameter[Int]('q)),
       responses = ResponseValue[String, HNil]("200", "ok"),
       endpointImplementation = endpointImplementation)
 
@@ -139,8 +139,8 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
 
     val f = mockFunction[Int, Route]
 
-    val op = Operation[PathParameter[Int] :: HNil, Int => Route, HNil](
-      parameters = PathParameter[Int]('widgetId) :: HNil,
+    val op = Operation[Tuple1[PathParameter[Int]], Int => Route, HNil](
+      parameters = Tuple1(PathParameter[Int]('widgetId)),
       endpointImplementation = f)
 
     f.expects(12345).returning(complete("some response"))
@@ -157,8 +157,8 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
 
     val f = mockFunction[Int, Route]
 
-    val op = Operation[PathParameter[Int] :: HNil, Int => Route, HNil](
-      parameters = PathParameter[Int]('widgetId) :: HNil,
+    val op = Operation[Tuple1[PathParameter[Int]], Int => Route, HNil](
+      parameters = Tuple1(PathParameter[Int]('widgetId)),
       endpointImplementation = f)
 
     val route = pathItemRoute(PathItem(path = "/widgets/{widgetId}", method = PUT, operation = op))
@@ -174,8 +174,8 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
   implicit val petFormat = jsonFormat1(Pet)
 
   def opWithBodyParam(endpointImplementation: Pet => Route)
-  : Operation[BodyParameter[Pet] :: HNil, Pet => Route, ResponseValue[String, HNil]] = Operation(
-    parameters = BodyParameter[Pet]('pet) :: HNil,
+  : Operation[Tuple1[BodyParameter[Pet]], Pet => Route, ResponseValue[String, HNil]] = Operation(
+    parameters = Tuple1(BodyParameter[Pet]('pet)),
     responses = ResponseValue[String, HNil]("200", "ok"),
     endpointImplementation = endpointImplementation)
 
@@ -239,7 +239,7 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
         path = "/app/e1",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[Int]('q) :: HNil,
+          parameters = Tuple1(QueryParameter[Int]('q)),
           responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f1.asInstanceOf[Int => Route]))
 
     val path2 =
@@ -247,7 +247,7 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
         path = "/app/e2",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[String]('q) :: HNil,
+          parameters = Tuple1(QueryParameter[String]('q)),
           responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f2.asInstanceOf[String => Route]))
 
 
@@ -281,7 +281,7 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
         path = "/app/e1",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[Int]('q) :: HNil,
+          parameters = Tuple1(QueryParameter[Int]('q)),
           responses = ResponseValue[String, HNil]("200", "ok"), endpointImplementation = f.asInstanceOf[Int => Route])))
 
     val route = openApiRoute(api, Some(DocRouteSettings()))
@@ -337,7 +337,7 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
           path = "/greet/{name}",
           method = GET,
           operation = Operation(
-            parameters = PathParameter[String]('name) :: HNil,
+            parameters = Tuple1(PathParameter[String]('name)),
             responses = ResponseValue[String, HNil]("200", "ok"),
             endpointImplementation = greet
           )
@@ -451,7 +451,7 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
         path = "/app/e1",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[Option[Int]]('q) :: HNil,
+          parameters = Tuple1(QueryParameter[Option[Int]]('q)),
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = f)))
 
@@ -476,7 +476,7 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
         path = "/app/e1",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[String]('q, default = Some("the-default")) :: HNil,
+          parameters = Tuple1(QueryParameter[String]('q, default = Some("the-default"))),
           responses = ResponseValue[String, HNil]("200", "ok"),
           endpointImplementation = f)))
 

@@ -91,7 +91,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
       path = "/ruok",
       method = GET,
       operation = Operation(
-        parameters = QueryParameter[String]('q) :: HNil,
+        parameters = Tuple1(QueryParameter[String]('q)),
         responses = ResponseValue[String, HNil]("200", "ok"),
         endpointImplementation = (_: String) => complete("dummy")))
 

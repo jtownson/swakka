@@ -30,7 +30,7 @@ trait PathsJsonProtocol
     with ResponsesJsonProtocol
     with SecurityDefinitionsJsonProtocol {
 
-  private def operationWriter[Params <: HList, EndpointFunction, Responses](
+  private def operationWriter[Params <: Product, EndpointFunction, Responses](
       implicit ev1: ParameterJsonFormat[Params],
       ev2: ResponseJsonFormat[Responses])
     : JsonWriter[Operation[Params, EndpointFunction, Responses]] =
@@ -104,7 +104,7 @@ trait PathsJsonProtocol
     instance((l: H :: T) =>
       flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
 
-  implicit def singlePathItemFormat[Params <: HList,
+  implicit def singlePathItemFormat[Params <: Product,
                                     EndpointFunction,
                                     Responses](
       implicit ev1: ParameterJsonFormat[Params],
