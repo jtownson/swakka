@@ -28,8 +28,9 @@ Here's how it works...
 
 // Some Swakka imports
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.routegen._
-import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapijson._
+import net.jtownson.swakka.coreroutegen._
+import net.jtownson.swakka.openapiroutegen._
 	
 object Greeter1 extends App {
 
@@ -244,7 +245,7 @@ Here is an example:
 
 ```scala
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapijson._
 
 import spray.json._
 
@@ -413,7 +414,7 @@ Internally, Swakka derives two other type classes
 (i.e. it introspects case class T and spits out a json schema as a String).
 3. A _ConvertibleToDirective_ instance. This is an Akka-Http _Directive_ that will match, marshall and extract the request body. 
 
-To enable this, you only need to import OpenApiJsonProtocol._, but I mention it in case you have problems with
+To enable this, you only need to import openapijson._, but I mention it in case you have problems with
 implicits.
 
 Here is some example code showing these two steps (taken from the Petstore2 testcase):
@@ -430,10 +431,11 @@ import net.jtownson.swakka.openapimodel._
 // (OpenApi, Path, Operation, QueryParameter[T], PathParameter[T], ...)
 // into their swagger json equivalents.
 // OpenApiJsonProtocol extends akka's DefaultJsonProtocol, so you should avoid importing DefaultJsonProtocol.
-import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapijson._
 
 // Imports the route generation feature
-import net.jtownson.swakka.routegen._
+import net.jtownson.swakka.coreroutegen._
+import net.jtownson.swakka.openapiroutegen._
 
 class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface {
 
@@ -542,7 +544,8 @@ and layer your OpenApi definition on top of existing Routes.
 When generating the Akka Route, you can pass a couple of options for the swagger endpoint:
 
 ```scala
-import net.jtownson.swakka.routegen._
+import net.jtownson.swakka.coreroutegen._
+import net.jtownson.swakka.openapiroutegen._
 import akka.http.scaladsl.model.headers.RawHeader
     
 val corsHeaders = Seq(
@@ -631,16 +634,18 @@ Before reading further it's worth having a look at the code in the Petstore apps
 that declares highlights swagger v1 concepts and a more complex V2 example that demonstrates oAuth, api_key security
 and a wider array of endpoints.
   
-Once you get a feel for those, here is a checklist of the implicit values (and other key objects) that you need to import or create.
+Once you get a feel for those, here is a checklist of the implicit values (and other key objects) that you need 
+to import or create.
 
 * The JsonFormats to convert the OpenApi model classes (to swagger json)
 ```scala
-import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapijson._
 ```
 * The RouteGen instances to convert the API definition to an Akka Route
 that will match and extract parameters, etc from HTTP requests.
 ```scala
-import net.jtownson.swakka.routegen._
+import net.jtownson.swakka.coreroutegen._
+import net.jtownson.swakka.openapiroutegen._
 ```
 
 * Imports for shapeless HLists
@@ -712,8 +717,9 @@ e.g. ```val f: String => Route = ...```. Any other return type will break implic
 Check you have included the Swakka imports. Unless you need to get into low-level details, include the following 
 imports
 1) ```openapimodel._``` to bring in the swagger model case classes.
-2) ```jsonprotocol._``` to enable Swagger generation
-3) ```routegen._``` to enable Akka Http Route generation
+2) ```openapijson._``` to enable Swagger generation
+3) ```coreroutegen._``` and
+4) ```openapiroutegen._``` to enable Akka Http Route generation
 
 
 #### Akka rejects requests for the swagger file

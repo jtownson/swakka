@@ -29,8 +29,8 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import spray.json._
 
-import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.coreroutegen._
+import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapiroutegen._
 import net.jtownson.swakka.openapimodel._
 
