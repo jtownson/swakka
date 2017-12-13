@@ -24,8 +24,7 @@ import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen.PathHandling._
 
-package object openapiroutegen extends CorsUseCases /*with ParameterValues*/ with OpenApiConverters {
-
+package object openapiroutegen extends OpenApiConverters {
 
   /**
     * This is the hook to generate a Route for an OpenApi definition.
@@ -39,7 +38,7 @@ package object openapiroutegen extends CorsUseCases /*with ParameterValues*/ wit
     */
   def openApiRoute[Paths, SecurityDefinitions]
   (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: Option[DocRouteSettings] = None)
-  (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths, SecurityDefinitions]]): Route =
+  (implicit ev1: OpenApiRouteGen[Paths], ev2: JsonFormat[OpenApi[Paths, SecurityDefinitions]]): Route =
     hostDirective(api.host) {
       schemesDirective(api.schemes) {
         basePathDirective(api.basePath) {

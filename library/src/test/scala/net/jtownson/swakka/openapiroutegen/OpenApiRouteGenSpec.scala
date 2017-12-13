@@ -31,7 +31,7 @@ import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen._
-import net.jtownson.swakka.openapiroutegen.RouteGen.pathItemRoute
+import net.jtownson.swakka.openapiroutegen.OpenApiRouteGen.pathItemRoute
 
 import org.scalamock.function.MockFunction0
 import org.scalamock.scalatest.MockFactory
@@ -44,7 +44,7 @@ import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
 
-class RouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
+class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
 
   private def f0: () => Route = mockFunction[Route]
 

@@ -25,22 +25,19 @@ import Invoker.AkkaHttpInvoker
 import net.jtownson.swakka.openapimodel._
 import shapeless.{::, HList, HNil}
 
-/**
-  * RouteGen is a type class that supports the conversion of an OpenApi model into a Akka-Http Route.
-  * This allows the processing of an HTTP request according to a Swagger definition.
-  * See also ConvertibleToDirective.
-  * @tparam T
-  */
-trait RouteGen[T] {
-  def toRoute(t: T): Route
-}
 
-object RouteGen {
+trait OpenApiRouteGen[T] extends RouteGen[T]
+
+object OpenApiRouteGen {
 
   implicit def hconsRouteGen[H, T <: HList](
-      implicit ev1: RouteGen[H],
-      ev2: RouteGen[T]): RouteGen[H :: T] =
+                                             implicit ev1: OpenApiRouteGen[H],
+                                             ev2: OpenApiRouteGen[T]): OpenApiRouteGen[H :: T] =
     (l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
+
+  implicit val hNilRouteGen: OpenApiRouteGen[HNil] =
+    (_: HNil) => RouteDirectives.reject
+
 
   implicit def pathItemRouteGen[RequestParams <: HList,
                                 EndpointParams,
@@ -48,12 +45,9 @@ object RouteGen {
                                 Responses](
       implicit ev1: AkkaHttpInvoker[RequestParams, EndpointParams, EndpointFunction],
       ev2: ConvertibleToDirective.Aux[RequestParams, EndpointParams])
-    : RouteGen[PathItem[RequestParams, EndpointFunction, Responses]] =
+    : OpenApiRouteGen[PathItem[RequestParams, EndpointFunction, Responses]] =
     (pathItem: PathItem[RequestParams, EndpointFunction, Responses]) =>
       pathItemRoute(pathItem)
-
-  implicit val hNilRouteGen: RouteGen[HNil] =
-    (_: HNil) => RouteDirectives.reject
 
   def pathItemRoute[RequestParams <: HList,
                     EndpointParams,
