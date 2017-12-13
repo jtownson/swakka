@@ -30,8 +30,6 @@ import spray.json._
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.coreroutegen._
-import net.jtownson.swakka.openapiroutegen._
-import net.jtownson.swakka.openapiroutegen.OpenApiRouteGen.pathItemRoute
 
 import org.scalamock.function.MockFunction0
 import org.scalamock.scalatest.MockFactory

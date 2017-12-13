@@ -19,25 +19,13 @@ package net.jtownson.swakka.openapiroutegen
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import akka.http.scaladsl.server.directives.RouteDirectives
+import net.jtownson.swakka.coreroutegen.Invoker.AkkaHttpInvoker
 import net.jtownson.swakka.coreroutegen._
-import Invoker.AkkaHttpInvoker
 import net.jtownson.swakka.openapimodel._
-import shapeless.{::, HList, HNil}
+import shapeless.HList
 
 
-trait OpenApiRouteGen[T] extends RouteGen[T]
-
-object OpenApiRouteGen {
-
-  implicit def hconsRouteGen[H, T <: HList](
-                                             implicit ev1: OpenApiRouteGen[H],
-                                             ev2: OpenApiRouteGen[T]): OpenApiRouteGen[H :: T] =
-    (l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
-
-  implicit val hNilRouteGen: OpenApiRouteGen[HNil] =
-    (_: HNil) => RouteDirectives.reject
-
+trait OpenApiRouteGen {
 
   implicit def pathItemRouteGen[RequestParams <: HList,
                                 EndpointParams,
@@ -45,7 +33,7 @@ object OpenApiRouteGen {
                                 Responses](
       implicit ev1: AkkaHttpInvoker[RequestParams, EndpointParams, EndpointFunction],
       ev2: ConvertibleToDirective.Aux[RequestParams, EndpointParams])
-    : OpenApiRouteGen[PathItem[RequestParams, EndpointFunction, Responses]] =
+    : RouteGen[PathItem[RequestParams, EndpointFunction, Responses]] =
     (pathItem: PathItem[RequestParams, EndpointFunction, Responses]) =>
       pathItemRoute(pathItem)
 
@@ -75,3 +63,5 @@ object OpenApiRouteGen {
     }
   }
 }
+
+object OpenApiRouteGen extends OpenApiRouteGen

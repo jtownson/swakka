@@ -35,4 +35,12 @@ trait RouteGen[T] {
 
 object RouteGen {
 
+  implicit def hconsRouteGen[H, T <: HList](
+                                             implicit ev1: RouteGen[H],
+                                             ev2: RouteGen[T]): RouteGen[H :: T] =
+    (l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
+
+  implicit val hNilRouteGen: RouteGen[HNil] =
+    (_: HNil) => RouteDirectives.reject
+
 }
