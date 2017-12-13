@@ -24,7 +24,6 @@ import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapimodel._
 import shapeless.HList
 
-
 trait OpenApiRouteGen {
 
   implicit def pathItemRouteGen[RequestParams <: HList,
