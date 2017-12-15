@@ -43,7 +43,7 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   "JsonProtocol" should "write a parameterless pathitem" in {
 
-    val pathItem: PathItem[HNil, () => Route, ResponseValue[String, HNil]] = PathItem(
+    val pathItem: PathItem[Tuple0, () => Route, ResponseValue[String, HNil]] = PathItem(
       path = "/ruok",
       method = POST,
       operation = Operation(

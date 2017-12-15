@@ -26,7 +26,7 @@ import shapeless.HList
 
 trait OpenApiRouteGen {
 
-  implicit def pathItemRouteGen[RequestParams <: Product,
+  implicit def pathItemRouteGen[RequestParams,
                                 EndpointParams,
                                 EndpointFunction,
                                 Responses](
@@ -36,7 +36,7 @@ trait OpenApiRouteGen {
     (pathItem: PathItem[RequestParams, EndpointFunction, Responses]) =>
       pathItemRoute(pathItem)
 
-  def pathItemRoute[RequestParams <: Product,
+  def pathItemRoute[RequestParams,
                     EndpointParams,
                     EndpointFunction,
                     Responses](
@@ -45,7 +45,7 @@ trait OpenApiRouteGen {
       ev2: ConvertibleToDirective.Aux[RequestParams, EndpointParams]): Route =
     pathItemRoute(pathItem.method, pathItem.path, pathItem.operation)
 
-  private def pathItemRoute[RequestParams <: Product,
+  private def pathItemRoute[RequestParams,
                             EndpointParams,
                             EndpointFunction,
                             Responses](

@@ -20,7 +20,7 @@ import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson.Flattener.flattenToObject
 import net.jtownson.swakka.openapijson.PathsJsonFormat.instance
-import shapeless.{::, HList, HNil}
+import shapeless.{::, HList, HNil, Generic}
 import spray.json._
 import spray.json.{JsArray, JsObject, JsString, JsValue, JsonWriter}
 
@@ -30,7 +30,7 @@ trait PathsJsonProtocol
     with ResponsesJsonProtocol
     with SecurityDefinitionsJsonProtocol {
 
-  private def operationWriter[Params <: Product, EndpointFunction, Responses](
+  private def operationWriter[Params, EndpointFunction, Responses](
       implicit ev1: ParameterJsonFormat[Params],
       ev2: ResponseJsonFormat[Responses])
     : JsonWriter[Operation[Params, EndpointFunction, Responses]] =
@@ -95,6 +95,11 @@ trait PathsJsonProtocol
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
 
+//  implicit def genPathItemFormat[Params, ParamsList, EndpointFunction, Responses]
+//  (implicit gen: Generic.Aux[Params, ParamsList],
+//   ev: PathsJsonFormat[ParamsList]): PathsJsonFormat[Params] =
+//    instance( (params: Params) => ev.write(gen.to(params)))
+
   implicit val hNilPathItemFormat: PathsJsonFormat[HNil] =
     _ => JsObject()
 
@@ -104,7 +109,7 @@ trait PathsJsonProtocol
     instance((l: H :: T) =>
       flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
 
-  implicit def singlePathItemFormat[Params <: Product,
+  implicit def singlePathItemFormat[Params,
                                     EndpointFunction,
                                     Responses](
       implicit ev1: ParameterJsonFormat[Params],

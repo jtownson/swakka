@@ -46,7 +46,7 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
 
   private def f0: () => Route = mockFunction[Route]
 
-  private def defaultOp = Operation[HNil, () => Route, ResponseValue[String, HNil]](
+  private def defaultOp = Operation[Tuple0, () => Route, ResponseValue[String, HNil]](
     responses = ResponseValue("200", "ok"), endpointImplementation = f0)
 
   val zeroParamModels = Table(
@@ -60,11 +60,11 @@ class OpenApiRouteGenSpec extends FlatSpec with MockFactory with RouteTest with 
   forAll(zeroParamModels) { (testcaseName, request, apiModel, response) =>
     testcaseName should "convert to a complete akka Route" in {
 
-      val endpoint: MockFunction0[Route] = apiModel.operation.endpointImplementation.asInstanceOf[MockFunction0[Route]]
+      val endpoint = apiModel.operation.endpointImplementation.asInstanceOf[MockFunction0[Route]]
 
       endpoint.expects().returning(complete(response))
 
-      val route = pathItemRoute(apiModel)
+      val route = pathItemRoute[Tuple0, HNil, ()=>Route, ResponseValue[String, HNil]](apiModel)
 
       request ~> route ~> check {
         status shouldBe OK

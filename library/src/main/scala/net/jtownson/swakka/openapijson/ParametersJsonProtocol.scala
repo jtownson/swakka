@@ -20,7 +20,7 @@ import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter, SchemaWriters}
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
 import ParameterJsonFormat.func2Format
-import shapeless.{::, HList, HNil}
+import shapeless.{::, HList, HNil, Generic}
 import spray.json._
 
 
@@ -425,6 +425,14 @@ trait ParametersJsonProtocol
     func2Format((l: H :: T) => {
       Flattener.flattenToArray(JsArray(head.write(l.head), tail.write(l.tail)))
     })
+
+  implicit def genericParamFormat[Params, ParamsList]
+  (implicit gen: Generic.Aux[Params, ParamsList],
+   ev: ParameterJsonFormat[ParamsList]): ParameterJsonFormat[Params] =
+    func2Format(params => ev.write(gen.to(params)))
+
+  implicit val tuple0ParamFormat: ParameterJsonFormat[Tuple0] =
+    _ => JsArray()
 
   private def simpleParam(name: Symbol,
                           in: String,

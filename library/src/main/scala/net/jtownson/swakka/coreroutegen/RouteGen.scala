@@ -18,9 +18,8 @@ package net.jtownson.swakka.coreroutegen
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RouteDirectives
-
-
-import shapeless.{::, HList, HNil}
+import net.jtownson.swakka.openapimodel.Tuple0
+import shapeless.{::, Generic, HList, HNil}
 
 /**
   * RouteGen is a type class that supports the conversion of an OpenApi model into a Akka-Http Route.
@@ -43,4 +42,11 @@ object RouteGen {
   implicit val hNilRouteGen: RouteGen[HNil] =
     (_: HNil) => RouteDirectives.reject
 
+  implicit def genericRouteGen[P, L]
+  (implicit gen: Generic.Aux[P, L],
+   ev: RouteGen[L]): RouteGen[P] =
+    (p: P) => ev.toRoute(gen.to(p))
+
+  implicit val tuple0RouteGen: RouteGen[Tuple0] =
+    (_: Tuple0) => RouteDirectives.reject
 }
