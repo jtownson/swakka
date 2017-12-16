@@ -21,7 +21,8 @@ import akka.http.scaladsl.server.Directives.{pass, path}
 import net.jtownson.swakka.coreroutegen.ConvertibleToDirective.instance
 import net.jtownson.swakka.openapiroutegen.PathHandling.containsParamToken
 import net.jtownson.swakka.coreroutegen._
-import shapeless.{::, HList, HNil}
+import net.jtownson.swakka.openapimodel.Parameter
+import shapeless.{::, Generic, HList, HNil, |¬|}
 
 trait HListParamConverters {
 
@@ -43,4 +44,11 @@ trait HListParamConverters {
 
       (headDirective & tailDirective).tmap((t: (HU, TU)) => t._1 :: t._2)
     })
+
+  implicit def genericConverter[Params: |¬|[Parameter[_]]#λ, ParamsList, ExtractionList]
+    (implicit gen: Generic.Aux[Params, ParamsList],
+     ev: ConvertibleToDirective.Aux[ParamsList, ExtractionList])
+    : ConvertibleToDirective.Aux[Params, ExtractionList] =
+        instance( (modelPath: String, p: Params) =>
+            ev.convertToDirective(modelPath, gen.to(p)))
 }

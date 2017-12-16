@@ -19,12 +19,26 @@ package net.jtownson.swakka.openapiroutegen
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
+import akka.http.scaladsl.server.directives.RouteDirectives
 import net.jtownson.swakka.coreroutegen.Invoker.AkkaHttpInvoker
 import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapimodel._
-import shapeless.HList
+import shapeless.{::, Generic, HList, HNil, |¬|}
 
 trait OpenApiRouteGen {
+
+  implicit def hconsRouteGen[H, T <: HList](
+                                             implicit ev1: RouteGen[H],
+                                             ev2: RouteGen[T]): RouteGen[H :: T] =
+    (l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
+
+  implicit val hNilRouteGen: RouteGen[HNil] =
+    (_: HNil) => RouteDirectives.reject
+
+  implicit def genericRouteGen[Paths: |¬|[PathItem[_, _, _]]#λ, PathsList]
+  (implicit gen: Generic.Aux[Paths, PathsList],
+   ev: RouteGen[PathsList]): RouteGen[Paths] =
+    (p: Paths) => ev.toRoute(gen.to(p))
 
   implicit def pathItemRouteGen[RequestParams <: HList,
                                 EndpointParams,
