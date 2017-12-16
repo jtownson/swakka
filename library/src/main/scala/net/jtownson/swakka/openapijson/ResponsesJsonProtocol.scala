@@ -21,7 +21,7 @@ import net.jtownson.swakka.openapijson.ResponseJsonFormat._
 import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
-import shapeless.{::, HList, HNil}
+import shapeless.{::, Generic, HList, HNil, |¬|}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
 trait ResponsesJsonProtocol {
@@ -36,6 +36,10 @@ trait ResponsesJsonProtocol {
       flattenToObject(JsArray(head.write(l.head), tail.write(l.tail)))
     })
 
+  implicit def genericResponseFormat[Responses: |¬|[ResponseValue[_, _]]#λ, ResponsesList]
+  (implicit gen: Generic.Aux[Responses, ResponsesList],
+   ev: ResponseJsonFormat[ResponsesList]): ResponseJsonFormat[Responses] =
+    func2Format(responses => ev.write(gen.to(responses)))
 
   implicit def responseFormat[T: SchemaWriter, Headers: HeadersJsonFormat]:
   ResponseJsonFormat[ResponseValue[T, Headers]] =
