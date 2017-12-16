@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.openapijson
 
-import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter, SchemaWriters}
+import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
 import ParameterJsonFormat.func2Format
@@ -24,11 +24,7 @@ import shapeless.{::, HList, HNil}
 import spray.json._
 
 
-trait ParametersJsonProtocol
-    extends MultiValuedJsonProtocol
-    with FormFieldParametersJsonProtocol
-    with SchemaWriters
-    with DefaultJsonProtocol {
+trait ParametersJsonProtocol {
 
   implicit val strReqQueryParamFormat
     : ParameterJsonFormat[QueryParameter[String]] =

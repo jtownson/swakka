@@ -18,13 +18,13 @@ package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapijson.Flattener.flattenToObject
 import net.jtownson.swakka.openapijson.ResponseJsonFormat._
-import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter, SchemaWriters}
+import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
 import shapeless.{::, HList, HNil}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
-trait ResponsesJsonProtocol extends HeadersJsonProtocol with SchemaWriters {
+trait ResponsesJsonProtocol {
 
   implicit val hNilResponseFormat: ResponseJsonFormat[HNil] =
     _ => JsObject()

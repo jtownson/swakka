@@ -16,8 +16,8 @@
 
 package net.jtownson.swakka.openapijson
 
+import net.jtownson.swakka.jsonschema.SchemaWriters
 import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.openapijson._
 import spray.json._
 
 trait OpenApiJsonProtocol extends
@@ -27,6 +27,9 @@ trait OpenApiJsonProtocol extends
   HeadersJsonProtocol with
   SecurityDefinitionsJsonProtocol with
   DateTimeJsonProtocol with
+  MultiValuedJsonProtocol with
+  FormFieldParametersJsonProtocol with
+  SchemaWriters with
   DefaultJsonProtocol {
 
   val contactWriter: JsonWriter[Contact] = (contact: Contact) => {
