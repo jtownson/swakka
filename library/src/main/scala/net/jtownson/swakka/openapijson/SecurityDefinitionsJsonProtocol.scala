@@ -19,9 +19,8 @@ package net.jtownson.swakka.openapijson
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson.SecurityDefinitionsJsonFormat._
-
 import shapeless.labelled.FieldType
-import shapeless.{::, HList, HNil, Lazy, Witness}
+import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness, |¬|}
 import spray.json.{JsObject, JsString}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
@@ -98,7 +97,8 @@ trait SecurityDefinitionsJsonProtocol {
   implicit def recordWriter[K <: Symbol, H, T <: HList](implicit
                                                         witness: Witness.Aux[K],
                                                         hWriter: Lazy[SecurityDefinitionsJsonFormat[H]],
-                                                        tWriter: SecurityDefinitionsJsonFormat[T]): SecurityDefinitionsJsonFormat[FieldType[K, H] :: T] =
+                                                        tWriter: SecurityDefinitionsJsonFormat[T])
+  : SecurityDefinitionsJsonFormat[FieldType[K, H] :: T] =
     instance((hl: FieldType[K, H] :: T) => {
       JsObject(
         JsObject(witness.value.name -> hWriter.value.write(hl.head)).fields ++
@@ -106,6 +106,12 @@ trait SecurityDefinitionsJsonProtocol {
       )
     }
     )
+
+  implicit def genericSecurityFormat[Defs: |¬|[Security]#λ, DefsRecord]
+  (implicit gen: LabelledGeneric.Aux[Defs, DefsRecord],
+   ev: Lazy[SecurityDefinitionsJsonFormat[DefsRecord]])
+  : SecurityDefinitionsJsonFormat[Defs] = instance(defs => ev.value.write(gen.to(defs)))
+
 }
 
 object SecurityDefinitionsJsonProtocol extends SecurityDefinitionsJsonProtocol
