@@ -18,9 +18,9 @@ package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.misc.jsObject
-import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.openapimodel.{Parameter, _}
 import ParameterJsonFormat.func2Format
-import shapeless.{::, Generic, HList, HNil}
+import shapeless.{::, Generic, HList, HNil, |¬|}
 import spray.json._
 
 
@@ -422,7 +422,10 @@ trait ParametersJsonProtocol {
       Flattener.flattenToArray(JsArray(head.write(l.head), tail.write(l.tail)))
     })
 
-  implicit def genericParamFormat[Params, ParamsList]
+  // Because the Paramter types are Products, with a Generic.Aux, the compiler occasionally
+  // (and apparently non-deterministically) goes down the wrong route and diverges.
+  // Use shapeless's |¬| to force use of the more specific JsonFormats for Parameter types.
+  implicit def genericParamFormat[Params: |¬|[Parameter[_]]#λ, ParamsList]
   (implicit gen: Generic.Aux[Params, ParamsList],
    ev: ParameterJsonFormat[ParamsList]): ParameterJsonFormat[Params] =
     ParameterJsonFormat.func2Format(params => ev.write(gen.to(params)))
