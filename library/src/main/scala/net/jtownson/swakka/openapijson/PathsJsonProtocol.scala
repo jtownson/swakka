@@ -20,7 +20,7 @@ import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson.Flattener.flattenToObject
 import net.jtownson.swakka.openapijson.PathsJsonFormat.instance
-import shapeless.{::, HList, HNil}
+import shapeless.{::, Generic, HList, HNil, |¬|}
 import spray.json._
 import spray.json.{JsArray, JsObject, JsString, JsValue, JsonWriter}
 
@@ -100,6 +100,15 @@ trait PathsJsonProtocol {
       tFmt: PathsJsonFormat[T]): PathsJsonFormat[H :: T] =
     instance((l: H :: T) =>
       flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
+
+  // Because PathItem is a Product, with a Generic.Aux, the compiler occasionally
+  // (and apparently non-deterministically) goes down the wrong route and applies
+  // this def instead of singlePathItemFormat.
+  // Use shapeless's |¬| to force use of the more specific JsonFormat provided by singlePathItemFormat.
+  implicit def genericPathItemFormat[Paths: |¬|[PathItem[_, _, _]]#λ, PathsList]
+  (implicit gen: Generic.Aux[Paths, PathsList],
+   ev: PathsJsonFormat[PathsList]): PathsJsonFormat[Paths] =
+    instance(paths => ev.write(gen.to(paths)))
 
   implicit def singlePathItemFormat[Params,
                                     EndpointFunction,
