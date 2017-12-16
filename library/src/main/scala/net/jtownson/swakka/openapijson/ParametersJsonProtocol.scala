@@ -19,7 +19,7 @@ package net.jtownson.swakka.openapijson
 import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel.{Parameter, _}
-import ParameterJsonFormat.func2Format
+import ParameterJsonFormat.instance
 import shapeless.{::, Generic, HList, HNil, |¬|}
 import spray.json._
 
@@ -387,13 +387,13 @@ trait ParametersJsonProtocol {
 
   implicit def requiredBodyParamFormat[T](
       implicit ev: SchemaWriter[T]): ParameterJsonFormat[BodyParameter[T]] =
-    func2Format((bp: BodyParameter[T]) =>
+    instance((bp: BodyParameter[T]) =>
       bodyParameter(ev, bp.name, bp.description, true, None))
 
   implicit def optionalBodyParamFormat[T: JsonWriter](
       implicit ev: SchemaWriter[T])
     : ParameterJsonFormat[BodyParameter[Option[T]]] =
-    func2Format((bp: BodyParameter[Option[T]]) =>
+    instance((bp: BodyParameter[Option[T]]) =>
       bodyParameter(ev, bp.name, bp.description, false, defaultOf(bp)))
 
   private def bodyParameter[T](ev: SchemaWriter[T],
@@ -418,7 +418,7 @@ trait ParametersJsonProtocol {
   implicit def hConsParamFormat[H, T <: HList](
       implicit head: ParameterJsonFormat[H],
       tail: ParameterJsonFormat[T]): ParameterJsonFormat[H :: T] =
-    func2Format((l: H :: T) => {
+    instance((l: H :: T) => {
       Flattener.flattenToArray(JsArray(head.write(l.head), tail.write(l.tail)))
     })
 
@@ -428,7 +428,7 @@ trait ParametersJsonProtocol {
   implicit def genericParamFormat[Params: |¬|[Parameter[_]]#λ, ParamsList]
   (implicit gen: Generic.Aux[Params, ParamsList],
    ev: ParameterJsonFormat[ParamsList]): ParameterJsonFormat[Params] =
-    ParameterJsonFormat.func2Format(params => ev.write(gen.to(params)))
+    ParameterJsonFormat.instance(params => ev.write(gen.to(params)))
 
 
   private def simpleParam(name: Symbol,
