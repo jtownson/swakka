@@ -23,5 +23,5 @@ trait ResponseJsonFormat[T] extends JsonFormat[T] {
 }
 
 object ResponseJsonFormat {
-  def func2Format[T](f: T => JsValue): ResponseJsonFormat[T] = (obj: T) => f(obj)
+  def instance[T](f: T => JsValue): ResponseJsonFormat[T] = (obj: T) => f(obj)
 }
