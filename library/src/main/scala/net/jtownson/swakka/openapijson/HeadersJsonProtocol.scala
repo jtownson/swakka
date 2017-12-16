@@ -20,8 +20,7 @@ import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson.Flattener.flattenToObject
 import net.jtownson.swakka.misc.jsObject
 import HeadersJsonFormat._
-
-import shapeless.{::, HList, HNil}
+import shapeless.{::, Generic, HList, HNil, |¬|}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
 trait HeadersJsonProtocol {
@@ -63,6 +62,12 @@ trait HeadersJsonProtocol {
     instance((l: H :: T) => {
       flattenToObject(JsArray(head.write(l.head), tail.write(l.tail)))
     })
+
+
+  implicit def genericHeaderFormat[Headers: |¬|[Header[_]]#λ, HeadersList]
+  (implicit gen: Generic.Aux[Headers, HeadersList],
+   ev: HeadersJsonFormat[HeadersList]): HeadersJsonFormat[Headers] =
+    instance(headers => ev.write(gen.to(headers)))
 }
 
 object HeadersJsonProtocol extends HeadersJsonProtocol
