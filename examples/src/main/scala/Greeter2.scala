@@ -61,7 +61,7 @@ object Greeter2 extends App {
         method = GET,
         operation = Operation(
           parameters = PathParameter[String]('name) :: HNil,
-          responses = ResponseValue[String, HNil]("200", "ok"),
+          responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = greet
         )
       ) ::

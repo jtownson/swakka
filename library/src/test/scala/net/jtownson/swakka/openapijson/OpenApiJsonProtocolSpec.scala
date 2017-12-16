@@ -33,7 +33,7 @@ class OpenApiJsonProtocolSpec extends FlatSpec {
           method = GET,
           operation = Operation(
             parameters = QueryParameter[Int]('q) :: HNil,
-            responses = ResponseValue[String, HNil]("200", "ok"),
+            responses = ResponseValue[String]("200", "ok"),
             endpointImplementation = dummyIntEndpoint
           )
         )
@@ -43,7 +43,7 @@ class OpenApiJsonProtocolSpec extends FlatSpec {
             method = GET,
             operation = Operation(
               parameters = QueryParameter[String]('q) :: HNil,
-              responses = ResponseValue[String, HNil]("200", "ok"),
+              responses = ResponseValue[String]("200", "ok"),
               endpointImplementation = dummyStringEndpoint
             )
           )
@@ -125,7 +125,7 @@ class OpenApiJsonProtocolSpec extends FlatSpec {
           method = GET,
           operation = Operation(
             parameters = QueryParameter[Int]('q) :: HNil,
-            responses = ResponseValue[String, HNil]("200", "ok"),
+            responses = ResponseValue[String]("200", "ok"),
             security = Some(Seq(SecurityRequirement('auth, Seq("grant1", "grant2")))),
             endpointImplementation = (_: Int) => complete("dummy")
           )

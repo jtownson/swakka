@@ -168,15 +168,15 @@ class Petstore2Spec
               'body,
               Some("Pet object that needs to be added to the store")) :: HNil,
             responses =
-              ResponseValue[HNil, HNil](
+              ResponseValue[HNil](
                 responseCode = "201",
                 description = "Pet added to the store"
               ) ::
-                ResponseValue[HNil, HNil](
+                ResponseValue[HNil](
                 responseCode = "405",
                 description = "Invalid input"
               ) ::
-                ResponseValue[Error, HNil](
+                ResponseValue[Error](
                 responseCode = "default",
                 description = "unexpected error"
               ) ::
@@ -201,15 +201,15 @@ class Petstore2Spec
               'body,
               Some("Pet object that needs to be added to the store")) :: HNil,
             responses =
-              ResponseValue[HNil, HNil](
+              ResponseValue[HNil](
                 responseCode = "400",
                 description = "Invalid ID supplied"
               ) ::
-                ResponseValue[HNil, HNil](
+                ResponseValue[HNil](
                 responseCode = "404",
                 description = "Pet not found"
               ) ::
-                ResponseValue[HNil, HNil](
+                ResponseValue[HNil](
                 responseCode = "405",
                 description = "Validation exception"
               ) ::
@@ -239,8 +239,8 @@ class Petstore2Spec
                 enum = Some(Seq("available", "pending", "sold"))
               )) :: HNil,
             responses =
-              ResponseValue[Seq[Pet], HNil]("200", "successful operation") ::
-                ResponseValue[HNil, HNil]("400", "Invalid status value") ::
+              ResponseValue[Seq[Pet]]("200", "successful operation") ::
+                ResponseValue[HNil]("400", "Invalid status value") ::
                 HNil,
             endpointImplementation = findByStatus,
             security =
@@ -263,9 +263,9 @@ class Petstore2Spec
               QueryParameter[String](
                 name = 'tags,
                 description = Some("Tags to filter by"))) :: HNil,
-            responses = ResponseValue[Seq[Pet], HNil]("200",
-                                                      "successful operation") ::
-              ResponseValue[HNil, HNil]("400", "Invalid tag value") ::
+            responses =
+              ResponseValue[Seq[Pet]]("200", "successful operation") ::
+              ResponseValue[HNil]("400", "Invalid tag value") ::
               HNil,
             endpointImplementation = findByTags,
             security =
@@ -287,14 +287,9 @@ class Petstore2Spec
                                   description = Some("ID of pet to return"))
                 :: HNil,
             responses =
-              ResponseValue[Pet, HNil](responseCode = "200",
-                                       description = "successful operation") ::
-                ResponseValue[HNil, HNil](
-                responseCode = "400",
-                description = "Invalid ID supplied"
-              ) ::
-                ResponseValue[HNil, HNil](responseCode = "404",
-                                          description = "Pet not found") ::
+              ResponseValue[Pet](responseCode = "200", description = "successful operation") ::
+                ResponseValue[HNil](responseCode = "400", description = "Invalid ID supplied") ::
+                ResponseValue[HNil](responseCode = "404", description = "Pet not found") ::
                 HNil,
             endpointImplementation = findById,
             security = Some(Seq(SecurityRequirement('api_key, Seq())))
@@ -324,7 +319,7 @@ class Petstore2Spec
                 description = Some("Updated status of the pet")
               ) ::
                 HNil,
-            responses = ResponseValue[HNil, HNil](
+            responses = ResponseValue[HNil](
               responseCode = "405",
               description = "Invalid input"
             ),
@@ -351,11 +346,11 @@ class Petstore2Spec
               ) ::
                 HNil,
             responses =
-              ResponseValue[HNil, HNil](
+              ResponseValue[HNil](
                 responseCode = "400",
                 description = "Invalid ID supplied"
               ) ::
-                ResponseValue[HNil, HNil](
+                ResponseValue[HNil](
                 responseCode = "404",
                 description = "Pet not found"
               ) ::
@@ -391,7 +386,7 @@ class Petstore2Spec
               ) ::
                 HNil,
             responses =
-              ResponseValue[ApiResponse, HNil](
+              ResponseValue[ApiResponse](
                 responseCode = "200",
                 description = "successful operation",
               ) ::
@@ -413,7 +408,7 @@ class Petstore2Spec
             produces = Some(Seq("application/json")),
             parameters = HNil: HNil,
             responses =
-              ResponseValue[Map[Int, String], HNil](
+              ResponseValue[Map[Int, String]](
                 responseCode = "200",
                 description = "successful operation"
               ) ::
@@ -439,11 +434,11 @@ class Petstore2Spec
               ) ::
                 HNil,
             responses =
-              ResponseValue[Order, HNil](
+              ResponseValue[Order](
                 responseCode = "200",
                 description = "successful operation"
               ) ::
-                ResponseValue[HNil, HNil](
+                ResponseValue[HNil](
                 responseCode = "400",
                 description = "Invalid Order"
               ) ::

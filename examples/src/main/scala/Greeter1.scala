@@ -67,7 +67,7 @@ object Greeter1 extends App {
         method = GET,
         operation = Operation(
           parameters = QueryParameter[String]('name) :: HNil,
-          responses = ResponseValue[String, HNil]("200", "ok"),
+          responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = greet
         )
       ) ::

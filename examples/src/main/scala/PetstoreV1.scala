@@ -100,9 +100,9 @@ object PetstoreV1 extends App {
               headers =
                 Header[String](Symbol("x-next"),
                                Some("A link to the next page of responses"))) ::
-              ResponseValue[Error, HNil](
-              responseCode = "default",
-              description = "unexpected error"
+              ResponseValue[Error](
+                responseCode = "default",
+                description = "unexpected error"
             ) :: HNil,
           endpointImplementation = listPets _
         )
@@ -118,11 +118,11 @@ object PetstoreV1 extends App {
                                           description =
                                             Some("the pet to create")) :: HNil,
           responses =
-            ResponseValue[HNil, HNil](
+            ResponseValue[HNil](
               responseCode = "201",
               description = "Null response"
             ) ::
-              ResponseValue[Error, HNil](
+            ResponseValue[Error](
               responseCode = "default",
               description = "unexpected error"
             ) ::
@@ -141,9 +141,9 @@ object PetstoreV1 extends App {
             PathParameter[String]('petId, Some("The id of the pet to retrieve")) ::
               HNil,
           responses =
-            ResponseValue[Pets, HNil]("200",
+            ResponseValue[Pets]("200",
                                       "Expected response to a valid request") ::
-              ResponseValue[Error, HNil]("default", "unexpected error") ::
+              ResponseValue[Error]("default", "unexpected error") ::
               HNil,
           endpointImplementation = getPet _
         )

@@ -78,7 +78,7 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 responseCode = "200",
                 description = "An paged array of pets",
                 headers = Header[String](Symbol("x-next"), Some("A link to the next page of responses"))) ::
-                ResponseValue[Error, HNil](
+                ResponseValue[Error](
                   responseCode = "default",
                   description = "unexpected error"
                 ) :: HNil,
@@ -91,11 +91,11 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
               operationId = Some("createPets"),
               tags = Some(Seq("pets")),
               responses =
-                ResponseValue[HNil, HNil](
+                ResponseValue[HNil](
                   responseCode = "201",
                   description = "Null response"
                 ) ::
-                ResponseValue[Error, HNil](
+                ResponseValue[Error](
                   responseCode = "default",
                   description = "unexpected error"
                 ) ::
@@ -114,8 +114,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 PathParameter[String]('petId, Some("The id of the pet to retrieve")) ::
                   HNil,
               responses =
-                ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
-                ResponseValue[Error, HNil]("default", "unexpected error") ::
+                ResponseValue[Pets]("200", "Expected response to a valid request") ::
+                ResponseValue[Error]("default", "unexpected error") ::
                 HNil,
               endpointImplementation = (_: String) => dummyRoute
             )

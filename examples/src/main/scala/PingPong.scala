@@ -67,7 +67,7 @@ object PingPong extends App {
         path = "/ping",
         method = GET,
         operation = Operation(
-          responses = ResponseValue[String, HNil]("200", "ok"),
+          responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = endpointImplementation
         )
       ) ::
