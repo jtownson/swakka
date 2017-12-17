@@ -70,8 +70,7 @@ object Greeter1 extends App {
           responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = greet
         )
-      ) ::
-        HNil
+      )
     )
 
   val route: Route = openApiRoute(api, Some(DocRouteSettings(

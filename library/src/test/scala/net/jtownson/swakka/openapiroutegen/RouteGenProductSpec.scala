@@ -27,9 +27,11 @@ class RouteGenProductSpec extends FlatSpec {
 
   "single path api" should "work" in {
 
-    type Path = PathItem[QueryParameter[String] :: HNil, (String) => Route, HNil]
+    type Path = PathItem[Tuple1[QueryParameter[String]], (String) => Route, HNil]
 
     case class Paths(p1: Path)
+
+    implicitly[RouteGen[Path]]
 
     implicitly[RouteGen[Path :: HNil]]
 
@@ -40,8 +42,8 @@ class RouteGenProductSpec extends FlatSpec {
 
   "multiple path api" should "work" in {
 
-    type Path1 = PathItem[QueryParameter[String] :: HNil, (String) => Route, HNil]
-    type Path2 = PathItem[QueryParameter[Long] :: HNil, (Long) => Route, HNil]
+    type Path1 = PathItem[Tuple1[QueryParameter[String]], (String) => Route, Unit]
+    type Path2 = PathItem[Tuple1[QueryParameter[Long]], (Long) => Route, Unit]
 
     case class Paths(p1: Path1, p2: Path2)
 
