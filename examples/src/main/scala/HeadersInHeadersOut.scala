@@ -29,8 +29,6 @@ import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen._
 
-import shapeless.{::, HNil}
-
 import scala.collection.immutable.Seq
 
 // Shows how to declare
@@ -65,7 +63,7 @@ object HeadersInHeadersOut extends App {
         path = "/",
         method = GET,
         operation = Operation(
-          parameters = HeaderParameter[Double](Symbol("x-header-in")) :: HNil,
+          parameters = Tuple1(HeaderParameter[Double](Symbol("x-header-in"))),
           responses = ResponseValue[Unit, Header[Double]](
             responseCode = "204",
             description = "the input x-header-in parameter will be multiplied by 2 and returned in x-header-out",

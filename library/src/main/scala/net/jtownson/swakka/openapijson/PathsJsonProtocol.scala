@@ -27,7 +27,7 @@ import spray.json.{JsArray, JsObject, JsString, JsValue, JsonWriter}
 // A JsonProtocol supporting OpenApi paths
 trait PathsJsonProtocol {
 
-  private def operationWriter[Params, EndpointFunction, Responses](
+  private def operationWriter[Params <: Product, EndpointFunction, Responses](
       implicit ev1: ParameterJsonFormat[Params],
       ev2: ResponseJsonFormat[Responses])
     : JsonWriter[Operation[Params, EndpointFunction, Responses]] =
@@ -110,7 +110,7 @@ trait PathsJsonProtocol {
    ev: PathsJsonFormat[PathsList]): PathsJsonFormat[Paths] =
     instance(paths => ev.write(gen.to(paths)))
 
-  implicit def singlePathItemFormat[Params,
+  implicit def singlePathItemFormat[Params <: Product,
                                     EndpointFunction,
                                     Responses](
       implicit ev1: ParameterJsonFormat[Params],

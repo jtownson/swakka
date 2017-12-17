@@ -32,7 +32,7 @@ import shapeless.HNil
   *           Given the example params, above, F would be (String, Long) => Route
   * @tparam Responses this is a HList or bare type that defines the responses swagger json.
   */
-case class Operation[Params, EndpointFunction, Responses](
+case class Operation[Params <: Product, EndpointFunction, Responses](
     summary: Option[String] = None,
     description: Option[String] = None,
     operationId: Option[String] = None,

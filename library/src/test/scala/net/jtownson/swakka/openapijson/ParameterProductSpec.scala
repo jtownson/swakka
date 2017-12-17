@@ -21,7 +21,6 @@ class ParameterProductSpec extends FlatSpec {
 
     implicitly[JsonFormat[OpenApi[PathItem[HNil, () => Route, HNil] :: HNil, Nothing]]]
 
-    implicitly[JsonFormat[OpenApi[PathItem[Unit, () => Route, HNil] :: HNil, Nothing]]]
   }
 
   "single param api" should "work" in {

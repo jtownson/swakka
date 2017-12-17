@@ -17,7 +17,7 @@ package net.jtownson.swakka.openapimodel
 
 import akka.http.scaladsl.model.HttpMethod
 
-case class PathItem[Params, EndpointFunction, Responses](
+case class PathItem[Params <: Product, EndpointFunction, Responses](
     path: String,
     method: HttpMethod,
     operation: Operation[Params, EndpointFunction, Responses])

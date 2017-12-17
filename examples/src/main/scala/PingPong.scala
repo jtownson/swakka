@@ -23,7 +23,6 @@ import akka.http.scaladsl.model.headers.RawHeader
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives.complete
 import akka.stream.ActorMaterializer
-import shapeless.{::, HNil}
 
 import scala.collection.immutable.Seq
 
@@ -70,8 +69,7 @@ object PingPong extends App {
           responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = endpointImplementation
         )
-      ) ::
-      HNil
+      )
     )
 
   val route: Route = openApiRoute(

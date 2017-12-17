@@ -29,8 +29,6 @@ import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen._
 
-import shapeless.{::, HNil}
-
 import scala.collection.immutable.Seq
 
 // Shows how to create
@@ -60,12 +58,11 @@ object Greeter2 extends App {
         path = "/greet/{name}",
         method = GET,
         operation = Operation(
-          parameters = PathParameter[String]('name) :: HNil,
+          parameters = Tuple1(PathParameter[String]('name)),
           responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = greet
         )
-      ) ::
-        HNil
+      )
     )
 
   val route: Route = openApiRoute(

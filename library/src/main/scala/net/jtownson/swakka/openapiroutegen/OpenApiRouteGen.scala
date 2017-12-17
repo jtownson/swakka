@@ -40,7 +40,7 @@ trait OpenApiRouteGen {
    ev: RouteGen[PathsList]): RouteGen[Paths] =
     (p: Paths) => ev.toRoute(gen.to(p))
 
-  implicit def pathItemRouteGen[RequestParams,
+  implicit def pathItemRouteGen[RequestParams <: Product,
                                 EndpointParams,
                                 EndpointFunction,
                                 Responses](
@@ -50,7 +50,7 @@ trait OpenApiRouteGen {
     (pathItem: PathItem[RequestParams, EndpointFunction, Responses]) =>
       pathItemRoute(pathItem)
 
-  def pathItemRoute[RequestParams,
+  def pathItemRoute[RequestParams <: Product,
                     EndpointParams,
                     EndpointFunction,
                     Responses](
@@ -59,7 +59,7 @@ trait OpenApiRouteGen {
       ev2: ConvertibleToDirective.Aux[RequestParams, EndpointParams]): Route =
     pathItemRoute(pathItem.method, pathItem.path, pathItem.operation)
 
-  private def pathItemRoute[RequestParams,
+  private def pathItemRoute[RequestParams <: Product,
                             EndpointParams,
                             EndpointFunction,
                             Responses](

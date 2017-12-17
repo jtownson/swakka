@@ -33,8 +33,6 @@ import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen._
 import net.jtownson.swakka.openapijson._
 
-import shapeless.{::, HNil}
-
 import scala.collection.mutable
 
 object PetstoreV1 extends App {
@@ -80,7 +78,8 @@ object PetstoreV1 extends App {
     consumes = Some(Seq("application/json")),
     produces = Some(Seq("application/json")),
     paths =
-      PathItem(
+      (
+        PathItem(
         path = "/pets",
         method = GET,
         operation = Operation(
@@ -88,25 +87,24 @@ object PetstoreV1 extends App {
           operationId = Some("listPets"),
           tags = Some(Seq("pets")),
           parameters =
-            QueryParameter[Int](
+            Tuple1(QueryParameter[Int](
               name = 'limit,
               description =
-                Some("How many items to return at one time (max 100)")) ::
-              HNil,
+                Some("How many items to return at one time (max 100)"))),
           responses =
-            ResponseValue[Pets, Header[String]](
+            (ResponseValue[Pets, Header[String]](
               responseCode = "200",
               description = "An paged array of pets",
               headers =
                 Header[String](Symbol("x-next"),
-                               Some("A link to the next page of responses"))) ::
+                               Some("A link to the next page of responses"))),
               ResponseValue[Error](
                 responseCode = "default",
                 description = "unexpected error"
-            ) :: HNil,
+            )),
           endpointImplementation = listPets _
         )
-      ) ::
+      ),
         PathItem(
         path = "/pets",
         method = POST,
@@ -114,22 +112,21 @@ object PetstoreV1 extends App {
           summary = Some("Create a pet"),
           operationId = Some("createPets"),
           tags = Some(Seq("pets")),
-          parameters = BodyParameter[Pet](name = 'pet,
+          parameters = Tuple1(BodyParameter[Pet](name = 'pet,
                                           description =
-                                            Some("the pet to create")) :: HNil,
+                                            Some("the pet to create"))),
           responses =
-            ResponseValue[HNil](
+            (ResponseValue[Unit](
               responseCode = "201",
               description = "Null response"
-            ) ::
+            ),
             ResponseValue[Error](
               responseCode = "default",
               description = "unexpected error"
-            ) ::
-              HNil,
+            )),
           endpointImplementation = createPet _
         )
-      ) ::
+      ),
         PathItem(
         path = "/pets/{petId}",
         method = GET,
@@ -138,17 +135,14 @@ object PetstoreV1 extends App {
           operationId = Some("showPetById"),
           tags = Some(Seq("pets")),
           parameters =
-            PathParameter[String]('petId, Some("The id of the pet to retrieve")) ::
-              HNil,
+            Tuple1(PathParameter[String]('petId, Some("The id of the pet to retrieve"))),
           responses =
-            ResponseValue[Pets]("200",
-                                      "Expected response to a valid request") ::
-              ResponseValue[Error]("default", "unexpected error") ::
-              HNil,
+            (ResponseValue[Pets]("200",
+                                      "Expected response to a valid request"),
+              ResponseValue[Error]("default", "unexpected error")),
           endpointImplementation = getPet _
         )
-      ) ::
-        HNil
+      ))
   )
 
   val corsHeaders = List(RawHeader("Access-Control-Allow-Origin", "*"),

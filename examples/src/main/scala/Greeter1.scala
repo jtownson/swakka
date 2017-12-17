@@ -24,8 +24,6 @@ import akka.http.scaladsl.server.Directives.complete
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 
-import shapeless.{::, HNil}
-
 import scala.collection.immutable.Seq
 
 // Shows how to create
@@ -66,7 +64,7 @@ object Greeter1 extends App {
         path = "/greet",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[String]('name) :: HNil,
+          parameters = Tuple1(QueryParameter[String]('name)),
           responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = greet
         )
