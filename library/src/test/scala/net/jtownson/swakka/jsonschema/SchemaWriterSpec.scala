@@ -26,7 +26,9 @@ import spray.json.{JsObject, JsString, _}
 class SchemaWriterSpec extends FlatSpec {
 
   "Protocol" should "describe Unit" in {
-    JsonSchema[Unit]().toJson shouldBe JsObject()
+    // This is not strictly correct. It should be an empty schema.
+    // But we don't really want empty schemas popping up where that info is redundant.
+    JsonSchema[Unit]().toJson shouldBe JsNull
   }
 
   it should "describe a String" in {
