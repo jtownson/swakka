@@ -31,94 +31,97 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
-import shapeless.{::, HNil}
+class PetstoreSpec
+    extends FlatSpec
+    with MockFactory
+    with RouteTest
+    with TestFrameworkInterface {
 
-
-class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFrameworkInterface {
-
-  case class Pet(
-                  id: Long,
-                  name: String,
-                  tag: Option[String] = None)
+  case class Pet(id: Long, name: String, tag: Option[String] = None)
 
   type Pets = Seq[Pet]
 
   case class Error(
-                    id: Int,
-                    message: String
-                  )
-
+      id: Int,
+      message: String
+  )
 
   "Swakka" should "support the petstore example" in {
 
     val dummyRoute: Route = complete("dummy")
 
     val petstoreApi = OpenApi(
-      info = Info(version = "1.0.0", title = "Swagger Petstore", licence = Some(License(name = "MIT"))),
+      info = Info(version = "1.0.0",
+                  title = "Swagger Petstore",
+                  licence = Some(License(name = "MIT"))),
       host = Some("petstore.swagger.io"),
       basePath = Some("/v1"),
       schemes = Some(Seq("http")),
       consumes = Some(Seq("application/json")),
       produces = Some(Seq("application/json")),
-      paths =
-        PathItem(
-          path = "/pets",
-          method = GET,
-          operation = Operation(
-            summary = Some("List all pets"),
-            operationId = Some("listPets"),
-            tags = Some(Seq("pets")),
-            parameters = Tuple1(
-              QueryParameter[Int](
-                name = 'limit,
-                description = Some("How many items to return at one time (max 100)"))),
-            responses =
-              ResponseValue[Pets, Header[String]](
-                responseCode = "200",
-                description = "An paged array of pets",
-                headers = Header[String](Symbol("x-next"), Some("A link to the next page of responses"))) ::
-                ResponseValue[Error, HNil](
-                  responseCode = "default",
-                  description = "unexpected error"
-                ) :: HNil,
-            endpointImplementation = (_: Int) => dummyRoute)) ::
-          PathItem(
-            path = "/pets",
-            method = POST,
-            operation = Operation(
-              summary = Some("Create a pet"),
-              operationId = Some("createPets"),
-              tags = Some(Seq("pets")),
-              responses =
-                ResponseValue[HNil, HNil](
-                  responseCode = "201",
-                  description = "Null response"
-                ) ::
-                ResponseValue[Error, HNil](
-                  responseCode = "default",
-                  description = "unexpected error"
-                ) ::
-                HNil,
-              endpointImplementation = () => dummyRoute
-            )
-          ) ::
-          PathItem(
-            path = "/pets/{petId}",
-            method = GET,
-            operation = Operation(
-              summary = Some("Info for a specific pet"),
-              operationId = Some("showPetById"),
-              tags = Some(Seq("pets")),
-              parameters = Tuple1(
-                PathParameter[String]('petId, Some("The id of the pet to retrieve"))),
-              responses =
-                ResponseValue[Pets, HNil]("200", "Expected response to a valid request") ::
-                ResponseValue[Error, HNil]("default", "unexpected error") ::
-                HNil,
-              endpointImplementation = (_: String) => dummyRoute
-            )
-          ) ::
-          HNil
+      paths = (PathItem(
+                 path = "/pets",
+                 method = GET,
+                 operation = Operation(
+                   summary = Some("List all pets"),
+                   operationId = Some("listPets"),
+                   tags = Some(Seq("pets")),
+                   parameters = Tuple1(
+                     QueryParameter[Int](
+                       name = 'limit,
+                       description = Some(
+                         "How many items to return at one time (max 100)"))),
+                   responses =
+                     (ResponseValue[Pets, Header[String]](
+                        responseCode = "200",
+                        description = "An paged array of pets",
+                        headers = Header[String](
+                          Symbol("x-next"),
+                          Some("A link to the next page of responses"))),
+                      ResponseValue[Error](
+                        responseCode = "default",
+                        description = "unexpected error"
+                      )),
+                   endpointImplementation = (_: Int) => dummyRoute
+                 )
+               ),
+               PathItem(
+                 path = "/pets",
+                 method = POST,
+                 operation = Operation(
+                   summary = Some("Create a pet"),
+                   operationId = Some("createPets"),
+                   tags = Some(Seq("pets")),
+                   responses = (ResponseValue[Unit](
+                                  responseCode = "201",
+                                  description = "Null response"
+                                ),
+                                ResponseValue[Error](
+                                  responseCode = "default",
+                                  description = "unexpected error"
+                                )),
+                   endpointImplementation = () => dummyRoute
+                 )
+               ),
+               PathItem(
+                 path = "/pets/{petId}",
+                 method = GET,
+                 operation = Operation(
+                   summary = Some("Info for a specific pet"),
+                   operationId = Some("showPetById"),
+                   tags = Some(Seq("pets")),
+                   parameters = Tuple1(
+                     PathParameter[String](
+                       'petId,
+                       Some("The id of the pet to retrieve"))),
+                   responses =
+                     (ResponseValue[Pets](
+                        "200",
+                        "Expected response to a valid request"),
+                      ResponseValue[Error]("default", "unexpected error")),
+                   endpointImplementation = (_: String) => dummyRoute
+                 )
+               ))
     )
 
     val apiRoutes = openApiRoute(petstoreApi, Some(DocRouteSettings()))
@@ -149,7 +152,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
               JsObject(
                 "name" -> JsString("limit"),
                 "in" -> JsString("query"),
-                "description" -> JsString("How many items to return at one time (max 100)"),
+                "description" -> JsString(
+                  "How many items to return at one time (max 100)"),
                 "required" -> JsBoolean(true),
                 "type" -> JsString("integer"),
                 "format" -> JsString("int32")
@@ -161,7 +165,8 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                 "headers" -> JsObject(
                   "x-next" -> JsObject(
                     "type" -> JsString("string"),
-                    "description" -> JsString("A link to the next page of responses")
+                    "description" -> JsString(
+                      "A link to the next page of responses")
                   )
                 ),
                 "schema" -> JsObject(
@@ -170,13 +175,10 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
                     "type" -> JsString("object"),
                     "required" -> JsArray(JsString("id"), JsString("name")),
                     "properties" -> JsObject(
-                      "id" -> JsObject(
-                        "type" -> JsString("integer"),
-                        "format" -> JsString("int64")),
-                      "name" -> JsObject(
-                        "type" -> JsString("string")),
-                      "tag" -> JsObject(
-                        "type" -> JsString("string"))
+                      "id" -> JsObject("type" -> JsString("integer"),
+                                       "format" -> JsString("int64")),
+                      "name" -> JsObject("type" -> JsString("string")),
+                      "tag" -> JsObject("type" -> JsString("string"))
                     )
                   )
                 )
@@ -244,20 +246,18 @@ class PetstoreSpec extends FlatSpec with MockFactory with RouteTest with TestFra
             ),
             "responses" -> JsObject(
               "200" -> JsObject(
-                "description" -> JsString("Expected response to a valid request"),
+                "description" -> JsString(
+                  "Expected response to a valid request"),
                 "schema" -> JsObject(
                   "type" -> JsString("array"),
                   "items" -> JsObject(
                     "type" -> JsString("object"),
                     "required" -> JsArray(JsString("id"), JsString("name")),
                     "properties" -> JsObject(
-                      "id" -> JsObject(
-                        "type" -> JsString("integer"),
-                        "format" -> JsString("int64")),
-                      "name" -> JsObject(
-                        "type" -> JsString("string")),
-                      "tag" -> JsObject(
-                        "type" -> JsString("string"))
+                      "id" -> JsObject("type" -> JsString("integer"),
+                                       "format" -> JsString("int64")),
+                      "name" -> JsObject("type" -> JsString("string")),
+                      "tag" -> JsObject("type" -> JsString("string"))
                     )
                   )
                 )

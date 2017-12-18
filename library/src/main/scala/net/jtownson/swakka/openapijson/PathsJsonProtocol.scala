@@ -20,17 +20,14 @@ import akka.http.scaladsl.model.HttpMethod
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson.Flattener.flattenToObject
 import net.jtownson.swakka.openapijson.PathsJsonFormat.instance
-import shapeless.{::, HList, HNil, Generic}
+import shapeless.{::, Generic, HList, HNil, |¬|}
 import spray.json._
 import spray.json.{JsArray, JsObject, JsString, JsValue, JsonWriter}
 
 // A JsonProtocol supporting OpenApi paths
-trait PathsJsonProtocol
-    extends ParametersJsonProtocol
-    with ResponsesJsonProtocol
-    with SecurityDefinitionsJsonProtocol {
+trait PathsJsonProtocol {
 
-  private def operationWriter[Params, EndpointFunction, Responses](
+  private def operationWriter[Params <: Product, EndpointFunction, Responses](
       implicit ev1: ParameterJsonFormat[Params],
       ev2: ResponseJsonFormat[Responses])
     : JsonWriter[Operation[Params, EndpointFunction, Responses]] =
@@ -95,11 +92,6 @@ trait PathsJsonProtocol
     case HttpMethod(value, _, _, _) => value.toLowerCase
   }
 
-//  implicit def genPathItemFormat[Params, ParamsList, EndpointFunction, Responses]
-//  (implicit gen: Generic.Aux[Params, ParamsList],
-//   ev: PathsJsonFormat[ParamsList]): PathsJsonFormat[Params] =
-//    instance( (params: Params) => ev.write(gen.to(params)))
-
   implicit val hNilPathItemFormat: PathsJsonFormat[HNil] =
     _ => JsObject()
 
@@ -109,7 +101,16 @@ trait PathsJsonProtocol
     instance((l: H :: T) =>
       flattenToObject(JsArray(hFmt.write(l.head), tFmt.write(l.tail))))
 
-  implicit def singlePathItemFormat[Params,
+  // Because PathItem is a Product, with a Generic.Aux, the compiler occasionally
+  // (and apparently non-deterministically) goes down the wrong route and applies
+  // this def instead of singlePathItemFormat.
+  // Use shapeless's |¬| to force use of the more specific JsonFormat provided by singlePathItemFormat.
+  implicit def genericPathItemFormat[Paths: |¬|[PathItem[_, _, _]]#λ, PathsList]
+  (implicit gen: Generic.Aux[Paths, PathsList],
+   ev: PathsJsonFormat[PathsList]): PathsJsonFormat[Paths] =
+    instance(paths => ev.write(gen.to(paths)))
+
+  implicit def singlePathItemFormat[Params <: Product,
                                     EndpointFunction,
                                     Responses](
       implicit ev1: ParameterJsonFormat[Params],

@@ -17,15 +17,11 @@
 package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapimodel._
-import SecurityDefinitionsJsonProtocol._
 
 import org.scalatest.Matchers._
 import org.scalatest.FlatSpec
 
 import spray.json._
-
-import shapeless._
-import shapeless.syntax.singleton._
 
 class SecurityDefinitionsJsonProtocolSpec extends FlatSpec {
 
@@ -135,7 +131,26 @@ class SecurityDefinitionsJsonProtocolSpec extends FlatSpec {
     )
   }
 
-  it should "serialize a complete security record" in {
+  val expectedMultipleDefinition = JsObject(
+    "petstore_auth" -> JsObject(
+      "type" -> JsString("oauth2"),
+      "authorizationUrl" -> JsString("authUrl"),
+      "flow" -> JsString("implicit"),
+      "scopes" -> JsObject(
+        "write:pets" -> JsString("modify pets in your account"),
+        "read:pets" -> JsString("read your pets")
+      )
+    ),
+    "api_key" -> JsObject(
+      "type" -> JsString("apiKey"),
+      "name" -> JsString("api_key"),
+      "in" -> JsString("header")
+    )
+  )
+
+  it should "serialize a security definition given a shapeless record" in {
+    import shapeless._
+    import shapeless.syntax.singleton._
 
     val oauth2ImplicitSecurity = Oauth2ImplicitSecurity(
       authorizationUrl = "authUrl",
@@ -148,22 +163,24 @@ class SecurityDefinitionsJsonProtocolSpec extends FlatSpec {
         ('api_key ->> apiKeyInHeaderSecurity) ::
         HNil
 
-    securityDefinitions.toJson shouldBe JsObject(
-      "petstore_auth" -> JsObject(
-        "type" -> JsString("oauth2"),
-        "authorizationUrl" -> JsString("authUrl"),
-        "flow" -> JsString("implicit"),
-        "scopes" -> JsObject(
-          "write:pets" -> JsString("modify pets in your account"),
-          "read:pets" -> JsString("read your pets")
-        )
-      ),
-      "api_key" -> JsObject(
-        "type" -> JsString("apiKey"),
-        "name" -> JsString("api_key"),
-        "in" -> JsString("header")
-      )
-    )
+    securityDefinitions.toJson shouldBe expectedMultipleDefinition
+  }
+
+  it should "serialize a security definition given a case class" in {
+
+    case class SecurityDefinition(`petstore_auth`: Oauth2ImplicitSecurity, `api_key`: ApiKeyInHeaderSecurity)
+
+    val oauth2ImplicitSecurity = Oauth2ImplicitSecurity(
+      authorizationUrl = "authUrl",
+      scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets")))
+
+    val apiKeyInHeaderSecurity = ApiKeyInHeaderSecurity(name = "api_key")
+
+    val securityDefinitions = SecurityDefinition(
+      `petstore_auth` = oauth2ImplicitSecurity,
+      `api_key` = apiKeyInHeaderSecurity)
+
+    securityDefinitions.toJson shouldBe expectedMultipleDefinition
   }
 
   it should "serialize a security requirement" in {

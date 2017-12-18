@@ -44,9 +44,9 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
   it should "write a complex response" in {
 
     val responses =
-      ResponseValue[Success, HNil]("200", "ok") ::
-        ResponseValue[String, HNil]("404", "not found") ::
-        ResponseValue[Error, HNil]("500", "server error") ::
+      ResponseValue[Success]("200", "ok") ::
+        ResponseValue[String]("404", "not found") ::
+        ResponseValue[Error]("500", "server error") ::
         HNil
 
     val expectedJson =
@@ -119,7 +119,7 @@ class ResponsesJsonProtocolSpec extends FlatSpec {
 
   it should "implicitly serialize a response with no params or headers" in {
 
-    val responses = ResponseValue[HNil, HNil]("201", "created")
+    val responses = ResponseValue[HNil]("201", "created")
     val expectedJson = JsObject("201" -> JsObject("description" -> JsString("created")))
 
     responses.toJson shouldBe expectedJson

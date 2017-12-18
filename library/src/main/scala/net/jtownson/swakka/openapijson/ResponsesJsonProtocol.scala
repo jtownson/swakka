@@ -18,13 +18,13 @@ package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapijson.Flattener.flattenToObject
 import net.jtownson.swakka.openapijson.ResponseJsonFormat._
-import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter, SchemaWriters}
+import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
-import shapeless.{::, HList, HNil}
+import shapeless.{::, Generic, HList, HNil, |¬|}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
-trait ResponsesJsonProtocol extends HeadersJsonProtocol with SchemaWriters {
+trait ResponsesJsonProtocol {
 
   implicit val hNilResponseFormat: ResponseJsonFormat[HNil] =
     _ => JsObject()
@@ -32,14 +32,18 @@ trait ResponsesJsonProtocol extends HeadersJsonProtocol with SchemaWriters {
 
   implicit def hConsResponseFormat[H, T <: HList]
   (implicit head: ResponseJsonFormat[H], tail: ResponseJsonFormat[T]): ResponseJsonFormat[H :: T] =
-    func2Format((l: H :: T) => {
+    instance((l: H :: T) => {
       flattenToObject(JsArray(head.write(l.head), tail.write(l.tail)))
     })
 
+  implicit def genericResponseFormat[Responses: |¬|[ResponseValue[_, _]]#λ, ResponsesList]
+  (implicit gen: Generic.Aux[Responses, ResponsesList],
+   ev: ResponseJsonFormat[ResponsesList]): ResponseJsonFormat[Responses] =
+    instance(responses => ev.write(gen.to(responses)))
 
   implicit def responseFormat[T: SchemaWriter, Headers: HeadersJsonFormat]:
   ResponseJsonFormat[ResponseValue[T, Headers]] =
-    func2Format(rv => swaggerResponse(rv.responseCode, rv.description, JsonSchema[T](), rv.headers))
+    instance(rv => swaggerResponse(rv.responseCode, rv.description, JsonSchema[T](), rv.headers))
 
 
   private def swaggerResponse[T, Headers](status: String, description: String, schema: JsonSchema[T], headers: Headers)

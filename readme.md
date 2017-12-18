@@ -54,7 +54,7 @@ object Greeter1 extends App {
         method = GET,
         operation = Operation(
           parameters = QueryParameter[String]('name) :: HNil,
-          responses = ResponseValue[String, HNil]("200", "ok"),
+          responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = greet
         )
       ) ::
@@ -173,7 +173,7 @@ object Greeter2 extends App {
         method = GET,
         operation = Operation(
           parameters = PathParameter[String]('name) :: HNil, // here we declare it should be passed to our endpoint
-          responses = ResponseValue[String, HNil]("200", "ok"),
+          responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = greet
         )
       ) ::
@@ -214,15 +214,15 @@ than the parameters list, which will be serialized to a, possibly empty, json _a
 For example
 ```scala
 val responses = 
-      ResponseValue[String, HNil](
+      ResponseValue[String](
         responseCode = "404",
         description = "Pet not found with the id provided. Response body contains a String error message."
       ) ::
-      ResponseValue[Pet, HNil](
+      ResponseValue[Pet](
         responseCode = "200",
         description = "Pet returned in the response body"
       ) ::
-      ResponseValue[Error, HNil](
+      ResponseValue[Error](
         responseCode = "500",
         description = "There was an error. Response will contain an Error json object to help debugging."
       ) ::
@@ -320,7 +320,7 @@ If a parameter in your API is optional then declare it using scala's _Option_, a
         method = GET,
         operation = Operation(
           parameters = QueryParameter[Option[Int]]('q) :: HNil,
-          responses = ResponseValue[String, HNil]("200", "ok"),
+          responses = Response[String]("200", "ok"),
           endpointImplementation = f)))
 
     val route = openApiRoute(api)

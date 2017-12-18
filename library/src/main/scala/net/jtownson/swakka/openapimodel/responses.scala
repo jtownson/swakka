@@ -21,4 +21,10 @@ case class Header[T](name: Symbol, description: Option[String] = None)
 
 case class ResponseValue[T, Headers](responseCode: String,
                                      description: String,
-                                     headers: Headers = HNil)
+                                     headers: Headers)
+
+object ResponseValue {
+  def apply[T](responseCode: String,
+               description: String)
+  : ResponseValue[T, HNil] = ResponseValue(responseCode, description, HNil)
+}

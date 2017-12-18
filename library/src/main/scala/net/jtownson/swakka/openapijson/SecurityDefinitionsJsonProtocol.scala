@@ -19,9 +19,8 @@ package net.jtownson.swakka.openapijson
 import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson.SecurityDefinitionsJsonFormat._
-
 import shapeless.labelled.FieldType
-import shapeless.{::, HList, HNil, Lazy, Witness}
+import shapeless.{::, HList, HNil, LabelledGeneric, Lazy, Witness, |¬|}
 import spray.json.{JsObject, JsString}
 import spray.json._
 import spray.json.DefaultJsonProtocol._
@@ -29,13 +28,13 @@ import spray.json.DefaultJsonProtocol._
 trait SecurityDefinitionsJsonProtocol {
 
   implicit val basicAuthenticationSecurityJsonFormat: SecurityDefinitionsJsonFormat[BasicAuthenticationSecurity] =
-    func2Format(security => jsObject(
+    instance(security => jsObject(
       Some("type" -> JsString("basic")),
       security.description.map("description" -> JsString(_))
     ))
 
   implicit val apiKeyInQuerySecurityJsonFormat: SecurityDefinitionsJsonFormat[ApiKeyInQuerySecurity] =
-    func2Format(security => jsObject(
+    instance(security => jsObject(
       Some("type" -> JsString("apiKey")),
       Some("name" -> JsString(security.name)),
       Some("in" -> JsString("query")),
@@ -43,7 +42,7 @@ trait SecurityDefinitionsJsonProtocol {
     ))
 
   implicit val apiKeyInHeaderSecurityJsonFormat: SecurityDefinitionsJsonFormat[ApiKeyInHeaderSecurity] =
-    func2Format(security => jsObject(
+    instance(security => jsObject(
       Some("type" -> JsString("apiKey")),
       Some("name" -> JsString(security.name)),
       Some("in" -> JsString("header")),
@@ -51,7 +50,7 @@ trait SecurityDefinitionsJsonProtocol {
     ))
 
   implicit val oauth2ApplicationSecurityJsonFormat: SecurityDefinitionsJsonFormat[Oauth2ApplicationSecurity] =
-    func2Format(security => jsObject(
+    instance(security => jsObject(
       Some("type" -> JsString("oauth2")),
       Some("flow" -> JsString("application")),
       Some("tokenUrl" -> JsString(security.tokenUrl)),
@@ -60,7 +59,7 @@ trait SecurityDefinitionsJsonProtocol {
     ))
 
   implicit val oauth2ImplicitSecurityJsonFormat: SecurityDefinitionsJsonFormat[Oauth2ImplicitSecurity] =
-    func2Format(security => jsObject(
+    instance(security => jsObject(
       Some("type" -> JsString("oauth2")),
       Some("flow" -> JsString("implicit")),
       Some("authorizationUrl" -> JsString(security.authorizationUrl)),
@@ -69,7 +68,7 @@ trait SecurityDefinitionsJsonProtocol {
     ))
 
   implicit val oauth2PasswordSecurityJsonFormat: SecurityDefinitionsJsonFormat[Oauth2PasswordSecurity] =
-    func2Format(security => jsObject(
+    instance(security => jsObject(
       Some("type" -> JsString("oauth2")),
       Some("flow" -> JsString("password")),
       Some("tokenUrl" -> JsString(security.tokenUrl)),
@@ -78,7 +77,7 @@ trait SecurityDefinitionsJsonProtocol {
     ))
 
   implicit val oauth2AccessCodeSecurityJsonFormat: SecurityDefinitionsJsonFormat[Oauth2AccessCodeSecurity] =
-    func2Format(security => jsObject(
+    instance(security => jsObject(
       Some("type" -> JsString("oauth2")),
       Some("flow" -> JsString("accessCode")),
       Some("tokenUrl" -> JsString(security.tokenUrl)),
@@ -93,19 +92,26 @@ trait SecurityDefinitionsJsonProtocol {
     }
 
   implicit val hnilWriterRecord: SecurityDefinitionsJsonFormat[HNil] =
-    func2Format(_ => JsObject())
+    instance(_ => JsObject())
 
   implicit def recordWriter[K <: Symbol, H, T <: HList](implicit
                                                         witness: Witness.Aux[K],
                                                         hWriter: Lazy[SecurityDefinitionsJsonFormat[H]],
-                                                        tWriter: SecurityDefinitionsJsonFormat[T]): SecurityDefinitionsJsonFormat[FieldType[K, H] :: T] =
-    func2Format((hl: FieldType[K, H] :: T) => {
+                                                        tWriter: SecurityDefinitionsJsonFormat[T])
+  : SecurityDefinitionsJsonFormat[FieldType[K, H] :: T] =
+    instance((hl: FieldType[K, H] :: T) => {
       JsObject(
         JsObject(witness.value.name -> hWriter.value.write(hl.head)).fields ++
           tWriter.write(hl.tail).asInstanceOf[JsObject].fields
       )
     }
     )
+
+  implicit def genericSecurityFormat[Defs: |¬|[Security]#λ, DefsRecord]
+  (implicit gen: LabelledGeneric.Aux[Defs, DefsRecord],
+   ev: Lazy[SecurityDefinitionsJsonFormat[DefsRecord]])
+  : SecurityDefinitionsJsonFormat[Defs] = instance(defs => ev.value.write(gen.to(defs)))
+
 }
 
 object SecurityDefinitionsJsonProtocol extends SecurityDefinitionsJsonProtocol

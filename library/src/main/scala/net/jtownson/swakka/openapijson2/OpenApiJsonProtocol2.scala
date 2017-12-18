@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package net.jtownson.swakka.openapijson
+package net.jtownson.swakka.openapijson2
 
 import net.jtownson.swakka.jsonschema.SchemaWriters
+import net.jtownson.swakka.openapijson.{DateTimeJsonProtocol, FormFieldParametersJsonProtocol, HeadersJsonProtocol, MultiValuedJsonProtocol, ParametersJsonProtocol, PathsJsonFormat, PathsJsonProtocol, SecurityDefinitionsJsonProtocol}
 import net.jtownson.swakka.openapimodel._
 import spray.json._
 
-trait OpenApiJsonProtocol extends
+trait OpenApiJsonProtocol2 extends
   ParametersJsonProtocol with
-  ResponsesJsonProtocol with
+  ResponsesJsonProtocol2 with
   PathsJsonProtocol with
   HeadersJsonProtocol with
   SecurityDefinitionsJsonProtocol with
@@ -95,4 +96,5 @@ trait OpenApiJsonProtocol extends
 
 }
 
-object OpenApiJsonProtocol extends OpenApiJsonProtocol
+
+object OpenApiJsonProtocol2 extends OpenApiJsonProtocol2

@@ -17,11 +17,11 @@
 package net.jtownson.swakka.jsonschema
 
 import net.jtownson.swakka.misc.jsObject
-import spray.json.{JsArray, JsObject, JsString, JsValue}
+import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
 object Schemas {
 
-  val unitSchema = JsObject()
+  val unitSchema = JsNull
 
   def stringSchema(description: Option[String]) =
     jsObject(

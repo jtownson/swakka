@@ -43,11 +43,11 @@ class PathsJsonProtocolSpec extends FlatSpec {
 
   "JsonProtocol" should "write a parameterless pathitem" in {
 
-    val pathItem: PathItem[Tuple0, () => Route, ResponseValue[String, HNil]] = PathItem(
+    val pathItem: PathItem[HNil, () => Route, ResponseValue[String, HNil]] = PathItem(
       path = "/ruok",
       method = POST,
       operation = Operation(
-        responses = ResponseValue[String, HNil]("200", "ok"),
+        responses = ResponseValue[String]("200", "ok"),
         endpointImplementation = dummyEndpoint))
 
     val expectedSwagger = JsObject(
@@ -91,8 +91,8 @@ class PathsJsonProtocolSpec extends FlatSpec {
       path = "/ruok",
       method = GET,
       operation = Operation(
-        parameters = Tuple1(QueryParameter[String]('q)),
-        responses = ResponseValue[String, HNil]("200", "ok"),
+        parameters = QueryParameter[String]('q) :: HNil,
+        responses = ResponseValue[String]("200", "ok"),
         endpointImplementation = (_: String) => complete("dummy")))
 
     val expectedSwagger = JsObject(
