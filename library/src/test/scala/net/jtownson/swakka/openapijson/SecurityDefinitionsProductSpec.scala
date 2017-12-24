@@ -28,7 +28,7 @@ class SecurityDefinitionsProductSpec extends FlatSpec {
 
     case class SingleSecurityDef(d1: ApiKeyInHeaderSecurity)
 
-    type SecurityDef = Record.`'d1 -> ApiKeyInHeaderSecurity`.T
+    type SecurityDef = ApiKeyInHeaderSecurity :: HNil
 
     implicitly[SecurityDefinitionsJsonFormat[SecurityDef]]
 
@@ -39,7 +39,7 @@ class SecurityDefinitionsProductSpec extends FlatSpec {
 
     case class MultipleSecurityDef(d1: ApiKeyInHeaderSecurity, d2: Oauth2AccessCodeSecurity)
 
-    type SecurityDef = Record.`'d1 -> ApiKeyInHeaderSecurity, 'd2 -> Oauth2AccessCodeSecurity`.T
+    type SecurityDef = ApiKeyInHeaderSecurity :: Oauth2AccessCodeSecurity :: HNil
 
     implicitly[SecurityDefinitionsJsonFormat[SecurityDef]]
 

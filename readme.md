@@ -38,6 +38,10 @@ object Greeter1 extends App {
   implicit val mat = ActorMaterializer()
   implicit val executionContext = system.dispatcher
 
+  val corsHeaders = Seq(
+    RawHeader("Access-Control-Allow-Origin", "*"),
+    RawHeader("Access-Control-Allow-Methods", "GET"))
+
   // (1) - Create a swagger-like API structure using an OpenApi case class.
   // Implement each endpoint as an Akka _Route_
 
@@ -53,12 +57,11 @@ object Greeter1 extends App {
         path = "/greet",
         method = GET,
         operation = Operation(
-          parameters = QueryParameter[String]('name) :: HNil,
+          parameters = Tuple1(QueryParameter[String]('name)),
           responses = ResponseValue[String]("200", "ok"),
           endpointImplementation = greet
         )
-      ) ::
-        HNil
+      )
     )
 
   // (2) - Swakka will generate 
@@ -142,92 +145,142 @@ Request is missing required query parameter 'name'
 
 ### Parameters:
 
-The example above took a single ```QueryParameter[String]```. There are additionally
-```QueryParameter[T]```, ```PathParameter[T]```, ```HeaderParameter[T]``` and ```BodyParameter[T]```
-(plus ```MultiValued[T, Parameter[T]]``` which will be described later).
+The example above took a single ```QueryParameter[String]```. 
+There are additionally
+- ```QueryParameter[T]```
+- ```PathParameter[T]```
+- ```HeaderParameter[T]```
+- ```BodyParameter[T]```
+- ```MultiValued[T, Parameter[T]]``` this is a wrapper for handling multiple valued query params.
 
-Here is an example app defining a ```PathParameter[String]```.
-
+In OpenApi, the set of parameters for an endpoint is given as a JSON array. In Swakka,
+you use any ```Product``` type. Specifically, you can use
+- a scala tuple
 ```scala
-object Greeter2 extends App {
+parameters =
+ (
+      PathParameter[Long](
+        name = 'petId,
+        description = Some("ID of pet to update")
+      ),
+      FormFieldParameter[Option[String]](
+        name = 'additionalMetadata,
+        description = Some("Additional data to pass to server")
+      ),
+      FormFieldParameter[Option[(FileInfo,
+                                 Source[ByteString, Any])]](
+        name = 'file,
+        description = Some("file to upload")
+      )
+  )
+```
+- a case class 
+```scala
+case class Parameters(
+    petId: PathParameter[Long], 
+    additionalMetadata: FormFieldParameter[Option[String]],
+    file: FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]])
 
-  // We'll define an endpoint that takes a single path parameter as a String.
+// ...
 
-  implicit val system = ActorSystem()
-  implicit val mat = ActorMaterializer()
-  implicit val executionContext = system.dispatcher
-
-  // The endpoint is then a function String => Route
-  val greet: String => Route =
-    name =>
-      complete(HttpResponse(OK, corsHeaders, s"Hello ${name}!"))
-
-  // where the String taken by the endpoint is the
-  // value of the path param defined here
-  val api =
-    OpenApi(
-      produces = Some(Seq("text/plain")),
-      paths =
-      PathItem(
-        path = "/greet/{name}", // here we define the parameter's placeholder in the request path
-        method = GET,
-        operation = Operation(
-          parameters = PathParameter[String]('name) :: HNil, // here we declare it should be passed to our endpoint
-          responses = ResponseValue[String]("200", "ok"),
-          endpointImplementation = greet
+parameters = Parameters(
+  PathParameter[Long](
+    name = 'petId,
+    description = Some("ID of pet to update")
+  ),
+  FormFieldParameter[Option[String]](
+    name = 'additionalMetadata,
+    description = Some("Additional data to pass to server")
+  ),
+  FormFieldParameter[Option[(FileInfo,
+                             Source[ByteString, Any])]](
+    name = 'file,
+    description = Some("file to upload")
+  ))
+``` 
+- a shapeless HList
+```scala
+import shapeless.{HNil, ::}
+// ...
+parameters = 
+  PathParameter[Long](
+    name = 'petId,
+    description = Some("ID of pet to update")
         )
-      ) ::
+  ::
+  FormFieldParameter[Option[String]](
+    name = 'additionalMetadata,
+    description = Some("Additional data to pass to server")
+  )
+  ::
+  FormFieldParameter[Option[(FileInfo,
+                             Source[ByteString, Any])]](
+    name = 'file,
+    description = Some("file to upload")
+  )
+  ::
         HNil
-    )
-
-  val route: Route = openApiRoute(
-    api,
-    Some(SwaggerRouteSettings()))
-
-  val bindingFuture = Http().bindAndHandle(
-    route,
-    "localhost",
-    8080)
-}
 ```
-The input *parameters* of your API are defined in terms of a _Params_ type parameter, which is 
-a shapeless HList. In this example, it is a single path parameter that is read as a _String_.
 
-For each of your swagger endpoints, you provide an implementation as a function, the exact
-type of which is dependent on the parameters HList in the api definition. So, if for instance,
+
+```
+The parameters Product type of each endpoint in your API defines a _Params_ type parameter.
+See ```net.jtownson.swakka.openapimodel.Operation```.
+
+For each of your swagger endpoints, you provide an endpoint implementation function. This is
+what handles the request. The function type of this endpoint implementation is dependent on the
+Params type definition. If for instance,
+
 ```scala
-parameters = QueryParameter[Boolean] :: PathParameter[String] :: HNil
+Params = (QueryParameter[Boolean], PathParameter[String], HeaderParameter[Long])
 ```
-then the endpoint will have a dependent function type of ```Function2[Boolean, String, Route]```
-or ```(Boolean, String) => Route```
 
-The Swakka-generated outer Route contains Akka _directives_ that extract these Params from the HTTP request
-(either from the query string, path, headers or request body). 
+then the endpoint will have a dependent function type of ```(Boolean, String, Long) => Route```
+
+This is a key point. Swakka reads the Params defined in your endpoints and generates Akka-Http
+Routes that extract those Params. The Route returned from your endpoint function is then used
+as a nested, inner Route. 
 
 ### Responses
 
-The responses from your API are defined using a _Responses_ HList containing ```ResponseValue[_, _]``` elements. 
-(Note, though, you can use a bare ResponseValue, that is not part of a HList; 
-in swagger, the responses json element is an _object_ not a list. This makes it subtly different
-than the parameters list, which will be serialized to a, possibly empty, json _array_). 
+The responses from your API are defined in the same fashion, except responses comprises 
+a Product of ```ResponseValue[_, _]``` elements. 
 
-For example
+For example, as a HList.
 ```scala
 val responses = 
-      ResponseValue[String](
-        responseCode = "404",
-        description = "Pet not found with the id provided. Response body contains a String error message."
-      ) ::
-      ResponseValue[Pet](
-        responseCode = "200",
-        description = "Pet returned in the response body"
-      ) ::
-      ResponseValue[Error](
-        responseCode = "500",
-        description = "There was an error. Response will contain an Error json object to help debugging."
-      ) ::
-      HNil
+  ResponseValue[String](
+    responseCode = "404",
+    description = "Pet not found with the id provided. Response body contains a String error message."
+  ) ::
+  ResponseValue[Pet](
+    responseCode = "200",
+    description = "Pet returned in the response body"
+  ) ::
+  ResponseValue[Error](
+    responseCode = "500",
+    description = "There was an error. Response will contain an Error json object to help debugging."
+  ) ::
+  HNil
+```
 
+or equivalently a tuple
+```scala
+val responses = 
+(
+  ResponseValue[String](
+    responseCode = "404",
+    description = "Pet not found with the id provided. Response body contains a String error message."
+  ),
+  ResponseValue[Pet](
+    responseCode = "200",
+    description = "Pet returned in the response body"
+  ),
+  ResponseValue[Error](
+    responseCode = "500",
+    description = "There was an error. Response will contain an Error json object to help debugging."
+  )
+)
 ```
 
 Each ```ResponseValue``` takes two type parameters:
@@ -241,7 +294,7 @@ a json schema for the case class into the swagger file.
 
 This provides a declarative, type-level approach to generating swagger response elements.
 
-Here is an example:
+Here is an example to show how it works:
 
 ```scala
 import net.jtownson.swakka.openapimodel._
@@ -249,20 +302,19 @@ import net.jtownson.swakka.openapijson._
 
 import spray.json._
 
-import shapeless.{::, HNil}
-
 case class Success(id: String)
 
 type CacheControl = Header[String]
 
+// This is a responses definition, which you can include in a wider API definition
 val responses: Responses = 
   ResponseValue[Success, CacheControl](
     responseCode = "200", 
     description = "ok",
     headers = Header[String](Symbol("cache-control"), Some("a cache control header specifying the max-age of the entity")))
     
+// Or just print directly
 println(responses.toJson)    
-
 ```
 
 This will output the following Swagger snippet
@@ -398,7 +450,7 @@ as the parameter value. This provides support for Swagger's ```collectionFormat=
 Swakka defines implicit (Spray) JsonFormats to convert the types above (and their Optional variants) into Swagger json.
 To enable this, you import these conversions: 
 ```scala
-import net.jtownson.swakka.jsonprotocol._
+import net.jtownson.swakka.openapijson._
 ``` 
 
 ### Body parameters (and _SchemaWriter_)
@@ -580,39 +632,27 @@ reference one of those schemes (by name) for each endpoint. Swakka is the same, 
 
 Security definitions are optional in your swagger definition and they default to ```None```.
 
-Otherwise, the security definition section takes the form of Some Shapeless _extensible record_ 
-(https://github.com/milessabin/shapeless/wiki/Feature-overview:-shapeless-2.0.0#extensible-records).
-
-If you are not familiar with Shapeless, extensible records will seem technical but the actual code you need in Swakka
-is simple enough. If your code does not compile, you need to understand why and you are new to shapeless, 
-you'll need to set aside a few hours for reading. If you are new to _Scala_, make that a few weeks!
+Otherwise, the security definition section takes the form of a Product, just like Parameters or Responses.
 
 Here is an example from the Petstore
 
 ```scala
-
-    // In addition to the usual Swakka imports, we need bits of shapeless
-    import shapeless.record._
-    import shapeless.syntax.singleton._
-    import shapeless.{::, HNil}
     
-    // If you wish, you can make the SecurityDefinitions type explicit using this somewhat curious construct,
-    // though the compiler can infer it for you.
-    type SecurityDefinitions = Record.`'petstore_auth -> Oauth2ImplicitSecurity, 'api_key -> ApiKeyInHeaderSecurity`.T
-
     // Create a shapeless record for the security schemes
     val securityDefinitions =
-      'petstore_auth ->> Oauth2ImplicitSecurity(
+      (
+      Oauth2ImplicitSecurity(
+        key = "petstore_auth",
         authorizationUrl = "http://petstore.swagger.io/oauth/dialog",
-        scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets"))) ::
-      'api_key ->> ApiKeyInHeaderSecurity("api_key") ::
-      HNil
-
+        scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets"))),
+        
+      ApiKeyInHeaderSecurity("api_key")
+      )
 
     val petstoreApi = OpenApi(
       // 1. define the list of all security schemes supported by the API 
       securityDefinitions = Some(securityDefinitions),
-      paths =
+      paths = Tuple1(
         PathItem(
           path = "/pets",
           method = GET,
@@ -623,7 +663,7 @@ Here is an example from the Petstore
             // Therefore you often need to define the endpoint return type explicitly
             endpointImplementation = () => pass: Route 
           )
-        ) :: HNil
+        ))
     )
 
 ```
@@ -648,15 +688,10 @@ import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapiroutegen._
 ```
 
-* Imports for shapeless HLists
+* Imports for shapeless HLists, if you are defining your API using the shapeless style for Product definitions.
 ```scala
 import shapeless.{::, HNil}
 
-```
-And, for api security definitions, imports for extensible records
-```scala
-import shapeless.record._
-import shapeless.syntax.singleton._
 ```
 
 * Additional imports/vals required to make Akka Http work
@@ -664,7 +699,7 @@ import shapeless.syntax.singleton._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import spray.json._
 implicit val jsonFormat = jsonFormatN(T) // where N is 1, 2, 3, according to the number of fields in the case class.
-
+// other akka directives you need for your endpoint functions...
 ```
 
 ### I'd like to create my Swagger in Scala, but I don't need the Akka bit

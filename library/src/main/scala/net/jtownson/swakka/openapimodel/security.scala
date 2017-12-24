@@ -15,20 +15,22 @@
  */
 package net.jtownson.swakka.openapimodel
 
-trait Security
+trait Security {
+  def key: String
+}
 
-case class BasicAuthenticationSecurity(description: Option[String] = None) extends Security
+case class BasicAuthenticationSecurity(key: String, description: Option[String] = None) extends Security
 
-case class ApiKeyInQuerySecurity(name: String, description: Option[String] = None) extends Security
+case class ApiKeyInQuerySecurity(key: String, description: Option[String] = None) extends Security
 
-case class ApiKeyInHeaderSecurity(name: String, description: Option[String] = None) extends Security
+case class ApiKeyInHeaderSecurity(key: String, description: Option[String] = None) extends Security
 
-case class Oauth2ImplicitSecurity(authorizationUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None) extends Security
+case class Oauth2ImplicitSecurity(key: String, authorizationUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None) extends Security
 
-case class Oauth2ApplicationSecurity(tokenUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None) extends Security
+case class Oauth2ApplicationSecurity(key: String, tokenUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None) extends Security
 
-case class Oauth2PasswordSecurity(tokenUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None) extends Security
+case class Oauth2PasswordSecurity(key: String, tokenUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None) extends Security
 
-case class Oauth2AccessCodeSecurity(authorizationUrl: String, tokenUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None) extends Security
+case class Oauth2AccessCodeSecurity(key: String, authorizationUrl: String, tokenUrl: String, scopes: Option[Map[String, String]] = None, description: Option[String] = None) extends Security
 
 case class SecurityRequirement(name: Symbol, refs: Seq[String] = Seq())

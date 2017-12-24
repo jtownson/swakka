@@ -26,109 +26,132 @@ import spray.json._
 class SecurityDefinitionsJsonProtocolSpec extends FlatSpec {
 
   "JsonProtocol" should "serialize BasicAuthenticationSecurity" in {
-    BasicAuthenticationSecurity(Some("description")).toJson shouldBe JsObject(
-      "type" -> JsString("basic"),
-      "description" -> JsString("description")
-    )
+    BasicAuthenticationSecurity(key = "a_key", Some("description")).toJson shouldBe JsObject(
+      "a_key" -> JsObject(
+        "type" -> JsString("basic"),
+        "description" -> JsString("description")
+      ))
   }
 
   it should "serialize ApiKeyInQuerySecurity" in {
-    ApiKeyInQuerySecurity(name = "api_key", Some("description")).toJson shouldBe JsObject(
-      "type" -> JsString("apiKey"),
-      "name" -> JsString("api_key"),
-      "in" -> JsString("query"),
-      "description" -> JsString("description")
-    )
+    ApiKeyInQuerySecurity("api_key", Some("description")).toJson shouldBe JsObject(
+      "api_key" -> JsObject(
+        "type" -> JsString("apiKey"),
+        "name" -> JsString("api_key"),
+        "in" -> JsString("query"),
+        "description" -> JsString("description")
+      ))
   }
 
   it should "serialize ApiKeyInHeaderSecurity" in {
     val securityDefinitions =
-      ApiKeyInHeaderSecurity(name = "api_key", Some("description"))
+      ApiKeyInHeaderSecurity(key = "api_key", Some("description"))
 
     securityDefinitions.toJson shouldBe JsObject(
-      "type" -> JsString("apiKey"),
-      "name" -> JsString("api_key"),
-      "in" -> JsString("header"),
-      "description" -> JsString("description")
-    )
+      "api_key" -> JsObject(
+        "type" -> JsString("apiKey"),
+        "name" -> JsString("api_key"),
+        "in" -> JsString("header"),
+        "description" -> JsString("description")
+      ))
   }
 
   it should "serialize Oauth2ImplicitSecurity" in {
     val securityDefinitions =
       Oauth2ImplicitSecurity(
+        key = "a_key",
         authorizationUrl = "authUrl",
-        scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets")),
-        description = Some("description"))
+        scopes = Some(
+          Map("write:pets" -> "modify pets in your account",
+              "read:pets" -> "read your pets")),
+        description = Some("description")
+      )
 
     securityDefinitions.toJson shouldBe JsObject(
-      "type" -> JsString("oauth2"),
-      "authorizationUrl" -> JsString("authUrl"),
-      "flow" -> JsString("implicit"),
-      "scopes" -> JsObject(
-        "write:pets" -> JsString("modify pets in your account"),
-        "read:pets" -> JsString("read your pets")
-      ),
-      "description" -> JsString("description")
-    )
+      "a_key" -> JsObject(
+        "type" -> JsString("oauth2"),
+        "authorizationUrl" -> JsString("authUrl"),
+        "flow" -> JsString("implicit"),
+        "scopes" -> JsObject(
+          "write:pets" -> JsString("modify pets in your account"),
+          "read:pets" -> JsString("read your pets")
+        ),
+        "description" -> JsString("description")
+      ))
   }
 
   it should "serialize Oauth2ApplicationSecurity" in {
     val securityDefinitions =
       Oauth2ApplicationSecurity(
+        key = "a_key",
         tokenUrl = "tokenUrl",
-        scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets")),
-        description = Some("description"))
+        scopes = Some(
+          Map("write:pets" -> "modify pets in your account",
+              "read:pets" -> "read your pets")),
+        description = Some("description")
+      )
 
     securityDefinitions.toJson shouldBe JsObject(
-      "type" -> JsString("oauth2"),
-      "tokenUrl" -> JsString("tokenUrl"),
-      "flow" -> JsString("application"),
-      "scopes" -> JsObject(
-        "write:pets" -> JsString("modify pets in your account"),
-        "read:pets" -> JsString("read your pets")
-      ),
-      "description" -> JsString("description")
-    )
+      "a_key" -> JsObject(
+        "type" -> JsString("oauth2"),
+        "tokenUrl" -> JsString("tokenUrl"),
+        "flow" -> JsString("application"),
+        "scopes" -> JsObject(
+          "write:pets" -> JsString("modify pets in your account"),
+          "read:pets" -> JsString("read your pets")
+        ),
+        "description" -> JsString("description")
+      ))
   }
 
   it should "serialize Oauth2PasswordSecurity" in {
     val securityDefinitions =
       Oauth2PasswordSecurity(
+        key = "a_key",
         tokenUrl = "tokenUrl",
-        scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets")),
-        description = Some("description"))
+        scopes = Some(
+          Map("write:pets" -> "modify pets in your account",
+              "read:pets" -> "read your pets")),
+        description = Some("description")
+      )
 
     securityDefinitions.toJson shouldBe JsObject(
-      "type" -> JsString("oauth2"),
-      "tokenUrl" -> JsString("tokenUrl"),
-      "flow" -> JsString("password"),
-      "scopes" -> JsObject(
-        "write:pets" -> JsString("modify pets in your account"),
-        "read:pets" -> JsString("read your pets")
-      ),
-      "description" -> JsString("description")
-    )
+      "a_key" -> JsObject(
+        "type" -> JsString("oauth2"),
+        "tokenUrl" -> JsString("tokenUrl"),
+        "flow" -> JsString("password"),
+        "scopes" -> JsObject(
+          "write:pets" -> JsString("modify pets in your account"),
+          "read:pets" -> JsString("read your pets")
+        ),
+        "description" -> JsString("description")
+      ))
   }
 
   it should "serialize Oauth2AccessCodeSecurity" in {
     val securityDefinitions =
       Oauth2AccessCodeSecurity(
+        key = "a_key",
         tokenUrl = "tokenUrl",
         authorizationUrl = "authUrl",
-        scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets")),
-        description = Some("description"))
+        scopes = Some(
+          Map("write:pets" -> "modify pets in your account",
+              "read:pets" -> "read your pets")),
+        description = Some("description")
+      )
 
     securityDefinitions.toJson shouldBe JsObject(
-      "type" -> JsString("oauth2"),
-      "tokenUrl" -> JsString("tokenUrl"),
-      "authorizationUrl" -> JsString("authUrl"),
-      "flow" -> JsString("accessCode"),
-      "scopes" -> JsObject(
-        "write:pets" -> JsString("modify pets in your account"),
-        "read:pets" -> JsString("read your pets")
-      ),
-      "description" -> JsString("description")
-    )
+      "a_key" -> JsObject(
+        "type" -> JsString("oauth2"),
+        "tokenUrl" -> JsString("tokenUrl"),
+        "authorizationUrl" -> JsString("authUrl"),
+        "flow" -> JsString("accessCode"),
+        "scopes" -> JsObject(
+          "write:pets" -> JsString("modify pets in your account"),
+          "read:pets" -> JsString("read your pets")
+        ),
+        "description" -> JsString("description")
+      ))
   }
 
   val expectedMultipleDefinition = JsObject(
@@ -148,48 +171,51 @@ class SecurityDefinitionsJsonProtocolSpec extends FlatSpec {
     )
   )
 
-  it should "serialize a security definition given a shapeless record" in {
+  it should "serialize a security definition given a shapeless HList" in {
     import shapeless._
-    import shapeless.syntax.singleton._
 
     val oauth2ImplicitSecurity = Oauth2ImplicitSecurity(
+      key = "petstore_auth",
       authorizationUrl = "authUrl",
-      scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets")))
+      scopes = Some(
+        Map("write:pets" -> "modify pets in your account",
+            "read:pets" -> "read your pets")))
 
-    val apiKeyInHeaderSecurity = ApiKeyInHeaderSecurity(name = "api_key")
+    val apiKeyInHeaderSecurity = ApiKeyInHeaderSecurity("api_key")
 
     val securityDefinitions =
-      ('petstore_auth ->> oauth2ImplicitSecurity) ::
-        ('api_key ->> apiKeyInHeaderSecurity) ::
-        HNil
+      oauth2ImplicitSecurity :: apiKeyInHeaderSecurity :: HNil
 
     securityDefinitions.toJson shouldBe expectedMultipleDefinition
   }
 
   it should "serialize a security definition given a case class" in {
 
-    case class SecurityDefinition(`petstore_auth`: Oauth2ImplicitSecurity, `api_key`: ApiKeyInHeaderSecurity)
+    case class SecurityDefinition(s1: Oauth2ImplicitSecurity,
+                                  s2: ApiKeyInHeaderSecurity)
 
     val oauth2ImplicitSecurity = Oauth2ImplicitSecurity(
+      key = "petstore_auth",
       authorizationUrl = "authUrl",
-      scopes = Some(Map("write:pets" -> "modify pets in your account", "read:pets" -> "read your pets")))
+      scopes = Some(
+        Map("write:pets" -> "modify pets in your account",
+            "read:pets" -> "read your pets")))
 
-    val apiKeyInHeaderSecurity = ApiKeyInHeaderSecurity(name = "api_key")
+    val apiKeyInHeaderSecurity = ApiKeyInHeaderSecurity("api_key")
 
-    val securityDefinitions = SecurityDefinition(
-      `petstore_auth` = oauth2ImplicitSecurity,
-      `api_key` = apiKeyInHeaderSecurity)
+    val securityDefinitions = SecurityDefinition(s1 = oauth2ImplicitSecurity,
+                                                 s2 = apiKeyInHeaderSecurity)
 
     securityDefinitions.toJson shouldBe expectedMultipleDefinition
   }
 
   it should "serialize a security requirement" in {
 
-    val securityRequirement = SecurityRequirement('auth, Seq("grant1", "grant2"))
+    val securityRequirement =
+      SecurityRequirement('auth, Seq("grant1", "grant2"))
 
     val expectedJson = JsObject(
-      "auth" -> JsArray(JsString("grant1"), JsString("grant2")
-      )
+      "auth" -> JsArray(JsString("grant1"), JsString("grant2"))
     )
 
     securityRequirement.toJson shouldBe expectedJson

@@ -37,9 +37,6 @@ import net.jtownson.swakka.openapimodel._
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
-import shapeless.syntax.singleton._
-import shapeless.{::, HNil}
-
 class Petstore2Spec
     extends FlatSpec
     with RouteTest
@@ -67,12 +64,13 @@ class Petstore2Spec
 
   import OrderStatus._
 
-  case class Order(id: Option[Long],
-                   petId: Option[Long],
-                   quantity: Option[Int],
-                   @ApiModelProperty("Order Status") status: Option[OrderStatus],
-                   shipDate: Option[DateTime],
-                   complete: Option[Boolean])
+  case class Order(
+      id: Option[Long],
+      petId: Option[Long],
+      quantity: Option[Int],
+      @ApiModelProperty("Order Status") status: Option[OrderStatus],
+      shipDate: Option[DateTime],
+      complete: Option[Boolean])
 
   implicit val petJsonFormat: RootJsonFormat[Pet] = jsonFormat3(Pet)
 
@@ -111,15 +109,14 @@ class Petstore2Spec
 
   ignore /*"Swakka"*/ should "support the petstore v2 example" in {
 
-    val securityDefinitions =
-      'petstore_auth ->> Oauth2ImplicitSecurity(
-        authorizationUrl = "http://petstore.swagger.io/oauth/dialog",
-        scopes = Some(
-          Map("write:pets" -> "modify pets in your account",
-              "read:pets" -> "read your pets"))
-      ) ::
-        'api_key ->> ApiKeyInHeaderSecurity("api_key") ::
-        HNil
+    val securityDefinitions = (Oauth2ImplicitSecurity(
+                                 key = "petstore_auth",
+                                 authorizationUrl = "http://petstore.swagger.io/oauth/dialog",
+                                 scopes = Some(Map(
+                                   "write:pets" -> "modify pets in your account",
+                                   "read:pets" -> "read your pets"))
+                               ),
+                               ApiKeyInHeaderSecurity("api_key"))
 
     val petstoreApi = OpenApi(
       info = Info(
@@ -130,8 +127,7 @@ class Petstore2Spec
         licence =
           Some(
             License(name = "Apache 2.0",
-                    url =
-                      Some("http://www.apache.org/licenses/LICENSE-2.0.html"))),
+                    url = Some("http://www.apache.org/licenses/LICENSE-2.0.html"))),
         termsOfService = Some("http://swagger.io/terms/")
       ),
       tags = Some(
@@ -153,300 +149,286 @@ class Petstore2Spec
       host = Some("petstore.swagger.io"),
       basePath = Some("/v2"),
       schemes = Some(Seq("http")),
-      paths =
-        PathItem(
-          path = "/pets",
-          method = POST,
-          operation = Operation(
-            summary = Some("Add a new pet to the store"),
-            description = Some(""),
-            operationId = Some("addPet"),
-            tags = Some(Seq("pets")),
-            consumes = Some(Seq("application/json", "application/xml")),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters = BodyParameter[Pet](
-              'body,
-              Some("Pet object that needs to be added to the store")) :: HNil,
-            responses =
-              ResponseValue[HNil](
-                responseCode = "201",
-                description = "Pet added to the store"
-              ) ::
-                ResponseValue[HNil](
-                responseCode = "405",
-                description = "Invalid input"
-              ) ::
-                ResponseValue[Error](
-                responseCode = "default",
-                description = "unexpected error"
-              ) ::
-                HNil,
-            security = Some(
-              Seq(SecurityRequirement('petstore_auth,
-                                      Seq("write:pets", "read:pets")))),
-            endpointImplementation = createPet
-          )
-        ) ::
-          PathItem(
-          path = "/pets",
-          method = PUT,
-          operation = Operation(
-            summary = Some("Update an existing pet"),
-            description = Some(""),
-            operationId = Some("updatePet"),
-            tags = Some(Seq("pet")),
-            consumes = Some(Seq("application/json", "application/xml")),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters = BodyParameter[Pet](
-              'body,
-              Some("Pet object that needs to be added to the store")) :: HNil,
-            responses =
-              ResponseValue[HNil](
-                responseCode = "400",
-                description = "Invalid ID supplied"
-              ) ::
-                ResponseValue[HNil](
-                responseCode = "404",
-                description = "Pet not found"
-              ) ::
-                ResponseValue[HNil](
-                responseCode = "405",
-                description = "Validation exception"
-              ) ::
-                HNil,
-            security = Some(
-              Seq(SecurityRequirement('petstore_auth,
-                                      Seq("write:pets", "read:pets")))),
-            endpointImplementation = updatePet
-          )
-        ) ::
-          PathItem(
-          path = "/pet/findByStatus",
-          method = GET,
-          operation = Operation(
-            summary = Some("Finds Pets by status"),
-            description = Some(
-              "Multiple status values can be provided with comma separated strings"),
-            operationId = Some("findPetsByStatus"),
-            tags = Some(Seq("pet")),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters = MultiValued[String, QueryParameter[String]](
-              QueryParameter[String](
-                name = 'status,
-                description =
-                  Some("Status values that need to be considered for filter"),
-                default = Some("available"),
-                enum = Some(Seq("available", "pending", "sold"))
-              )) :: HNil,
-            responses =
-              ResponseValue[Seq[Pet]]("200", "successful operation") ::
-                ResponseValue[HNil]("400", "Invalid status value") ::
-                HNil,
-            endpointImplementation = findByStatus,
-            security =
-              Some(Seq(SecurityRequirement('petstore_auth,
-                                           Seq("write:pets", "read:pets"))))
-          )
-        ) ::
-          PathItem(
-          path = "/pet/findByTags",
-          method = GET,
-          operation = Operation(
-            deprecated = true,
-            summary = Some("Finds Pets by tags"),
-            tags = Some(Seq("pet")),
-            description = Some(
-              "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing."),
-            operationId = Some("findPetsByTags"),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters = MultiValued[String, QueryParameter[String]](
-              QueryParameter[String](
-                name = 'tags,
-                description = Some("Tags to filter by"))) :: HNil,
-            responses =
-              ResponseValue[Seq[Pet]]("200", "successful operation") ::
-              ResponseValue[HNil]("400", "Invalid tag value") ::
-              HNil,
-            endpointImplementation = findByTags,
-            security =
-              Some(Seq(SecurityRequirement('petstore_auth,
-                                           Seq("write:pets", "read:pets"))))
-          )
-        ) ::
-          PathItem(
-          path = "/pet/{petId}",
-          method = GET,
-          operation = Operation(
-            summary = Some("Find pet by ID"),
-            description = Some("Returns a single pet"),
-            operationId = Some("getPetById"),
-            tags = Some(Seq("pet")),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters =
-              PathParameter[Long](name = 'petId,
-                                  description = Some("ID of pet to return"))
-                :: HNil,
-            responses =
-              ResponseValue[Pet](responseCode = "200", description = "successful operation") ::
-                ResponseValue[HNil](responseCode = "400", description = "Invalid ID supplied") ::
-                ResponseValue[HNil](responseCode = "404", description = "Pet not found") ::
-                HNil,
-            endpointImplementation = findById,
-            security = Some(Seq(SecurityRequirement('api_key, Seq())))
-          )
-        ) ::
-          PathItem(
-          path = "/pet/{petId}",
-          method = POST,
-          operation = Operation(
-            tags = Some(Seq("pet")),
-            summary = Some("Updates a pet in the store with form data"),
-            description = Some(""),
-            operationId = Some("updatePetWithForm"),
-            consumes = Some(Seq("application/x-www-form-urlencoded")),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters =
-              PathParameter[Long](
-                name = 'petId,
-                description = Some("ID of pet that needs to be updated")
-              ) ::
-                FormFieldParameter[Option[String]](
-                name = 'name,
-                description = Some("Updated name of the pet")
-              ) ::
-                FormFieldParameter[Option[String]](
-                name = 'status,
-                description = Some("Updated status of the pet")
-              ) ::
-                HNil,
-            responses = ResponseValue[HNil](
-              responseCode = "405",
-              description = "Invalid input"
-            ),
-            security =
-              Some(Seq(SecurityRequirement('petstore_auth,
-                                           Seq("write:pets", "read:pets")))),
-            endpointImplementation = updatePetForm
-          )
-        ) ::
-          PathItem(
-          path = "/pet/{petId}",
-          method = DELETE,
-          operation = Operation(
-            tags = Some(Seq("pet")),
-            summary = Some("Deletes a pet"),
-            description = Some(""),
-            operationId = Some("deletePet"),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters =
-              HeaderParameter[Option[String]](name = 'api_key) ::
-                PathParameter[Long](
-                name = 'petId,
-                description = Some("Pet id to delete")
-              ) ::
-                HNil,
-            responses =
-              ResponseValue[HNil](
-                responseCode = "400",
-                description = "Invalid ID supplied"
-              ) ::
-                ResponseValue[HNil](
-                responseCode = "404",
-                description = "Pet not found"
-              ) ::
-                HNil,
-            security =
-              Some(Seq(SecurityRequirement('petstore_auth,
-                                           Seq("write:pets", "read:pets")))),
-            endpointImplementation = deletePet
-          )
-        ) ::
-          PathItem(
-          path = "/pet/{petId}/uploadImage",
-          method = POST,
-          operation = Operation(
-            tags = Some(Seq("pet")),
-            summary = Some("uploads an image"),
-            description = Some(""),
-            operationId = Some("uploadFile"),
-            consumes = Some(Seq("multipart/form-data")),
-            produces = Some(Seq("application/json")),
-            parameters =
-              PathParameter[Long](
-                name = 'petId,
-                description = Some("ID of pet to update")
-              ) ::
-                FormFieldParameter[Option[String]](
-                name = 'additionalMetadata,
-                description = Some("Additional data to pass to server")
-              ) ::
-                FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]](
-                name = 'file,
-                description = Some("file to upload")
-              ) ::
-                HNil,
-            responses =
-              ResponseValue[ApiResponse](
-                responseCode = "200",
-                description = "successful operation",
-              ) ::
-                HNil,
-            security =
-              Some(Seq(SecurityRequirement('petstore_auth,
-                                           Seq("write:pets", "read:pets")))),
-            endpointImplementation = uploadImage
-          )
-        ) ::
-          PathItem(
-          path = "/store/inventory",
-          method = GET,
-          operation = Operation(
-            tags = Some(Seq("store")),
-            summary = Some("Returns pet inventories by status"),
-            description = Some("Returns a map of status codes to quantities"),
-            operationId = Some("getInventory"),
-            produces = Some(Seq("application/json")),
-            parameters = HNil: HNil,
-            responses =
-              ResponseValue[Map[Int, String]](
-                responseCode = "200",
-                description = "successful operation"
-              ) ::
-                HNil,
-            security = Some(Seq(SecurityRequirement('api_key))),
-            endpointImplementation = () => dummyRoute
-          )
-        )
-          ::
-            PathItem(
-          path = "/store/order",
-          method = POST,
-          operation = Operation(
-            tags = Some(Seq("store")),
-            summary = Some("Place an order for a pet"),
-            description = Some(""),
-            operationId = Some("placeOrder"),
-            produces = Some(Seq("application/xml", "application/json")),
-            parameters =
-              BodyParameter[Order](
-                name = 'body,
-                description = Some("order placed for purchasing the pet")
-              ) ::
-                HNil,
-            responses =
-              ResponseValue[Order](
-                responseCode = "200",
-                description = "successful operation"
-              ) ::
-                ResponseValue[HNil](
-                responseCode = "400",
-                description = "Invalid Order"
-              ) ::
-                HNil,
-            endpointImplementation = storeOrder
-          )
-        )
-          :: HNil,
+      paths = (PathItem(
+                 path = "/pets",
+                 method = POST,
+                 operation = Operation(
+                   summary = Some("Add a new pet to the store"),
+                   description = Some(""),
+                   operationId = Some("addPet"),
+                   tags = Some(Seq("pets")),
+                   consumes = Some(Seq("application/json", "application/xml")),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     BodyParameter[Pet](
+                       'body,
+                       Some("Pet object that needs to be added to the store"))),
+                   responses = (ResponseValue[Unit](
+                                  responseCode = "201",
+                                  description = "Pet added to the store"
+                                ),
+                                ResponseValue[Unit](
+                                  responseCode = "405",
+                                  description = "Invalid input"
+                                ),
+                                ResponseValue[Error](
+                                  responseCode = "default",
+                                  description = "unexpected error"
+                                )),
+                   security = Some(
+                     Seq(SecurityRequirement('petstore_auth,
+                                             Seq("write:pets", "read:pets")))),
+                   endpointImplementation = createPet
+                 )
+               ),
+               PathItem(
+                 path = "/pets",
+                 method = PUT,
+                 operation = Operation(
+                   summary = Some("Update an existing pet"),
+                   description = Some(""),
+                   operationId = Some("updatePet"),
+                   tags = Some(Seq("pet")),
+                   consumes = Some(Seq("application/json", "application/xml")),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     BodyParameter[Pet](
+                       'body,
+                       Some("Pet object that needs to be added to the store"))),
+                   responses = (ResponseValue[Unit](
+                                  responseCode = "400",
+                                  description = "Invalid ID supplied"
+                                ),
+                                ResponseValue[Unit](
+                                  responseCode = "404",
+                                  description = "Pet not found"
+                                ),
+                                ResponseValue[Unit](
+                                  responseCode = "405",
+                                  description = "Validation exception"
+                                )),
+                   security = Some(
+                     Seq(SecurityRequirement('petstore_auth,
+                                             Seq("write:pets", "read:pets")))),
+                   endpointImplementation = updatePet
+                 )
+               ),
+               PathItem(
+                 path = "/pet/findByStatus",
+                 method = GET,
+                 operation = Operation(
+                   summary = Some("Finds Pets by status"),
+                   description = Some(
+                     "Multiple status values can be provided with comma separated strings"),
+                   operationId = Some("findPetsByStatus"),
+                   tags = Some(Seq("pet")),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     MultiValued[String, QueryParameter[String]](
+                       QueryParameter[String](
+                         name = 'status,
+                         description = Some(
+                           "Status values that need to be considered for filter"),
+                         default = Some("available"),
+                         enum = Some(Seq("available", "pending", "sold"))
+                       ))),
+                   responses =
+                     (ResponseValue[Seq[Pet]]("200", "successful operation"),
+                      ResponseValue[Unit]("400", "Invalid status value")),
+                   endpointImplementation = findByStatus,
+                   security = Some(
+                     Seq(SecurityRequirement('petstore_auth,
+                                             Seq("write:pets", "read:pets"))))
+                 )
+               ),
+               PathItem(
+                 path = "/pet/findByTags",
+                 method = GET,
+                 operation = Operation(
+                   deprecated = true,
+                   summary = Some("Finds Pets by tags"),
+                   tags = Some(Seq("pet")),
+                   description = Some(
+                     "Multiple tags can be provided with comma separated strings. Use tag1, tag2, tag3 for testing."),
+                   operationId = Some("findPetsByTags"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     MultiValued[String, QueryParameter[String]](
+                       QueryParameter[String](name = 'tags,
+                                              description =
+                                                Some("Tags to filter by")))),
+                   responses =
+                     (ResponseValue[Seq[Pet]]("200", "successful operation"),
+                      ResponseValue[Unit]("400", "Invalid tag value")),
+                   endpointImplementation = findByTags,
+                   security = Some(
+                     Seq(SecurityRequirement('petstore_auth,
+                                             Seq("write:pets", "read:pets"))))
+                 )
+               ),
+               PathItem(
+                 path = "/pet/{petId}",
+                 method = GET,
+                 operation = Operation(
+                   summary = Some("Find pet by ID"),
+                   description = Some("Returns a single pet"),
+                   operationId = Some("getPetById"),
+                   tags = Some(Seq("pet")),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     PathParameter[Long](name = 'petId,
+                                         description =
+                                           Some("ID of pet to return"))),
+                   responses =
+                     (ResponseValue[Pet](responseCode = "200",
+                                         description = "successful operation"),
+                      ResponseValue[Unit](responseCode = "400",
+                                          description = "Invalid ID supplied"),
+                      ResponseValue[Unit](responseCode = "404",
+                                          description = "Pet not found")),
+                   endpointImplementation = findById,
+                   security = Some(Seq(SecurityRequirement('api_key, Seq())))
+                 )
+               ),
+               PathItem(
+                 path = "/pet/{petId}",
+                 method = POST,
+                 operation = Operation(
+                   tags = Some(Seq("pet")),
+                   summary = Some("Updates a pet in the store with form data"),
+                   description = Some(""),
+                   operationId = Some("updatePetWithForm"),
+                   consumes = Some(Seq("application/x-www-form-urlencoded")),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters =
+                     (PathParameter[Long](
+                        name = 'petId,
+                        description = Some("ID of pet that needs to be updated")
+                      ),
+                      FormFieldParameter[Option[String]](
+                        name = 'name,
+                        description = Some("Updated name of the pet")
+                      ),
+                      FormFieldParameter[Option[String]](
+                        name = 'status,
+                        description = Some("Updated status of the pet")
+                      )),
+                   responses = ResponseValue[Unit](
+                     responseCode = "405",
+                     description = "Invalid input"
+                   ),
+                   security = Some(
+                     Seq(SecurityRequirement('petstore_auth,
+                                             Seq("write:pets", "read:pets")))),
+                   endpointImplementation = updatePetForm
+                 )
+               ),
+               PathItem(
+                 path = "/pet/{petId}",
+                 method = DELETE,
+                 operation = Operation(
+                   tags = Some(Seq("pet")),
+                   summary = Some("Deletes a pet"),
+                   description = Some(""),
+                   operationId = Some("deletePet"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters =
+                     (HeaderParameter[Option[String]](name = 'api_key),
+                      PathParameter[Long](
+                        name = 'petId,
+                        description = Some("Pet id to delete")
+                      )),
+                   responses = (ResponseValue[Unit](
+                                  responseCode = "400",
+                                  description = "Invalid ID supplied"
+                                ),
+                                ResponseValue[Unit](
+                                  responseCode = "404",
+                                  description = "Pet not found"
+                                )),
+                   security = Some(
+                     Seq(SecurityRequirement('petstore_auth,
+                                             Seq("write:pets", "read:pets")))),
+                   endpointImplementation = deletePet
+                 )
+               ),
+               PathItem(
+                 path = "/pet/{petId}/uploadImage",
+                 method = POST,
+                 operation = Operation(
+                   tags = Some(Seq("pet")),
+                   summary = Some("uploads an image"),
+                   description = Some(""),
+                   operationId = Some("uploadFile"),
+                   consumes = Some(Seq("multipart/form-data")),
+                   produces = Some(Seq("application/json")),
+                   parameters =
+                     (PathParameter[Long](
+                        name = 'petId,
+                        description = Some("ID of pet to update")
+                      ),
+                      FormFieldParameter[Option[String]](
+                        name = 'additionalMetadata,
+                        description = Some("Additional data to pass to server")
+                      ),
+                      FormFieldParameter[Option[(FileInfo,
+                                                 Source[ByteString, Any])]](
+                        name = 'file,
+                        description = Some("file to upload")
+                      )),
+                   responses = ResponseValue[ApiResponse](
+                     responseCode = "200",
+                     description = "successful operation",
+                   ),
+                   security = Some(
+                     Seq(SecurityRequirement('petstore_auth,
+                                             Seq("write:pets", "read:pets")))),
+                   endpointImplementation = uploadImage
+                 )
+               ),
+               PathItem(
+                 path = "/store/inventory",
+                 method = GET,
+                 operation = Operation(
+                   tags = Some(Seq("store")),
+                   summary = Some("Returns pet inventories by status"),
+                   description =
+                     Some("Returns a map of status codes to quantities"),
+                   operationId = Some("getInventory"),
+                   produces = Some(Seq("application/json")),
+                   responses = ResponseValue[Map[Int, String]](
+                     responseCode = "200",
+                     description = "successful operation"
+                   ),
+                   security = Some(Seq(SecurityRequirement('api_key))),
+                   endpointImplementation = () => dummyRoute
+                 )
+               ),
+               PathItem(
+                 path = "/store/order",
+                 method = POST,
+                 operation = Operation(
+                   tags = Some(Seq("store")),
+                   summary = Some("Place an order for a pet"),
+                   description = Some(""),
+                   operationId = Some("placeOrder"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     BodyParameter[Order](
+                       name = 'body,
+                       description = Some("order placed for purchasing the pet")
+                     )),
+                   responses = (ResponseValue[Order](
+                                  responseCode = "200",
+                                  description = "successful operation"
+                                ),
+                                ResponseValue[Unit](
+                                  responseCode = "400",
+                                  description = "Invalid Order"
+                                )),
+                   endpointImplementation = storeOrder
+                 )
+               )),
       securityDefinitions = Some(securityDefinitions)
     )
 
