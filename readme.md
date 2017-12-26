@@ -147,6 +147,7 @@ Request is missing required query parameter 'name'
 
 The example above took a single ```QueryParameter[String]```. 
 There are additionally
+
 - ```QueryParameter[T]```
 - ```PathParameter[T]```
 - ```HeaderParameter[T]```
@@ -155,6 +156,7 @@ There are additionally
 
 In OpenApi, the set of parameters for an endpoint is given as a JSON array. In Swakka,
 you use any ```Product``` type. Specifically, you can use
+
 - a scala tuple
 ```scala
 parameters =
@@ -198,6 +200,7 @@ parameters = Parameters(
     description = Some("file to upload")
   ))
 ``` 
+
 - a shapeless HList
 ```scala
 import shapeless.{HNil, ::}
