@@ -76,7 +76,8 @@ class Petstore2Spec
 
   implicit val errorJsonFormat: RootJsonFormat[Error] = jsonFormat2(Error)
 
-  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(ApiResponse)
+  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(
+    ApiResponse)
 
   implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
   implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat6(Order)
@@ -105,13 +106,16 @@ class Petstore2Spec
 
   val storeOrder: Order => Route = _ => dummyRoute
 
+  val findOrderById: Long => Route = _ => dummyRoute
+
   val emptyEndpoint: () => Route = () => dummyRoute
 
-  ignore /*"Swakka"*/ should "support the petstore v2 example" in {
+  "Swakka" should "support the petstore v2 example" in {
 
     val securityDefinitions = (Oauth2ImplicitSecurity(
                                  key = "petstore_auth",
-                                 authorizationUrl = "http://petstore.swagger.io/oauth/dialog",
+                                 authorizationUrl =
+                                   "http://petstore.swagger.io/oauth/dialog",
                                  scopes = Some(Map(
                                    "write:pets" -> "modify pets in your account",
                                    "read:pets" -> "read your pets"))
@@ -127,7 +131,8 @@ class Petstore2Spec
         licence =
           Some(
             License(name = "Apache 2.0",
-                    url = Some("http://www.apache.org/licenses/LICENSE-2.0.html"))),
+                    url =
+                      Some("http://www.apache.org/licenses/LICENSE-2.0.html"))),
         termsOfService = Some("http://swagger.io/terms/")
       ),
       tags = Some(
@@ -427,6 +432,30 @@ class Petstore2Spec
                                   description = "Invalid Order"
                                 )),
                    endpointImplementation = storeOrder
+                 )
+               ),
+               PathItem(
+                 path = "/store/order/{orderId}",
+                 method = GET,
+                 operation = Operation(
+                   tags = Some(Seq("store")),
+                   summary = Some("Find purchase order by ID"),
+                   description = Some(
+                     "For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions"),
+                   operationId = Some("getOrderById"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     PathParameter[Long](
+                       name = 'orderId,
+                       description = Some("ID of pet that needs to be fetched")
+                     )
+                   ),
+                   endpointImplementation = findOrderById,
+                   responses = (
+                     ResponseValue[Order]("200", "successful operation"),
+                     ResponseValue[Unit]("400", "Invalid ID supplied"),
+                     ResponseValue[Unit]("404", "Order not found")
+                   )
                  )
                )),
       securityDefinitions = Some(securityDefinitions)
@@ -888,7 +917,6 @@ class Petstore2Spec
                 "tags" -> JsArray(JsString("store")),
                 "operationId" -> JsString("getInventory"),
                 "produces" -> JsArray(JsString("application/json")),
-                "parameters" -> JsArray(),
                 "summary" -> JsString("Returns pet inventories by status"),
                 "responses" ->
                   JsObject(
@@ -941,6 +969,48 @@ class Petstore2Spec
                       )
                   )
               )
+          ),
+        "/store/order/{orderId}" ->
+          JsObject(
+            "get" ->
+              JsObject(
+                "description" -> JsString(
+                  "For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions"),
+                "tags" -> JsArray(JsString("store")),
+                "operationId" -> JsString("getOrderById"),
+                "produces" -> JsArray(JsString("application/xml"),
+                                      JsString("application/json")),
+                "parameters" -> JsArray(
+                  JsObject(
+                    "format" -> JsString("int64"),
+                    "name" -> JsString("orderId"),
+                    "in" -> JsString("path"),
+                    "description" -> JsString(
+                      "ID of pet that needs to be fetched"),
+                    "maximum" -> JsNumber(10.0),
+                    "minimum" -> JsNumber(1.0),
+                    "type" -> JsString("integer"),
+                    "required" -> JsBoolean(true)
+                  )
+                ),
+                "summary" -> JsString("Find purchase order by ID"),
+                "responses" ->
+                  JsObject(
+                    "200" ->
+                      JsObject(
+                        "description" -> JsString("successful operation"),
+                        "schema" -> orderSchema
+                      ),
+                    "400" ->
+                      JsObject(
+                        "description" -> JsString("Invalid ID supplied")
+                      ),
+                    "404" ->
+                      JsObject(
+                        "description" -> JsString("Order not found")
+                      )
+                  )
+              )
           )
       )
     )
@@ -977,8 +1047,8 @@ class Petstore2Spec
             ),
           "complete" ->
             JsObject(
-              "type" -> JsString("boolean"),
-              "default" -> JsBoolean(false)
+              "type" -> JsString("boolean")//,
+//              "default" -> JsBoolean(false)
             ),
           "status" ->
             JsObject(

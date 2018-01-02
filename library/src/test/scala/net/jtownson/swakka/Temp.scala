@@ -17,41 +17,50 @@ class Temp extends FlatSpec {
 
     val s = JsonParser(
       """{
-        |      "type": "object",
-        |      "properties": {
-        |        "id": {
+        |  "/store/order/{orderId}": {
+        |    "get": {
+        |      "tags": [
+        |        "store"
+        |      ],
+        |      "summary": "Find purchase order by ID",
+        |      "description": "For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions",
+        |      "operationId": "getOrderById",
+        |      "produces": [
+        |        "application/xml",
+        |        "application/json"
+        |      ],
+        |      "parameters": [
+        |        {
+        |          "name": "orderId",
+        |          "in": "path",
+        |          "description": "ID of pet that needs to be fetched",
+        |          "required": true,
         |          "type": "integer",
+        |          "maximum": 10.0,
+        |          "minimum": 1.0,
         |          "format": "int64"
-        |        },
-        |        "petId": {
-        |          "type": "integer",
-        |          "format": "int64"
-        |        },
-        |        "quantity": {
-        |          "type": "integer",
-        |          "format": "int32"
-        |        },
-        |        "shipDate": {
-        |          "type": "string",
-        |          "format": "date-time"
-        |        },
-        |        "status": {
-        |          "type": "string",
-        |          "description": "Order Status",
-        |          "enum": [
-        |            "placed",
-        |            "approved",
-        |            "delivered"
-        |          ]
-        |        },
-        |        "complete": {
-        |          "type": "boolean",
-        |          "default": false
         |        }
-                |    }}       """.stripMargin
+        |      ],
+        |      "responses": {
+        |        "200": {
+        |          "description": "successful operation",
+        |          "schema": {
+        |            "$ref": "#/definitions/Order"
+        |          }
+        |        },
+        |        "400": {
+        |          "description": "Invalid ID supplied"
+        |        },
+        |        "404": {
+        |          "description": "Order not found"
+        |        }
+        |      }
+        |    }
+        |  }
+        |}""".stripMargin
     )
 
-//    println(s.toString(printer))
+    println(s.toString(printer))
   }
 
   def printer(jsValue: JsValue): String = jsValue match {
