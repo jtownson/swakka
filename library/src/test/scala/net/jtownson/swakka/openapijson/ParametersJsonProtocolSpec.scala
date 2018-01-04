@@ -260,7 +260,7 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     ),
 
     ("HNil",
-      ParametersJsonProtocol.hNilParamFormat.write(HNil: HNil),
+      HListParametersJsonProtocol.hNilParamFormat.write(HNil: HNil),
       JsArray())
   )
 

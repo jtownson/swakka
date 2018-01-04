@@ -22,9 +22,14 @@ import spray.json._
 
 trait OpenApiJsonProtocol extends
   PathParametersJsonProtocol with
-  ParametersJsonProtocol with
+  QueryParametersJsonProtocol with
+  HeaderParametersJsonProtocol with
+  BodyParametersJsonProtocol with
+  HListParametersJsonProtocol with
+
   ResponsesJsonProtocol with
   PathsJsonProtocol with
+
   HeadersJsonProtocol with
   SecurityDefinitionsJsonProtocol with
   DateTimeJsonProtocol with

@@ -17,7 +17,7 @@
 package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapimodel._
-import ParametersJsonProtocol._
+import HListParametersJsonProtocol._
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
