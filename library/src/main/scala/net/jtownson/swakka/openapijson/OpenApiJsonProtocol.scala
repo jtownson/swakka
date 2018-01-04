@@ -30,6 +30,8 @@ trait OpenApiJsonProtocol extends
   ResponsesJsonProtocol with
   PathsJsonProtocol with
 
+  PathParametersConstrainedJsonProtocol with
+
   HeadersJsonProtocol with
   SecurityDefinitionsJsonProtocol with
   DateTimeJsonProtocol with

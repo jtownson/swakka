@@ -75,30 +75,40 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       QueryParameter[Double]('qp, Some("a description")).toJson,
       queryParamJson(true, "number", Some("double"))),
 
+    // Constrained PathParameters
+    ("Required, constrained string PathParam",
+      PathParameterConstrained[String, String, StringValidationConstraints](
+        name = 'petId,
+        description = Some("a description"),
+        constraints = StringValidationConstraints(minLength = Some(1), maxLength = Some(10), pattern = Some("\\w+"))).toJson,
+      constrainedPathParamJson(`type` = "string", minLength = Some(JsNumber(1)), maxLength = Some(JsNumber(10)), pattern = Some(JsString("\\w+")))
+    ),
+
+
     // (Required) path parameter types
     ("Required string path",
       PathParameter[String]('petId, Some("a description")).toJson,
-      pathParameterJson(true, "string")),
+      pathParameterJson("string")),
 
     ("Required boolean path",
       PathParameter[Boolean]('petId, Some("a description")).toJson,
-      pathParameterJson(true, "boolean")),
+      pathParameterJson("boolean")),
 
     ("Required int path",
       PathParameter[Int]('petId, Some("a description")).toJson,
-      pathParameterJson(true, "integer", Some("int32"))),
+      pathParameterJson("integer", Some("int32"))),
 
     ("Required long path",
       PathParameter[Long]('petId, Some("a description")).toJson,
-      pathParameterJson(true, "integer", Some("int64"))),
+      pathParameterJson("integer", Some("int64"))),
 
     ("Required float path",
       PathParameter[Float]('petId, Some("a description")).toJson,
-      pathParameterJson(true, "number", Some("float"))),
+      pathParameterJson("number", Some("float"))),
 
     ("Required double path",
       PathParameter[Double]('petId, Some("a description")).toJson,
-      pathParameterJson(true, "number", Some("double"))),
+      pathParameterJson("number", Some("double"))),
 
     // Required header parameter types
     ("Required string header",
@@ -251,7 +261,7 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
     ("Enum example path parameter",
       PathParameter[String]('petId, Some("a description"), None, Some(Statuses.values.toList.map(value => value.toString))).toJson,
-      pathParameterJson(true, "string", None, None, Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
+      pathParameterJson("string", None, None, Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
     ),
 
     ("Enum example header parameter",
@@ -345,16 +355,46 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       enum.map("enum" -> _)
     )
 
-  private def pathParameterJson(required: Boolean, `type`: String, format: Option[String] = None, default: Option[JsValue] = None, enum: Option[JsValue] = None) =
+  private def pathParameterJson(`type`: String, format: Option[String] = None, default: Option[JsValue] = None, enum: Option[JsValue] = None) =
     jsObject(
       Some("name" -> JsString("petId")),
       Some("in" -> JsString("path")),
       Some("description" -> JsString("a description")),
-      Some("required" -> JsBoolean(required)),
+      Some("required" -> JsTrue),
       Some("type" -> JsString(`type`)),
       format.map("format" -> JsString(_)),
       default.map("default" -> _),
       enum.map("enum" -> _)
+    )
+
+  private def constrainedPathParamJson(`type`: String, format: Option[String] = None, default: Option[JsValue] = None,
+                                        multipleOf: Option[JsValue] = None,
+                                        maximum: Option[JsValue] = None, minimum: Option[JsValue] = None,
+                                        exlusiveMaximum: Option[JsValue] = None, exclusiveMinimum: Option[JsValue] = None,
+                                        maxLength: Option[JsValue] = None, minLength: Option[JsValue] = None, pattern: Option[JsValue] = None,
+                                        items: Option[JsValue] = None, maxItems: Option[JsValue] = None, minItems: Option[JsValue] = None,
+                                        uniqueItems: Option[JsValue] = None, contains: Option[JsValue] = None) =
+    jsObject(
+      Some("name" -> JsString("petId")),
+      Some("in" -> JsString("path")),
+      Some("description" -> JsString("a description")),
+      Some("required" -> JsTrue),
+      Some("type" -> JsString(`type`)),
+      format.map("format" -> JsString(_)),
+      default.map("default" -> _),
+      multipleOf.map("multipleOf" -> _),
+      maximum.map("maximum" -> _),
+      minimum.map("minimum" -> _),
+      exlusiveMaximum.map("exlusiveMaximum" -> _),
+      exclusiveMinimum.map("exclusiveMinimum" -> _),
+      maxLength.map("maxLength" -> _),
+      minLength.map("minLength" -> _),
+      pattern.map("pattern" -> _),
+      items.map("items" -> _),
+      maxItems.map("maxItems" -> _),
+      minItems.map("minItems" -> _),
+      uniqueItems.map("uniqueItems" -> _),
+      contains.map("contains" -> _)
     )
 
   private def bodyParameterJson(required: Boolean, default: Option[JsValue] = None) =

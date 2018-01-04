@@ -5,12 +5,6 @@ trait ValidationConstraints[T] {
   def const: Option[T]
 }
 
-case class Unconstrained[T]() extends ValidationConstraints[T] {
-  override def enum: Option[Seq[T]] = None
-
-  override def const: Option[T] = None
-}
-
 case class AnyValidationConstraints[T](enum: Option[Seq[T]], const: Option[T])
     extends ValidationConstraints[T]
 
@@ -24,11 +18,11 @@ case class NumericValidationConstraints[T: Numeric](
     exclusiveMinimum: Option[T] = None)
     extends ValidationConstraints[T]
 
-case class StringValidationConstraints(enum: Option[Seq[String]],
-                                       const: Option[String],
-                                       minLength: Option[Int],
-                                       maxLength: Option[Long],
-                                       pattern: Option[String])
+case class StringValidationConstraints(enum: Option[Seq[String]] = None,
+                                       const: Option[String] = None,
+                                       minLength: Option[Int] = None,
+                                       maxLength: Option[Long] = None,
+                                       pattern: Option[String] = None)
     extends ValidationConstraints[String]
 
 case class ArrayValidationConstraints[T, U <: Seq[T]](
