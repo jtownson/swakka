@@ -76,10 +76,10 @@ case class HeaderParameter[T](name: Symbol,
     extends Parameter[T]
 
 
-case class PathParameterConstrained[T, U, C <: ValidationConstraints[U]](name: Symbol,
+case class PathParameterConstrained[T, U](name: Symbol,
                                        description: Option[String] = None,
                                        default: Option[T] = None,
-                                       constraints: C)
+                                       constraints: Constraints[U])
   extends Parameter[T] {
 
   override def enum: Option[Seq[T]] = ??? // TODO remove enum from the Parameter interface.

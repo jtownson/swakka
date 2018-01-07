@@ -22,6 +22,7 @@ trait OpenApiConverters
     with HeaderParamConverters
     with HListParamConverters
     with PathParamConverters
+    with PathParamConstrainedConverters
     with QueryParamConverters
     with MultiParamConverters
 

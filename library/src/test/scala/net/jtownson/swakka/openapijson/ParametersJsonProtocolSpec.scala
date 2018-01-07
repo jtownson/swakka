@@ -77,10 +77,10 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
     // Constrained PathParameters
     ("Required, constrained string PathParam",
-      PathParameterConstrained[String, String, StringValidationConstraints](
+      PathParameterConstrained[String, String](
         name = 'petId,
         description = Some("a description"),
-        constraints = StringValidationConstraints(minLength = Some(1), maxLength = Some(10), pattern = Some("\\w+"))).toJson,
+        constraints = Constraints[String](minLength = Some(1), maxLength = Some(10), pattern = Some("\\w+"))).toJson,
       constrainedPathParamJson(`type` = "string", minLength = Some(JsNumber(1)), maxLength = Some(JsNumber(10)), pattern = Some(JsString("\\w+")))
     ),
 

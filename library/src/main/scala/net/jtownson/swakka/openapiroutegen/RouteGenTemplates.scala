@@ -26,7 +26,6 @@ import net.jtownson.swakka.openapimodel.BodyParameter._
 import net.jtownson.swakka.openapimodel.PathParameter._
 import net.jtownson.swakka.openapimodel.MultiValued._
 
-
 object RouteGenTemplates {
 
   def headerTemplate[T](fNoDefault: () => Directive1[T],

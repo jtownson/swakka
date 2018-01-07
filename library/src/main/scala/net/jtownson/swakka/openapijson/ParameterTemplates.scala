@@ -90,7 +90,7 @@ object ParameterTemplates {
     param.enum.map(_.toJson)
 
   def enumOf[T: JsonFormat](
-      param: PathParameterConstrained[T, _, _]): Option[JsValue] =
+      param: PathParameterConstrained[T, _]): Option[JsValue] =
     param.enum.map(_.toJson)
 
   def enumOf[T: JsonFormat](param: QueryParameter[T]): Option[JsValue] =

@@ -1,14 +1,14 @@
 package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapijson.ParameterTemplates._
-import net.jtownson.swakka.openapimodel.{NumericValidationConstraints, PathParameterConstrained, StringValidationConstraints}
+import net.jtownson.swakka.openapimodel.PathParameterConstrained
 import spray.json.{JsNumber, JsString}
 
 trait PathParametersConstrainedJsonProtocol {
 
   implicit val strReqPathParamFormatConstrained
-  : ParameterJsonFormat[PathParameterConstrained[String, String, StringValidationConstraints]] =
-    (pp: PathParameterConstrained[String, String, StringValidationConstraints]) =>
+  : ParameterJsonFormat[PathParameterConstrained[String, String]] =
+    (pp: PathParameterConstrained[String, String]) =>
       constrainedParam(
         name = pp.name,
         in = "path",
@@ -22,8 +22,8 @@ trait PathParametersConstrainedJsonProtocol {
         pattern = pp.constraints.pattern.map(JsString(_)))
 
   implicit val floatReqPathParamFormatConstrained
-  : ParameterJsonFormat[PathParameterConstrained[Float, Float, NumericValidationConstraints[Float]]] =
-    (pp: PathParameterConstrained[Float, Float, NumericValidationConstraints[Float]]) =>
+  : ParameterJsonFormat[PathParameterConstrained[Float, Float]] =
+    (pp: PathParameterConstrained[Float, Float]) =>
       constrainedParam(pp.name,
         "path",
         pp.description,
@@ -33,8 +33,8 @@ trait PathParametersConstrainedJsonProtocol {
         None)
 
   implicit val doubleReqPathParamFormatConstrained
-  : ParameterJsonFormat[PathParameterConstrained[Double, Double, NumericValidationConstraints[Double]]] =
-    (pp: PathParameterConstrained[Double, Double, NumericValidationConstraints[Double]]) =>
+  : ParameterJsonFormat[PathParameterConstrained[Double, Double]] =
+    (pp: PathParameterConstrained[Double, Double]) =>
       constrainedParam(pp.name,
         "path",
         pp.description,
@@ -44,8 +44,8 @@ trait PathParametersConstrainedJsonProtocol {
         None)
 
   implicit val booleanReqPathParamFormatConstrained
-  : ParameterJsonFormat[PathParameterConstrained[Boolean, Boolean, NumericValidationConstraints[Boolean]]] =
-    (pp: PathParameterConstrained[Boolean, Boolean, NumericValidationConstraints[Boolean]]) =>
+  : ParameterJsonFormat[PathParameterConstrained[Boolean, Boolean]] =
+    (pp: PathParameterConstrained[Boolean, Boolean]) =>
       constrainedParam(pp.name,
         "path",
         pp.description,
@@ -54,8 +54,8 @@ trait PathParametersConstrainedJsonProtocol {
         None,
         None)
 
-  implicit val intReqPathParamFormatConstrained: ParameterJsonFormat[PathParameterConstrained[Int, Int, NumericValidationConstraints[Int]]] =
-    (pp: PathParameterConstrained[Int, Int, NumericValidationConstraints[Int]]) =>
+  implicit val intReqPathParamFormatConstrained: ParameterJsonFormat[PathParameterConstrained[Int, Int]] =
+    (pp: PathParameterConstrained[Int, Int]) =>
       constrainedParam(pp.name,
         "path",
         pp.description,
@@ -65,8 +65,8 @@ trait PathParametersConstrainedJsonProtocol {
         None)
 
   implicit val longReqPathParamFormatConstrained
-  : ParameterJsonFormat[PathParameterConstrained[Long, Long, NumericValidationConstraints[Long]]] =
-    (pp: PathParameterConstrained[Long, Long, NumericValidationConstraints[Long]]) =>
+  : ParameterJsonFormat[PathParameterConstrained[Long, Long]] =
+    (pp: PathParameterConstrained[Long, Long]) =>
       constrainedParam(pp.name,
         "path",
         pp.description,

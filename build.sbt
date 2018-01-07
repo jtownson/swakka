@@ -24,7 +24,7 @@ lazy val commonSettings = Seq(
 //  scalaVersion := "2.12.4-bin-typelevel-4",
 
   scalaVersion := "2.12.4",
-  scalacOptions := Seq(/*"-Xlog-implicits",*/ "-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
+  scalacOptions := Seq(/*"-Xlog-implicits",*/ "-Ypartial-unification", "-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 )
 
 lazy val sonatypeCredentials = (sys.env.get("SONATYPE_USER"), sys.env.get("SONATYPE_PASSWORD")) match {
