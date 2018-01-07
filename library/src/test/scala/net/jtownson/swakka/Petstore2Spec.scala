@@ -17,7 +17,6 @@
 package net.jtownson.swakka
 
 import io.swagger.annotations.ApiModelProperty
-
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.model.DateTime
 import akka.http.scaladsl.model.HttpMethods.{DELETE, GET, POST, PUT}
@@ -28,12 +27,11 @@ import akka.http.scaladsl.testkit.{RouteTest, TestFrameworkInterface}
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import spray.json._
-
 import net.jtownson.swakka.coreroutegen._
+import net.jtownson.swakka.jsonschema.{JsonSchema, SchemaWriter}
 import net.jtownson.swakka.openapijson._
 import net.jtownson.swakka.openapiroutegen._
 import net.jtownson.swakka.openapimodel._
-
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
@@ -76,11 +74,13 @@ class Petstore2Spec
 
   implicit val errorJsonFormat: RootJsonFormat[Error] = jsonFormat2(Error)
 
-  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(
-    ApiResponse)
+  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(ApiResponse)
 
   implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
   implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat6(Order)
+  // This is an example of customizing the writing of JsonSchema for a class.
+  implicit val orderSchemaWriter: SchemaWriter[Order] = (_: JsonSchema[Order]) => orderSchema
+
 
   val dummyRoute: Route = complete("dummy")
 
@@ -1048,8 +1048,8 @@ class Petstore2Spec
             ),
           "complete" ->
             JsObject(
-              "type" -> JsString("boolean")//,
-//              "default" -> JsBoolean(false)
+              "type" -> JsString("boolean"),
+              "default" -> JsBoolean(false)
             ),
           "status" ->
             JsObject(
