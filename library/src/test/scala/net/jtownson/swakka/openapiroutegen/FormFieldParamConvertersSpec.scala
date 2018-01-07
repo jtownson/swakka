@@ -163,7 +163,7 @@ class FormFieldParamConvertersSpec extends FlatSpec with ConverterTest {
     converterTest[Double, FormFieldParameter[Double]](form("fp", "0"), FormFieldParameter[Double]('fp, None, Some(2), Some(Seq(1.0))), BadRequest)
   }
 
-  they should "should reject a default that is not in enum when providing default for mandatory param" in {
+  they should "reject a default that is not in enum when providing default for mandatory param" in {
     converterTest[String, FormFieldParameter[String]](form("other", "v"), FormFieldParameter[String]('fp, None, Some("default"), Some(Seq("vv"))), BadRequest)
     converterTest[Boolean, FormFieldParameter[Boolean]](form("other", "true"), FormFieldParameter[Boolean]('fp, None, Some(true), Some(Seq(false))), BadRequest)
     converterTest[Int, FormFieldParameter[Int]](form("other", "1"), FormFieldParameter[Int]('fp, None, Some(2), Some(Seq(1))), BadRequest)
@@ -171,7 +171,7 @@ class FormFieldParamConvertersSpec extends FlatSpec with ConverterTest {
     converterTest[Float, FormFieldParameter[Float]](form("other", "0"), FormFieldParameter[Float]('fp, None, Some(2), Some(Seq(1.0f))), BadRequest)
     converterTest[Double, FormFieldParameter[Double]](form("other", "0"), FormFieldParameter[Double]('fp, None, Some(2), Some(Seq(1.0))), BadRequest)
   }
-  they should "should reject a default that is not in enum when providing default for optional param" in {
+  they should "reject a default that is not in enum when providing default for optional param" in {
     converterTest[Option[String], FormFieldParameter[Option[String]]](form("other", "v"), FormFieldParameter[Option[String]]('fp, None, Some(Some("default")), Some(Seq(Some("vv")))), BadRequest)
     converterTest[Option[Boolean], FormFieldParameter[Option[Boolean]]](form("other", "true"), FormFieldParameter[Option[Boolean]]('fp, None, Some(Some(true)), Some(Seq(Some(false)))), BadRequest)
     converterTest[Option[Int], FormFieldParameter[Option[Int]]](form("other", "1"), FormFieldParameter[Option[Int]]('fp, None, Some(Some(2)), Some(Seq(Some(1)))), BadRequest)
