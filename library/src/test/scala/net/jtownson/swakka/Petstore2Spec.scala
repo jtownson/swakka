@@ -383,7 +383,7 @@ class Petstore2Spec
                       )),
                    responses = ResponseValue[ApiResponse](
                      responseCode = "200",
-                     description = "successful operation",
+                     description = "successful operation"
                    ),
                    security = Some(
                      Seq(SecurityRequirement('petstore_auth,
@@ -445,9 +445,10 @@ class Petstore2Spec
                    operationId = Some("getOrderById"),
                    produces = Some(Seq("application/xml", "application/json")),
                    parameters = Tuple1(
-                     PathParameter[Long](
+                     PathParameterConstrained[Long, Long](
                        name = 'orderId,
-                       description = Some("ID of pet that needs to be fetched")
+                       description = Some("ID of pet that needs to be fetched"),
+                       constraints = Constraints(minimum = Some(1L), maximum = Some(10L))
                      )
                    ),
                    endpointImplementation = findOrderById,

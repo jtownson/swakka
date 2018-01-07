@@ -24,56 +24,75 @@ trait PathParametersConstrainedJsonProtocol {
   implicit val floatReqPathParamFormatConstrained
   : ParameterJsonFormat[PathParameterConstrained[Float, Float]] =
     (pp: PathParameterConstrained[Float, Float]) =>
-      constrainedParam(pp.name,
-        "path",
-        pp.description,
-        true,
-        "number",
-        Some("float"),
-        None)
+      constrainedParam(name = pp.name,
+        in = "path",
+        description = pp.description,
+        required = true,
+        `type` = "number",
+        format = Some("float"),
+        default = None,
+        maximum = pp.constraints.maximum.map(JsNumber(_)),
+        minimum = pp.constraints.minimum.map(JsNumber(_)),
+        exclusiveMaximum = pp.constraints.exclusiveMaximum.map(JsNumber(_)),
+        exclusiveMinimum = pp.constraints.exclusiveMinimum.map(JsNumber(_)))
 
   implicit val doubleReqPathParamFormatConstrained
   : ParameterJsonFormat[PathParameterConstrained[Double, Double]] =
     (pp: PathParameterConstrained[Double, Double]) =>
-      constrainedParam(pp.name,
-        "path",
-        pp.description,
-        true,
-        "number",
-        Some("double"),
-        None)
+      constrainedParam(name = pp.name,
+        in = "path",
+        description = pp.description,
+        required = true,
+        `type` = "number",
+        format = Some("double"),
+        default = None,
+        maximum = pp.constraints.maximum.map(JsNumber(_)),
+        minimum = pp.constraints.minimum.map(JsNumber(_)),
+        exclusiveMaximum = pp.constraints.exclusiveMaximum.map(JsNumber(_)),
+        exclusiveMinimum = pp.constraints.exclusiveMinimum.map(JsNumber(_)))
 
   implicit val booleanReqPathParamFormatConstrained
   : ParameterJsonFormat[PathParameterConstrained[Boolean, Boolean]] =
     (pp: PathParameterConstrained[Boolean, Boolean]) =>
-      constrainedParam(pp.name,
-        "path",
-        pp.description,
-        true,
-        "boolean",
-        None,
-        None)
+      constrainedParam(name = pp.name,
+        in = "path",
+        description = pp.description,
+        required = true,
+        `type` = "boolean",
+        format = None,
+        default = None
+      )
 
   implicit val intReqPathParamFormatConstrained: ParameterJsonFormat[PathParameterConstrained[Int, Int]] =
     (pp: PathParameterConstrained[Int, Int]) =>
-      constrainedParam(pp.name,
-        "path",
-        pp.description,
-        true,
-        "integer",
-        Some("int32"),
-        None)
+      constrainedParam(name = pp.name,
+        in = "path",
+        description = pp.description,
+        required = true,
+        `type` = "integer",
+        format = Some("int32"),
+        default = None,
+        multipleOf = pp.constraints.multipleOf.map(JsNumber(_)),
+        maximum = pp.constraints.maximum.map(JsNumber(_)),
+        minimum = pp.constraints.minimum.map(JsNumber(_)),
+        exclusiveMaximum = pp.constraints.exclusiveMaximum.map(JsNumber(_)),
+        exclusiveMinimum = pp.constraints.exclusiveMinimum.map(JsNumber(_)))
 
   implicit val longReqPathParamFormatConstrained
   : ParameterJsonFormat[PathParameterConstrained[Long, Long]] =
     (pp: PathParameterConstrained[Long, Long]) =>
-      constrainedParam(pp.name,
-        "path",
-        pp.description,
-        true,
-        "integer",
-        Some("int64"),
-        None)
+      constrainedParam(name = pp.name,
+        in = "path",
+        description = pp.description,
+        required = true,
+        `type` = "integer",
+        format = Some("int64"),
+        default = None,
+        multipleOf = pp.constraints.multipleOf.map(JsNumber(_)),
+        maximum = pp.constraints.maximum.map(JsNumber(_)),
+        minimum = pp.constraints.minimum.map(JsNumber(_)),
+        exclusiveMaximum = pp.constraints.exclusiveMaximum.map(JsNumber(_)),
+        exclusiveMinimum = pp.constraints.exclusiveMinimum.map(JsNumber(_)))
 }
 
 object PathParametersConstrainedJsonProtocol extends PathParametersConstrainedJsonProtocol
