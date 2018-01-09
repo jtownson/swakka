@@ -129,6 +129,14 @@ class Petstore2Spec
 
   val loginUser: (String, String) => Route = (_, _) => dummyRoute
 
+  val logoutUser: () => Route = () => dummyRoute
+
+  val userByName: String => Route = _ => dummyRoute
+
+  val putUserByName: (String, User) => Route = (_, _) => dummyRoute
+
+  val deleteUserByName: String => Route = _ => dummyRoute
+
   "Swakka" should "support the petstore v2 example" in {
 
     val securityDefinitions = (Oauth2ImplicitSecurity(
@@ -547,48 +555,160 @@ class Petstore2Spec
                    )
                  )
                ),
-              PathItem(
-                path = "/user/login",
-                method = GET,
-                operation = Operation(
-                  tags = Some(Seq("user")),
-                  summary = Some("Logs user into the system"),
-                  description = Some(""),
-                  operationId = Some("loginUser"),
-                  produces = Some(Seq("application/xml", "application/json")),
-                  parameters = (
-                    QueryParameter[String](
-                      name = 'username,
-                      description = Some("The user name for login")
-                    ),
-                    QueryParameter[String](
-                      name = 'password,
-                      description = Some("The password for login in clear text")
-                    )
-                  ),
-                  endpointImplementation = loginUser,
-                  responses = (
-                    ResponseValue[String, (Header[Int], Header[DateTime])](
-                      responseCode = "200",
-                      description = "successful operation",
-                      headers = (
-                        Header[Int](
-                          name = Symbol("X-Rate-Limit"),
-                          description = Some("calls per hour allowed by the user")
-                        ),
-                        Header[DateTime](
-                          name = Symbol("X-Expires-After"),
-                          description = Some("date in UTC when token expires")
-                        )
-                      )
-                    ),
-                    ResponseValue[Unit](
-                      responseCode = "400",
-                      description = "Invalid username/password supplied"
-                    )
-                  )
-                )
-              )),
+               PathItem(
+                 path = "/user/login",
+                 method = GET,
+                 operation = Operation(
+                   tags = Some(Seq("user")),
+                   summary = Some("Logs user into the system"),
+                   description = Some(""),
+                   operationId = Some("loginUser"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = (
+                     QueryParameter[String](
+                       name = 'username,
+                       description = Some("The user name for login")
+                     ),
+                     QueryParameter[String](
+                       name = 'password,
+                       description =
+                         Some("The password for login in clear text")
+                     )
+                   ),
+                   endpointImplementation = loginUser,
+                   responses = (
+                     ResponseValue[String, (Header[Int], Header[DateTime])](
+                       responseCode = "200",
+                       description = "successful operation",
+                       headers = (
+                         Header[Int](
+                           name = Symbol("X-Rate-Limit"),
+                           description =
+                             Some("calls per hour allowed by the user")
+                         ),
+                         Header[DateTime](
+                           name = Symbol("X-Expires-After"),
+                           description = Some("date in UTC when token expires")
+                         )
+                       )
+                     ),
+                     ResponseValue[Unit](
+                       responseCode = "400",
+                       description = "Invalid username/password supplied"
+                     )
+                   )
+                 )
+               ),
+               PathItem(
+                 path = "/user/logout",
+                 method = GET,
+                 operation = Operation(
+                   tags = Some(Seq("user")),
+                   summary = Some("Logs out current logged in user session"),
+                   description = Some(""),
+                   operationId = Some("logoutUser"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   endpointImplementation = logoutUser,
+                   responses = ResponseValue[Unit](responseCode = "default",
+                                                   description =
+                                                     "successful operation")
+                 )
+               ),
+               PathItem(
+                 path = "/user/{username}",
+                 method = GET,
+                 operation = Operation(
+                   tags = Some(Seq("user")),
+                   summary = Some("Get user by user name"),
+                   description = Some(""),
+                   operationId = Some("getUserByName"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     PathParameter[String](
+                       name = 'username,
+                       description = Some(
+                         "The name that needs to be fetched. Use user1 for testing. ")
+                     )
+                   ),
+                   endpointImplementation = userByName,
+                   responses = (
+                     ResponseValue[User](
+                       responseCode = "200",
+                       description = "successful operation"
+                     ),
+                     ResponseValue[Unit](
+                       responseCode = "400",
+                       description = "Invalid username supplied"
+                     ),
+                     ResponseValue[Unit](
+                       responseCode = "404",
+                       description = "User not found"
+                     )
+                   )
+                 )
+               ),
+               PathItem(
+                 path = "/user/{username}",
+                 method = PUT,
+                 operation = Operation(
+                   tags = Some(Seq("user")),
+                   summary = Some("Updated user"),
+                   description =
+                     Some("This can only be done by the logged in user."),
+                   operationId = Some("updateUser"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = (
+                     PathParameter[String](
+                       name = 'username,
+                       description = Some("name that need to be updated")
+                     ),
+                     BodyParameter[User](
+                       name = 'body,
+                       description = Some("Updated user object")
+                     )
+                   ),
+                   endpointImplementation = putUserByName,
+                   responses = (
+                     ResponseValue[Unit](
+                       responseCode = "400",
+                       description = "Invalid user supplied"
+                     ),
+                     ResponseValue[Unit](
+                       responseCode = "404",
+                       description = "User not found"
+                     )
+                   )
+                 )
+               ),
+               PathItem(
+                 path = "/user/{username}",
+                 method = DELETE,
+                 operation = Operation(
+                   tags = Some(Seq("user")),
+                   summary = Some("Delete user"),
+                   description =
+                     Some("This can only be done by the logged in user."),
+                   operationId = Some("deleteUser"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     PathParameter[String](
+                       name = 'username,
+                       description = Some("The name that needs to be deleted")
+                     )
+                   ),
+                   endpointImplementation = deleteUserByName,
+                   responses = (
+                     ResponseValue[Unit](
+                       responseCode = "400",
+                       description = "Invalid username supplied"
+                     ),
+                     ResponseValue[Unit](
+                       responseCode = "404",
+                       description = "User not found"
+                     )
+                   )
+                 )
+               )),
       securityDefinitions = Some(securityDefinitions)
     )
 
@@ -1034,148 +1154,145 @@ class Petstore2Spec
                 )
             )
         ),
-        "/store/inventory" ->
-          JsObject(
-            "get" ->
-              JsObject(
-                "security" -> JsArray(
-                  JsObject(
-                    "api_key" -> JsArray()
-                  )
-                ),
-                "description" -> JsString(
-                  "Returns a map of status codes to quantities"),
-                "tags" -> JsArray(JsString("store")),
-                "operationId" -> JsString("getInventory"),
-                "produces" -> JsArray(JsString("application/json")),
-                "summary" -> JsString("Returns pet inventories by status"),
-                "responses" ->
-                  JsObject(
-                    "200" ->
-                      JsObject(
-                        "description" -> JsString("successful operation"),
-                        "schema" ->
-                          JsObject(
-                            "type" -> JsString("object"),
-                            "additionalProperties" ->
-                              JsObject(
-                                "type" -> JsString("integer"),
-                                "format" -> JsString("int32")
-                              )
-                          )
-                      )
-                  )
-              )
-          ),
-        "/store/order" ->
-          JsObject(
-            "post" ->
-              JsObject(
-                "description" -> JsString(""),
-                "tags" -> JsArray(JsString("store")),
-                "operationId" -> JsString("placeOrder"),
-                "produces" -> JsArray(JsString("application/xml"),
-                                      JsString("application/json")),
-                "parameters" -> JsArray(
-                  JsObject(
-                    "name" -> JsString("body"),
-                    "in" -> JsString("body"),
-                    "description" -> JsString(
-                      "order placed for purchasing the pet"),
-                    "schema" -> orderSchema,
-                    "required" -> JsBoolean(true)
-                  )
-                ),
-                "summary" -> JsString("Place an order for a pet"),
-                "responses" ->
-                  JsObject(
-                    "200" ->
-                      JsObject(
-                        "description" -> JsString("successful operation"),
-                        "schema" -> orderSchema
-                      ),
-                    "400" ->
-                      JsObject(
-                        "description" -> JsString("Invalid Order")
-                      )
-                  )
-              )
-          ),
-        "/store/order/{orderId}" ->
-          JsObject(
-            "get" ->
-              JsObject(
-                "description" -> JsString(
-                  "For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions"),
-                "tags" -> JsArray(JsString("store")),
-                "operationId" -> JsString("getOrderById"),
-                "produces" -> JsArray(JsString("application/xml"),
-                                      JsString("application/json")),
-                "parameters" -> JsArray(
-                  JsObject(
-                    "format" -> JsString("int64"),
-                    "name" -> JsString("orderId"),
-                    "in" -> JsString("path"),
-                    "description" -> JsString(
-                      "ID of pet that needs to be fetched"),
-                    "maximum" -> JsNumber(10.0),
-                    "minimum" -> JsNumber(1.0),
-                    "type" -> JsString("integer"),
-                    "required" -> JsBoolean(true)
-                  )
-                ),
-                "summary" -> JsString("Find purchase order by ID"),
-                "responses" ->
-                  JsObject(
-                    "200" ->
-                      JsObject(
-                        "description" -> JsString("successful operation"),
-                        "schema" -> orderSchema
-                      ),
-                    "400" ->
-                      JsObject(
-                        "description" -> JsString("Invalid ID supplied")
-                      ),
-                    "404" ->
-                      JsObject(
-                        "description" -> JsString("Order not found")
-                      )
-                  )
+        "/store/inventory" -> JsObject(
+          "get" ->
+            JsObject(
+              "security" -> JsArray(
+                JsObject(
+                  "api_key" -> JsArray()
+                )
               ),
-            "delete" ->
-              JsObject(
-                "description" -> JsString(
-                  "For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors"),
-                "tags" -> JsArray(JsString("store")),
-                "operationId" -> JsString("deleteOrder"),
-                "produces" -> JsArray(JsString("application/xml"),
-                                      JsString("application/json")),
-                "parameters" -> JsArray(
-                  JsObject(
-                    "format" -> JsString("int64"),
-                    "name" -> JsString("orderId"),
-                    "in" -> JsString("path"),
-                    "description" -> JsString(
-                      "ID of the order that needs to be deleted"),
-                    "minimum" -> JsNumber(1.0),
-                    "type" -> JsString("integer"),
-                    "required" -> JsBoolean(true)
-                  )
-                ),
-                "summary" -> JsString("Delete purchase order by ID"),
-                "responses" ->
-                  JsObject(
-                    "400" ->
-                      JsObject(
-                        "description" -> JsString("Invalid ID supplied")
-                      ),
-                    "404" ->
-                      JsObject(
-                        "description" -> JsString("Order not found")
-                      )
-                  )
-              )
-          ),
+              "description" -> JsString(
+                "Returns a map of status codes to quantities"),
+              "tags" -> JsArray(JsString("store")),
+              "operationId" -> JsString("getInventory"),
+              "produces" -> JsArray(JsString("application/json")),
+              "summary" -> JsString("Returns pet inventories by status"),
+              "responses" ->
+                JsObject(
+                  "200" ->
+                    JsObject(
+                      "description" -> JsString("successful operation"),
+                      "schema" ->
+                        JsObject(
+                          "type" -> JsString("object"),
+                          "additionalProperties" ->
+                            JsObject(
+                              "type" -> JsString("integer"),
+                              "format" -> JsString("int32")
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+        "/store/order" -> JsObject(
+          "post" ->
+            JsObject(
+              "description" -> JsString(""),
+              "tags" -> JsArray(JsString("store")),
+              "operationId" -> JsString("placeOrder"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "name" -> JsString("body"),
+                  "in" -> JsString("body"),
+                  "description" -> JsString(
+                    "order placed for purchasing the pet"),
+                  "schema" -> orderSchema,
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString("Place an order for a pet"),
+              "responses" ->
+                JsObject(
+                  "200" ->
+                    JsObject(
+                      "description" -> JsString("successful operation"),
+                      "schema" -> orderSchema
+                    ),
+                  "400" ->
+                    JsObject(
+                      "description" -> JsString("Invalid Order")
+                    )
+                )
+            )
+        ),
+        "/store/order/{orderId}" -> JsObject(
+          "get" ->
+            JsObject(
+              "description" -> JsString(
+                "For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions"),
+              "tags" -> JsArray(JsString("store")),
+              "operationId" -> JsString("getOrderById"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "format" -> JsString("int64"),
+                  "name" -> JsString("orderId"),
+                  "in" -> JsString("path"),
+                  "description" -> JsString(
+                    "ID of pet that needs to be fetched"),
+                  "maximum" -> JsNumber(10.0),
+                  "minimum" -> JsNumber(1.0),
+                  "type" -> JsString("integer"),
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString("Find purchase order by ID"),
+              "responses" ->
+                JsObject(
+                  "200" ->
+                    JsObject(
+                      "description" -> JsString("successful operation"),
+                      "schema" -> orderSchema
+                    ),
+                  "400" ->
+                    JsObject(
+                      "description" -> JsString("Invalid ID supplied")
+                    ),
+                  "404" ->
+                    JsObject(
+                      "description" -> JsString("Order not found")
+                    )
+                )
+            ),
+          "delete" ->
+            JsObject(
+              "description" -> JsString(
+                "For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors"),
+              "tags" -> JsArray(JsString("store")),
+              "operationId" -> JsString("deleteOrder"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "format" -> JsString("int64"),
+                  "name" -> JsString("orderId"),
+                  "in" -> JsString("path"),
+                  "description" -> JsString(
+                    "ID of the order that needs to be deleted"),
+                  "minimum" -> JsNumber(1.0),
+                  "type" -> JsString("integer"),
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString("Delete purchase order by ID"),
+              "responses" ->
+                JsObject(
+                  "400" ->
+                    JsObject(
+                      "description" -> JsString("Invalid ID supplied")
+                    ),
+                  "404" ->
+                    JsObject(
+                      "description" -> JsString("Order not found")
+                    )
+                )
+            )
+        ),
         "/user" -> JsObject(
           "post" ->
             JsObject(
@@ -1217,14 +1334,10 @@ class Petstore2Spec
                   "name" -> JsString("body"),
                   "in" -> JsString("body"),
                   "description" -> JsString("List of user object"),
-                  "schema" ->
-                    JsObject(
-                      "type" -> JsString("array"),
-                      "items" ->
-                        JsObject(
-                          "schema" -> userSchema
-                        )
-                    ),
+                  "schema" -> JsObject(
+                    "type" -> JsString("array"),
+                    "items" -> userSchema
+                  ),
                   "required" -> JsBoolean(true)
                 )
               ),
@@ -1296,6 +1409,122 @@ class Petstore2Spec
                     JsObject(
                       "description" -> JsString(
                         "Invalid username/password supplied")
+                    )
+                )
+            )
+        ),
+        "/user/logout" -> JsObject(
+          "get" ->
+            JsObject(
+              "description" -> JsString(""),
+              "tags" -> JsArray(JsString("user")),
+              "operationId" -> JsString("logoutUser"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "summary" -> JsString("Logs out current logged in user session"),
+              "responses" ->
+                JsObject(
+                  "default" ->
+                    JsObject(
+                      "description" -> JsString("successful operation")
+                    )
+                )
+            )
+        ),
+        "/user/{username}" -> JsObject(
+          "get" -> JsObject(
+            "description" -> JsString(""),
+            "tags" -> JsArray(JsString("user")),
+            "operationId" -> JsString("getUserByName"),
+            "produces" -> JsArray(JsString("application/xml"),
+                                  JsString("application/json")),
+            "parameters" -> JsArray(
+              JsObject(
+                "name" -> JsString("username"),
+                "in" -> JsString("path"),
+                "description" -> JsString(
+                  "The name that needs to be fetched. Use user1 for testing. "),
+                "type" -> JsString("string"),
+                "required" -> JsBoolean(true)
+              )
+            ),
+            "summary" -> JsString("Get user by user name"),
+            "responses" -> JsObject(
+              "200" -> JsObject(
+                "description" -> JsString("successful operation"),
+                "schema" -> userSchema
+              ),
+              "400" -> JsObject(
+                "description" -> JsString("Invalid username supplied")
+              ),
+              "404" -> JsObject(
+                "description" -> JsString("User not found")
+              )
+            )
+          ),
+          "put" -> JsObject(
+              "description" -> JsString(
+                "This can only be done by the logged in user."),
+              "tags" -> JsArray(JsString("user")),
+              "operationId" -> JsString("updateUser"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "name" -> JsString("username"),
+                  "in" -> JsString("path"),
+                  "description" -> JsString("name that need to be updated"),
+                  "type" -> JsString("string"),
+                  "required" -> JsBoolean(true)
+                ),
+                JsObject(
+                  "name" -> JsString("body"),
+                  "in" -> JsString("body"),
+                  "description" -> JsString("Updated user object"),
+                  "schema" -> userSchema,
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString("Updated user"),
+              "responses" ->
+                JsObject(
+                  "400" ->
+                    JsObject(
+                      "description" -> JsString("Invalid user supplied")
+                    ),
+                  "404" ->
+                    JsObject(
+                      "description" -> JsString("User not found")
+                    )
+                )
+            ),
+          "delete" -> JsObject(
+              "description" -> JsString(
+                "This can only be done by the logged in user."),
+              "tags" -> JsArray(JsString("user")),
+              "operationId" -> JsString("deleteUser"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "name" -> JsString("username"),
+                  "in" -> JsString("path"),
+                  "description" -> JsString(
+                    "The name that needs to be deleted"),
+                  "type" -> JsString("string"),
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString("Delete user"),
+              "responses" ->
+                JsObject(
+                  "400" ->
+                    JsObject(
+                      "description" -> JsString("Invalid username supplied")
+                    ),
+                  "404" ->
+                    JsObject(
+                      "description" -> JsString("User not found")
                     )
                 )
             )
