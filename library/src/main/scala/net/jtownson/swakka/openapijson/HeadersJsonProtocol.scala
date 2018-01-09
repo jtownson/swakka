@@ -20,6 +20,7 @@ import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapijson.Flattener.flattenToObject
 import net.jtownson.swakka.misc.jsObject
 import HeadersJsonFormat._
+import akka.http.scaladsl.model.DateTime
 import shapeless.{::, Generic, HList, HNil, |¬|}
 import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 
@@ -43,6 +44,9 @@ trait HeadersJsonProtocol {
   implicit val booleanHeaderFormat: HeadersJsonFormat[Header[Boolean]] =
     instance(header => headerJson(header.name, "boolean", None, header.description))
 
+  implicit val dateTimeHeaderFormat: HeadersJsonFormat[Header[DateTime]] =
+    instance(header => headerJson(header.name, "string", Some("date-time"), header.description))
+
   // TODO
   //  implicit val arrayHeaderFormat: HeadersJsonFormat[Header[String]] = ???
 
@@ -62,7 +66,6 @@ trait HeadersJsonProtocol {
     instance((l: H :: T) => {
       flattenToObject(JsArray(head.write(l.head), tail.write(l.tail)))
     })
-
 
   implicit def genericHeaderFormat[Headers: |¬|[Header[_]]#λ, HeadersList]
   (implicit gen: Generic.Aux[Headers, HeadersList],

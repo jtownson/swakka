@@ -23,6 +23,9 @@ lazy val commonSettings = Seq(
 //  scalaOrganization := "org.typelevel",
 //  scalaVersion := "2.12.4-bin-typelevel-4",
 
+  autoCompilerPlugins := true,
+  addCompilerPlugin("io.tryp" % "splain" % "0.2.7" cross CrossVersion.patch),
+
   scalaVersion := "2.12.4",
   scalacOptions := Seq(/*"-Xlog-implicits",*/ "-Ypartial-unification", "-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 )

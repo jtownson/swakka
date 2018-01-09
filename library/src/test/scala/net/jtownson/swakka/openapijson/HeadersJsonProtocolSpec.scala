@@ -19,9 +19,8 @@ package net.jtownson.swakka.openapijson
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import spray.json._
-import HeadersJsonProtocol._
+import akka.http.scaladsl.model.DateTime
 import net.jtownson.swakka.openapimodel._
-import shapeless.{::, HNil}
 
 class HeadersJsonProtocolSpec extends FlatSpec {
 
@@ -95,9 +94,28 @@ class HeadersJsonProtocolSpec extends FlatSpec {
     Header[Boolean](Symbol("x-foo"), Some("some info")).toJson shouldBe expectedJson
   }
 
+  it should "serialize a DateTime" in {
+    val expectedJson = JsObject(
+      "X-Expires-After" -> JsObject(
+      "type" -> JsString("string"),
+      "format" -> JsString("date-time"),
+      "description" -> JsString("date in UTC when token expires")
+    ))
+
+    Header[DateTime](Symbol("X-Expires-After"), Some("date in UTC when token expires")).toJson shouldBe expectedJson
+  }
+
+  type Headers = (Header[String], Header[Long])
+
+  val tupleHeaderFormat = implicitly[HeadersJsonFormat[Headers]]
+
+  // implicit JsonFormat[Headers] required by toJson has
+  // an ambiguity with a tuple format in spray json.
   it should "serialize a combination of headers" in {
 
-    val headers = Header[String](Symbol("x-s"), Some("a string header")) :: Header[Int](Symbol("x-i"), Some("an int header")) :: HNil
+    val headers: Headers = (
+      Header[String](Symbol("x-s"), Some("a string header")),
+      Header[Long](Symbol("x-i"), Some("a long header")))
 
     val expectedJson = JsObject(
       "x-s" -> JsObject(
@@ -106,12 +124,12 @@ class HeadersJsonProtocolSpec extends FlatSpec {
       ),
       "x-i" -> JsObject(
         "type" -> JsString("integer"),
-        "format" -> JsString("int32"),
-        "description" -> JsString("an int header")
+        "format" -> JsString("int64"),
+        "description" -> JsString("a long header")
       )
     )
 
-    headers.toJson shouldBe expectedJson
+    tupleHeaderFormat.write(headers) shouldBe expectedJson
   }
 
 }

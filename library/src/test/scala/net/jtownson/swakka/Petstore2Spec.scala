@@ -70,17 +70,29 @@ class Petstore2Spec
       shipDate: Option[DateTime],
       complete: Option[Boolean])
 
+  case class User(id: Option[Long],
+                  username: Option[String],
+                  firstName: Option[String],
+                  lastName: Option[String],
+                  email: Option[String],
+                  password: Option[String],
+                  phone: Option[String],
+                  @ApiModelProperty("User Status") userStatus: Option[Int])
+
   implicit val petJsonFormat: RootJsonFormat[Pet] = jsonFormat3(Pet)
 
   implicit val errorJsonFormat: RootJsonFormat[Error] = jsonFormat2(Error)
 
-  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(ApiResponse)
+  implicit val apiResponseJsonFormat: RootJsonFormat[ApiResponse] = jsonFormat3(
+    ApiResponse)
 
   implicit val orderStatusJsonFormat = new EnumJsonConverter(OrderStatus)
   implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat6(Order)
   // This is an example of customizing the writing of JsonSchema for a class.
-  implicit val orderSchemaWriter: SchemaWriter[Order] = (_: JsonSchema[Order]) => orderSchema
+  implicit val orderSchemaWriter: SchemaWriter[Order] =
+    (_: JsonSchema[Order]) => orderSchema
 
+  implicit val userJsonFormat: RootJsonFormat[User] = jsonFormat8(User)
 
   val dummyRoute: Route = complete("dummy")
 
@@ -107,8 +119,15 @@ class Petstore2Spec
   val storeOrder: Order => Route = _ => dummyRoute
 
   val findOrderById: Long => Route = _ => dummyRoute
+  val deleteOrderById: Long => Route = _ => dummyRoute
 
   val emptyEndpoint: () => Route = () => dummyRoute
+
+  val createUser: User => Route = _ => dummyRoute
+
+  val createUserArray: Seq[User] => Route = _ => dummyRoute
+
+  val loginUser: (String, String) => Route = (_, _) => dummyRoute
 
   "Swakka" should "support the petstore v2 example" in {
 
@@ -448,7 +467,8 @@ class Petstore2Spec
                      PathParameterConstrained[Long, Long](
                        name = 'orderId,
                        description = Some("ID of pet that needs to be fetched"),
-                       constraints = Constraints(minimum = Some(1L), maximum = Some(10L))
+                       constraints =
+                         Constraints(minimum = Some(1L), maximum = Some(10L))
                      )
                    ),
                    endpointImplementation = findOrderById,
@@ -458,7 +478,117 @@ class Petstore2Spec
                      ResponseValue[Unit]("404", "Order not found")
                    )
                  )
-               )),
+               ),
+               PathItem(
+                 path = "/store/order/{orderId}",
+                 method = DELETE,
+                 operation = Operation(
+                   tags = Some(Seq("store")),
+                   summary = Some("Delete purchase order by ID"),
+                   description = Some(
+                     "For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors"),
+                   operationId = Some("deleteOrder"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     PathParameterConstrained[Long, Long](
+                       name = 'orderId,
+                       description =
+                         Some("ID of the order that needs to be deleted"),
+                       constraints = Constraints(minimum = Some(1L))
+                     )
+                   ),
+                   endpointImplementation = deleteOrderById,
+                   responses = (
+                     ResponseValue[Unit]("400", "Invalid ID supplied"),
+                     ResponseValue[Unit]("404", "Order not found")
+                   )
+                 )
+               ),
+               PathItem(
+                 path = "/user",
+                 method = POST,
+                 operation = Operation(
+                   tags = Some(Seq("user")),
+                   summary = Some("Create user"),
+                   description =
+                     Some("This can only be done by the logged in user."),
+                   operationId = Some("createUser"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     BodyParameter[User]('body,
+                                         description =
+                                           Some("Created user object"))
+                   ),
+                   endpointImplementation = createUser,
+                   responses = ResponseValue[Unit](responseCode = "default",
+                                                   description =
+                                                     "successful operation")
+                 )
+               ),
+               PathItem(
+                 path = "/user/createWithArray",
+                 method = POST,
+                 operation = Operation(
+                   tags = Some(Seq("user")),
+                   summary =
+                     Some("Creates list of users with given input array"),
+                   description = Some(""),
+                   operationId = Some("createUsersWithArrayInput"),
+                   produces = Some(Seq("application/xml", "application/json")),
+                   parameters = Tuple1(
+                     BodyParameter[Seq[User]](name = 'body,
+                                              description =
+                                                Some("List of user object"))
+                   ),
+                   endpointImplementation = createUserArray,
+                   responses = ResponseValue[Unit](
+                     responseCode = "default",
+                     description = "successful operation"
+                   )
+                 )
+               ),
+              PathItem(
+                path = "/user/login",
+                method = GET,
+                operation = Operation(
+                  tags = Some(Seq("user")),
+                  summary = Some("Logs user into the system"),
+                  description = Some(""),
+                  operationId = Some("loginUser"),
+                  produces = Some(Seq("application/xml", "application/json")),
+                  parameters = (
+                    QueryParameter[String](
+                      name = 'username,
+                      description = Some("The user name for login")
+                    ),
+                    QueryParameter[String](
+                      name = 'password,
+                      description = Some("The password for login in clear text")
+                    )
+                  ),
+                  endpointImplementation = loginUser,
+                  responses = (
+                    ResponseValue[String, (Header[Int], Header[DateTime])](
+                      responseCode = "200",
+                      description = "successful operation",
+                      headers = (
+                        Header[Int](
+                          name = Symbol("X-Rate-Limit"),
+                          description = Some("calls per hour allowed by the user")
+                        ),
+                        Header[DateTime](
+                          name = Symbol("X-Expires-After"),
+                          description = Some("date in UTC when token expires")
+                        )
+                      )
+                    ),
+                    ResponseValue[Unit](
+                      responseCode = "400",
+                      description = "Invalid username/password supplied"
+                    )
+                  )
+                )
+              )),
       securityDefinitions = Some(securityDefinitions)
     )
 
@@ -1011,8 +1141,165 @@ class Petstore2Spec
                         "description" -> JsString("Order not found")
                       )
                   )
+              ),
+            "delete" ->
+              JsObject(
+                "description" -> JsString(
+                  "For valid response try integer IDs with positive integer value. Negative or non-integer values will generate API errors"),
+                "tags" -> JsArray(JsString("store")),
+                "operationId" -> JsString("deleteOrder"),
+                "produces" -> JsArray(JsString("application/xml"),
+                                      JsString("application/json")),
+                "parameters" -> JsArray(
+                  JsObject(
+                    "format" -> JsString("int64"),
+                    "name" -> JsString("orderId"),
+                    "in" -> JsString("path"),
+                    "description" -> JsString(
+                      "ID of the order that needs to be deleted"),
+                    "minimum" -> JsNumber(1.0),
+                    "type" -> JsString("integer"),
+                    "required" -> JsBoolean(true)
+                  )
+                ),
+                "summary" -> JsString("Delete purchase order by ID"),
+                "responses" ->
+                  JsObject(
+                    "400" ->
+                      JsObject(
+                        "description" -> JsString("Invalid ID supplied")
+                      ),
+                    "404" ->
+                      JsObject(
+                        "description" -> JsString("Order not found")
+                      )
+                  )
               )
-          )
+          ),
+        "/user" -> JsObject(
+          "post" ->
+            JsObject(
+              "description" -> JsString(
+                "This can only be done by the logged in user."),
+              "tags" -> JsArray(JsString("user")),
+              "operationId" -> JsString("createUser"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "name" -> JsString("body"),
+                  "in" -> JsString("body"),
+                  "description" -> JsString("Created user object"),
+                  "schema" -> userSchema,
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString("Create user"),
+              "responses" ->
+                JsObject(
+                  "default" ->
+                    JsObject(
+                      "description" -> JsString("successful operation")
+                    )
+                )
+            )
+        ),
+        "/user/createWithArray" -> JsObject(
+          "post" ->
+            JsObject(
+              "description" -> JsString(""),
+              "tags" -> JsArray(JsString("user")),
+              "operationId" -> JsString("createUsersWithArrayInput"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "name" -> JsString("body"),
+                  "in" -> JsString("body"),
+                  "description" -> JsString("List of user object"),
+                  "schema" ->
+                    JsObject(
+                      "type" -> JsString("array"),
+                      "items" ->
+                        JsObject(
+                          "schema" -> userSchema
+                        )
+                    ),
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString(
+                "Creates list of users with given input array"),
+              "responses" ->
+                JsObject(
+                  "default" ->
+                    JsObject(
+                      "description" -> JsString("successful operation")
+                    )
+                )
+            )
+        ),
+        "/user/login" -> JsObject(
+          "get" ->
+            JsObject(
+              "description" -> JsString(""),
+              "tags" -> JsArray(JsString("user")),
+              "operationId" -> JsString("loginUser"),
+              "produces" -> JsArray(JsString("application/xml"),
+                                    JsString("application/json")),
+              "parameters" -> JsArray(
+                JsObject(
+                  "name" -> JsString("username"),
+                  "in" -> JsString("query"),
+                  "description" -> JsString("The user name for login"),
+                  "type" -> JsString("string"),
+                  "required" -> JsBoolean(true)
+                ),
+                JsObject(
+                  "name" -> JsString("password"),
+                  "in" -> JsString("query"),
+                  "description" -> JsString(
+                    "The password for login in clear text"),
+                  "type" -> JsString("string"),
+                  "required" -> JsBoolean(true)
+                )
+              ),
+              "summary" -> JsString("Logs user into the system"),
+              "responses" ->
+                JsObject(
+                  "200" ->
+                    JsObject(
+                      "description" -> JsString("successful operation"),
+                      "schema" ->
+                        JsObject(
+                          "type" -> JsString("string")
+                        ),
+                      "headers" ->
+                        JsObject(
+                          "X-Rate-Limit" ->
+                            JsObject(
+                              "type" -> JsString("integer"),
+                              "format" -> JsString("int32"),
+                              "description" -> JsString(
+                                "calls per hour allowed by the user")
+                            ),
+                          "X-Expires-After" ->
+                            JsObject(
+                              "type" -> JsString("string"),
+                              "format" -> JsString("date-time"),
+                              "description" -> JsString(
+                                "date in UTC when token expires")
+                            )
+                        )
+                    ),
+                  "400" ->
+                    JsObject(
+                      "description" -> JsString(
+                        "Invalid username/password supplied")
+                    )
+                )
+            )
+        )
       )
     )
 
@@ -1021,7 +1308,54 @@ class Petstore2Spec
     }
   }
 
-  private def orderSchema: JsObject =
+  private val userSchema: JsObject =
+    JsObject(
+      "type" -> JsString("object"),
+      "properties" ->
+        JsObject(
+          "email" ->
+            JsObject(
+              "type" -> JsString("string")
+            ),
+          "username" ->
+            JsObject(
+              "type" -> JsString("string")
+            ),
+          "userStatus" ->
+            JsObject(
+              "type" -> JsString("integer"),
+              "format" -> JsString("int32"),
+              "description" -> JsString("User Status")
+            ),
+          "lastName" ->
+            JsObject(
+              "type" -> JsString("string")
+            ),
+          "firstName" ->
+            JsObject(
+              "type" -> JsString("string")
+            ),
+          "id" ->
+            JsObject(
+              "type" -> JsString("integer"),
+              "format" -> JsString("int64")
+            ),
+          "phone" ->
+            JsObject(
+              "type" -> JsString("string")
+            ),
+          "password" ->
+            JsObject(
+              "type" -> JsString("string")
+            )
+        )
+      /*,"xml" -> // TODO
+        JsObject(
+          "name" -> JsString("User")
+        )*/
+    )
+
+  private val orderSchema: JsObject =
     JsObject(
       "type" -> JsString("object"),
       "properties" ->

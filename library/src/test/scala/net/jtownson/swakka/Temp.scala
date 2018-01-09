@@ -13,51 +13,30 @@ import spray.json.{
 
 class Temp extends FlatSpec {
 
-  ignore should "be easy to ser" in {
+  it should "be easy to ser" in {
 
     val s = JsonParser(
-      """{
-        |  "/store/order/{orderId}": {
-        |    "get": {
-        |      "tags": [
-        |        "store"
-        |      ],
-        |      "summary": "Find purchase order by ID",
-        |      "description": "For valid response try integer IDs with value >= 1 and <= 10. Other values will generated exceptions",
-        |      "operationId": "getOrderById",
-        |      "produces": [
-        |        "application/xml",
-        |        "application/json"
-        |      ],
-        |      "parameters": [
-        |        {
-        |          "name": "orderId",
-        |          "in": "path",
-        |          "description": "ID of pet that needs to be fetched",
-        |          "required": true,
-        |          "type": "integer",
-        |          "maximum": 10.0,
-        |          "minimum": 1.0,
-        |          "format": "int64"
-        |        }
-        |      ],
-        |      "responses": {
-        |        "200": {
-        |          "description": "successful operation",
-        |          "schema": {
-        |            "$ref": "#/definitions/Order"
-        |          }
-        |        },
-        |        "400": {
-        |          "description": "Invalid ID supplied"
-        |        },
-        |        "404": {
-        |          "description": "Order not found"
-        |        }
-        |      }
-        |    }
-        |  }
-        |}""".stripMargin
+      """
+{
+ |      "get": {
+ |        "tags": [
+ |          "user"
+ |        ],
+ |        "summary": "Logs out current logged in user session",
+ |        "description": "",
+ |        "operationId": "logoutUser",
+ |        "produces": [
+ |          "application/xml",
+ |          "application/json"
+ |        ],
+ |        "parameters": [],
+ |        "responses": {
+ |          "default": {
+ |            "description": "successful operation"
+ |          }
+ |        }
+ |      }
+ |    }                  """.stripMargin
     )
 
     println(s.toString(printer))
