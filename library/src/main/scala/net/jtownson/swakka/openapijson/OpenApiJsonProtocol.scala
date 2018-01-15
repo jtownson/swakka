@@ -32,6 +32,7 @@ trait OpenApiJsonProtocol extends
 
   PathParametersConstrainedJsonProtocol with
   HeaderParametersConstrainedJsonProtocol with
+  QueryParametersConstrainedJsonProtocol with
 
   HeadersJsonProtocol with
   SecurityDefinitionsJsonProtocol with

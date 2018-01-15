@@ -50,6 +50,15 @@ class ParametersJsonProtocolSpec extends FlatSpec {
   val parameters = Table(
     ("testcase", "parameter", "expected json"),
 
+    // Constrained PathParameters
+    ("Required, constrained string QueryParam",
+      QueryParameterConstrained[String, String](
+        name = 'petId,
+        description = Some("a description"),
+        constraints = Constraints[String](minLength = Some(1), maxLength = Some(10), pattern = Some("\\w+"), enum = Some(Set("foo", "bar")))).toJson,
+      constrainedParamJson(name = "petId", in = "query", `type` = "string", minLength = Some(JsNumber(1)), maxLength = Some(JsNumber(10)), pattern = Some(JsString("\\w+")), enum = Some(JsArray(JsString("foo"), JsString("bar"))))
+    ),
+
     // Required query parameter types
     ("Required string query",
       QueryParameter[String]('qp, Some("a description")).toJson,
