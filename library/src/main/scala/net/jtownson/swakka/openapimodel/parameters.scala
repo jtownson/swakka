@@ -102,3 +102,12 @@ case class QueryParameterConstrained[T, U](name: Symbol,
 
   def enum: Option[Seq[T]] = ??? // TODO remove
 }
+
+case class FormFieldParameterConstrained[T, U](name: Symbol,
+                                 description: Option[String] = None,
+                                 default: Option[T] = None,
+                                 constraints: Constraints[U])
+  extends Parameter[T] {
+
+  def enum: Option[Seq[T]] = ??? // TODO remove
+}

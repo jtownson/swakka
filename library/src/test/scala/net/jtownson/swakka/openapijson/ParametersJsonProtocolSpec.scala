@@ -152,6 +152,15 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       constrainedParamJson(name = "petId", in = "header", `type` = "string", minLength = Some(JsNumber(1)), maxLength = Some(JsNumber(10)), pattern = Some(JsString("\\w+")))
     ),
 
+    // Constrained FormFieldParam
+    ("Required, constrained string FormFieldParam",
+      FormFieldParameterConstrained[String, String](
+        name = 'petId,
+        description = Some("a description"),
+        constraints = Constraints[String](minLength = Some(1), maxLength = Some(10), pattern = Some("\\w+"), enum = Some(Set("foo", "bar")))).toJson,
+      constrainedParamJson(name = "petId", in = "formData", `type` = "string", minLength = Some(JsNumber(1)), maxLength = Some(JsNumber(10)), pattern = Some(JsString("\\w+")), enum = Some(JsArray(JsString("foo"), JsString("bar"))))
+    ),
+
     // Required form parameter types
     ("Required string form param",
       FormFieldParameter[String]('f, Some("a form field")).toJson,

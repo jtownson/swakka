@@ -20,80 +20,68 @@ import akka.http.scaladsl.server.directives.FileInfo
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 
-import spray.json.{JsBoolean, JsString, JsValue}
-
-import net.jtownson.swakka.misc.jsObject
 import net.jtownson.swakka.openapimodel._
+import ParameterTemplates._
 
 trait FormFieldParametersJsonProtocol {
 
   implicit val requiredStringFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[String]] =
     (fdp: FormFieldParameter[String]) =>
-      formDataItem(fdp.name.name, fdp.description, true, "string", None)
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = true, `type` = "string", format = None)
 
   implicit val requiredBooleanFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Boolean]] =
     (fdp: FormFieldParameter[Boolean]) =>
-      formDataItem(fdp.name.name, fdp.description, true, "boolean", None)
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = true, `type` = "boolean", format = None)
 
   implicit val requiredIntFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Int]] =
     (fdp: FormFieldParameter[Int]) =>
-      formDataItem(fdp.name.name, fdp.description, true, "integer", Some("int32"))
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = true, `type` = "integer", format = Some("int32"))
 
   implicit val requiredLongFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Long]] =
     (fdp: FormFieldParameter[Long]) =>
-      formDataItem(fdp.name.name, fdp.description, true, "integer", Some("int64"))
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = true, `type` = "integer", format = Some("int64"))
 
   implicit val requiredFloatFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Float]] =
     (fdp: FormFieldParameter[Float]) =>
-      formDataItem(fdp.name.name, fdp.description, true, "number", Some("float"))
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = true, `type` = "number", format = Some("float"))
 
   implicit val requiredDoubleFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Double]] =
     (fdp: FormFieldParameter[Double]) =>
-      formDataItem(fdp.name.name, fdp.description, true, "number", Some("double"))
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = true, `type` = "number", format = Some("double"))
 
   implicit val requiredFileFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[(FileInfo, Source[ByteString, Any])]] =
     (fdp: FormFieldParameter[(FileInfo, Source[ByteString, Any])]) =>
-      formDataItem(fdp.name.name, fdp.description, true, "file", None)
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = true, `type` = "file", format = None)
 
 
   implicit val optionalStringFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Option[String]]] =
     (fdp: FormFieldParameter[Option[String]]) =>
-      formDataItem(fdp.name.name, fdp.description, false, "string", None)
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = false, `type` = "string", format = None, default = defaultOf(fdp))
 
   implicit val optionalBooleanFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Option[Boolean]]] =
     (fdp: FormFieldParameter[Option[Boolean]]) =>
-      formDataItem(fdp.name.name, fdp.description, false, "boolean", None)
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = false, `type` = "boolean", format = None, default = defaultOf(fdp))
 
   implicit val optionalIntFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Option[Int]]] =
     (fdp: FormFieldParameter[Option[Int]]) =>
-      formDataItem(fdp.name.name, fdp.description, false, "integer", Some("int32"))
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = false, `type` = "integer", format = Some("int32"), default = defaultOf(fdp))
 
   implicit val optionalLongFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Option[Long]]] =
     (fdp: FormFieldParameter[Option[Long]]) =>
-      formDataItem(fdp.name.name, fdp.description, false, "integer", Some("int64"))
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = false, `type` = "integer", format = Some("int64"), default = defaultOf(fdp))
 
   implicit val optionalFloatFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Option[Float]]] =
     (fdp: FormFieldParameter[Option[Float]]) =>
-      formDataItem(fdp.name.name, fdp.description, false, "number", Some("float"))
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = false, `type` = "number", format = Some("float"), default = defaultOf(fdp))
 
   implicit val optionalDoubleFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Option[Double]]] =
     (fdp: FormFieldParameter[Option[Double]]) =>
-      formDataItem(fdp.name.name, fdp.description, false, "number", Some("double"))
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = false, `type` = "number", format = Some("double"), default = defaultOf(fdp))
 
   implicit val optionalFileFormDataParameterFormat: ParameterJsonFormat[FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]] =
     (fdp: FormFieldParameter[Option[(FileInfo, Source[ByteString, Any])]]) =>
-      formDataItem(fdp.name.name, fdp.description, false, "file", None)
+      simpleParam(in = "formData", name = fdp.name, description = fdp.description, required = false, `type` = "file", format = None, default = None)
 
-  private def formDataItem(name: String, description: Option[String], required: Boolean, `type`: String, format: Option[String]): JsValue = {
-    jsObject(
-      Some("name" -> JsString(name)),
-      Some("type" -> JsString(`type`)),
-      format.map("format" -> JsString(_)),
-      Some("in" -> JsString("formData")),
-      description.map("description" -> JsString(_)),
-      Some("required" -> JsBoolean(required))
-    )
-  }
 }
 
 object FormFieldParametersJsonProtocol extends FormFieldParametersJsonProtocol
