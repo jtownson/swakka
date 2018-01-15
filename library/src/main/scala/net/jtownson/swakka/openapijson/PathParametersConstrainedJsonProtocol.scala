@@ -2,7 +2,7 @@ package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapijson.ParameterTemplates._
 import net.jtownson.swakka.openapimodel.PathParameterConstrained
-import spray.json.{JsNumber, JsString}
+import spray.json.{JsArray, JsBoolean, JsNumber, JsString}
 
 trait PathParametersConstrainedJsonProtocol {
 
@@ -17,6 +17,7 @@ trait PathParametersConstrainedJsonProtocol {
         `type` = "string",
         format = None,
         default = None,
+        enum = pp.constraints.enum.map(set => JsArray(set.map(JsString(_)).toVector)),
         minLength = pp.constraints.minLength.map(JsNumber(_)),
         maxLength = pp.constraints.maxLength.map(JsNumber(_)),
         pattern = pp.constraints.pattern.map(JsString(_)))
@@ -31,6 +32,7 @@ trait PathParametersConstrainedJsonProtocol {
         `type` = "number",
         format = Some("float"),
         default = None,
+        enum = pp.constraints.enum.map(set => JsArray(set.map(JsNumber(_)).toVector)),
         maximum = pp.constraints.maximum.map(JsNumber(_)),
         minimum = pp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = pp.constraints.exclusiveMaximum.map(JsNumber(_)),
@@ -46,6 +48,7 @@ trait PathParametersConstrainedJsonProtocol {
         `type` = "number",
         format = Some("double"),
         default = None,
+        enum = pp.constraints.enum.map(set => JsArray(set.map(JsNumber(_)).toVector)),
         maximum = pp.constraints.maximum.map(JsNumber(_)),
         minimum = pp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = pp.constraints.exclusiveMaximum.map(JsNumber(_)),
@@ -60,7 +63,8 @@ trait PathParametersConstrainedJsonProtocol {
         required = true,
         `type` = "boolean",
         format = None,
-        default = None
+        default = None,
+        enum = pp.constraints.enum.map(set => JsArray(set.map(JsBoolean(_)).toVector))
       )
 
   implicit val intReqPathParamFormatConstrained: ParameterJsonFormat[PathParameterConstrained[Int, Int]] =
@@ -72,6 +76,7 @@ trait PathParametersConstrainedJsonProtocol {
         `type` = "integer",
         format = Some("int32"),
         default = None,
+        enum = pp.constraints.enum.map(set => JsArray(set.map(JsNumber(_)).toVector)),
         multipleOf = pp.constraints.multipleOf.map(JsNumber(_)),
         maximum = pp.constraints.maximum.map(JsNumber(_)),
         minimum = pp.constraints.minimum.map(JsNumber(_)),
@@ -88,6 +93,7 @@ trait PathParametersConstrainedJsonProtocol {
         `type` = "integer",
         format = Some("int64"),
         default = None,
+        enum = pp.constraints.enum.map(set => JsArray(set.map(JsNumber(_)).toVector)),
         multipleOf = pp.constraints.multipleOf.map(JsNumber(_)),
         maximum = pp.constraints.maximum.map(JsNumber(_)),
         minimum = pp.constraints.minimum.map(JsNumber(_)),

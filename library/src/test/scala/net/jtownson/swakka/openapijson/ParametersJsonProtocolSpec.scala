@@ -80,10 +80,9 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       PathParameterConstrained[String, String](
         name = 'petId,
         description = Some("a description"),
-        constraints = Constraints[String](minLength = Some(1), maxLength = Some(10), pattern = Some("\\w+"))).toJson,
-      constrainedPathParamJson(`type` = "string", minLength = Some(JsNumber(1)), maxLength = Some(JsNumber(10)), pattern = Some(JsString("\\w+")))
+        constraints = Constraints[String](minLength = Some(1), maxLength = Some(10), pattern = Some("\\w+"), enum = Some(Set("foo", "bar")))).toJson,
+      constrainedParamJson(name = "petId", in = "path", `type` = "string", minLength = Some(JsNumber(1)), maxLength = Some(JsNumber(10)), pattern = Some(JsString("\\w+")), enum = Some(JsArray(JsString("foo"), JsString("bar"))))
     ),
-
 
     // (Required) path parameter types
     ("Required string path",
@@ -134,6 +133,15 @@ class ParametersJsonProtocolSpec extends FlatSpec {
     ("Required double header",
       HeaderParameter[Double](Symbol("x-my-header"), Some("a header")).toJson,
       headerParamJson(true, "number", Some("double"))),
+
+    // Required, constrained header parameter types
+    ("Required, constrained string HeaderParam",
+      HeaderParameterConstrained[String, String](
+        name = 'petId,
+        description = Some("a description"),
+        constraints = Constraints[String](minLength = Some(1), maxLength = Some(10), pattern = Some("\\w+"))).toJson,
+      constrainedParamJson(name = "petId", in = "header", `type` = "string", minLength = Some(JsNumber(1)), maxLength = Some(JsNumber(10)), pattern = Some(JsString("\\w+")))
+    ),
 
     // Required form parameter types
     ("Required string form param",
@@ -367,21 +375,23 @@ class ParametersJsonProtocolSpec extends FlatSpec {
       enum.map("enum" -> _)
     )
 
-  private def constrainedPathParamJson(`type`: String, format: Option[String] = None, default: Option[JsValue] = None,
+  private def constrainedParamJson(name: String, in: String, `type`: String, format: Option[String] = None, default: Option[JsValue] = None,
                                         multipleOf: Option[JsValue] = None,
                                         maximum: Option[JsValue] = None, minimum: Option[JsValue] = None,
                                         exlusiveMaximum: Option[JsValue] = None, exclusiveMinimum: Option[JsValue] = None,
                                         maxLength: Option[JsValue] = None, minLength: Option[JsValue] = None, pattern: Option[JsValue] = None,
                                         items: Option[JsValue] = None, maxItems: Option[JsValue] = None, minItems: Option[JsValue] = None,
-                                        uniqueItems: Option[JsValue] = None, contains: Option[JsValue] = None) =
+                                        uniqueItems: Option[JsValue] = None, contains: Option[JsValue] = None,
+                                        enum: Option[JsValue] = None) =
     jsObject(
-      Some("name" -> JsString("petId")),
-      Some("in" -> JsString("path")),
+      Some("name" -> JsString(name)),
+      Some("in" -> JsString(in)),
       Some("description" -> JsString("a description")),
       Some("required" -> JsTrue),
       Some("type" -> JsString(`type`)),
       format.map("format" -> JsString(_)),
       default.map("default" -> _),
+      enum.map("enum" -> _),
       multipleOf.map("multipleOf" -> _),
       maximum.map("maximum" -> _),
       minimum.map("minimum" -> _),
