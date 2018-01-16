@@ -133,12 +133,6 @@ trait FormFieldParametersConstrainedJsonProtocol {
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
     )
 
-  type FileData = (FileInfo, Source[ByteString, Any])
-
-  implicit val requiredFileFormDataParamFormatConstrained
-    : ParameterJsonFormat[FormFieldParameterConstrained[FileData, FileData]] =
-    (_: FormFieldParameterConstrained[FileData, FileData]) => ???
-
   implicit val optionalStringFormDataParamFormatConstrained
     : ParameterJsonFormat[
       FormFieldParameterConstrained[Option[String], String]] =
@@ -252,10 +246,6 @@ trait FormFieldParametersConstrainedJsonProtocol {
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
     )
-
-  implicit val optionalFileFormDataParamFormatConstrained: ParameterJsonFormat[
-    FormFieldParameterConstrained[Option[FileData], FileData]] =
-    (_: FormFieldParameterConstrained[Option[FileData], FileData]) => ???
 
 }
 

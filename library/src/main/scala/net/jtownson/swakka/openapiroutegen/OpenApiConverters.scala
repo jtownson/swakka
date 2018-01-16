@@ -17,12 +17,15 @@
 package net.jtownson.swakka.openapiroutegen
 
 trait OpenApiConverters
-  extends BodyParamConverters
+    extends BodyParamConverters
     with FormFieldParamConverters
     with HeaderParamConverters
     with HListParamConverters
     with PathParamConverters
     with PathParamConstrainedConverters
+    with HeaderParamConstrainedConverters
+    with QueryParamConstrainedConverters
+    with FormFieldParamConstrainedConverters
     with QueryParamConverters
     with MultiParamConverters
 
