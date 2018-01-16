@@ -29,14 +29,14 @@ class MultiValuedJsonProtocolSpec extends FlatSpec {
 
   "MultiValuedJsonProtocol" should "serialize collection formats" in {
 
-    val qp = QueryParameter[String](
+    val qp = QueryParameterConstrained[String, String](
       name = 'status,
       description = Some("Status values that need to be considered for filter"),
       default = Some("available"),
-      enum = Some(Seq("available", "pending", "sold"))
+      constraints = Constraints(enum = Some(Set("available", "pending", "sold")))
     )
 
-    val mqp = MultiValued[String, QueryParameter[String]](qp)
+    val mqp = MultiValued[String, QueryParameterConstrained[String, String]](qp)
 
     val expectedJson =
       JsObject(

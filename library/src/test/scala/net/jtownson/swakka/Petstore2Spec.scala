@@ -256,13 +256,13 @@ class Petstore2Spec
                    tags = Some(Seq("pet")),
                    produces = Some(Seq("application/xml", "application/json")),
                    parameters = Tuple1(
-                     MultiValued[String, QueryParameter[String]](
-                       QueryParameter[String](
+                     MultiValued[String, QueryParameterConstrained[String, String]](
+                       QueryParameterConstrained[String, String](
                          name = 'status,
                          description = Some(
                            "Status values that need to be considered for filter"),
                          default = Some("available"),
-                         enum = Some(Seq("available", "pending", "sold"))
+                         constraints = Constraints(enum = Some(Set("available", "pending", "sold")))
                        ))),
                    responses =
                      (ResponseValue[Seq[Pet]]("200", "successful operation"),
