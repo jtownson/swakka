@@ -60,33 +60,33 @@ class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
 
   they should "validate provided values are in an enum" in {
 
-    val qp = QueryParameter[String](name = 'status, enum = Some(Seq("a", "b")))
+    val qp = QueryParameterConstrained[String, String](name = 'status, constraints = Constraints(enum = Some(Set("a", "b"))))
 
     // values provided and within the enum
-    converterTest[Seq[String], MultiValued[String, QueryParameter[String]]](
+    converterTest[Seq[String], MultiValued[String, QueryParameterConstrained[String, String]]](
       Get(s"http://example.com?status=a&status=b"),
-      MultiValued[String, QueryParameter[String]](qp),
+      MultiValued[String, QueryParameterConstrained[String, String]](qp),
       OK,
       extractionAssertion(Seq("a", "b")))
 
     // values provided but outside the enum
-    converterTest[Seq[String], MultiValued[String, QueryParameter[String]]](
+    converterTest[Seq[String], MultiValued[String, QueryParameterConstrained[String, String]]](
       Get(s"http://example.com?status=c"),
-      MultiValued[String, QueryParameter[String]](qp),
+      MultiValued[String, QueryParameterConstrained[String, String]](qp),
       BadRequest)
 
     // values missing but inner default is within the enum
-    converterTest[Seq[String], MultiValued[String, QueryParameter[String]]](
+    converterTest[Seq[String], MultiValued[String, QueryParameterConstrained[String, String]]](
       Get(s"http://example.com"),
-      MultiValued[String, QueryParameter[String]](QueryParameter[String](name = 'status, default = Some("a"), enum = Some(Seq("a", "b")))),
+      MultiValued[String, QueryParameterConstrained[String, String]](QueryParameterConstrained[String, String](name = 'status, default = Some("a"), constraints = Constraints(enum = Some(Set("a", "b"))))),
       OK,
       extractionAssertion(Seq("a")))
 
     // TODO For these cases it would be better to fail during param.apply
     // values missing but inner default is outside the enum
-    converterTest[Seq[String], MultiValued[String, QueryParameter[String]]](
+    converterTest[Seq[String], MultiValued[String, QueryParameterConstrained[String, String]]](
       Get(s"http://example.com"),
-      MultiValued[String, QueryParameter[String]](QueryParameter[String](name = 'status, default = Some("c"), enum = Some(Seq("a", "b")))),
+      MultiValued[String, QueryParameterConstrained[String, String]](QueryParameterConstrained[String, String](name = 'status, default = Some("c"), constraints = Constraints(enum = Some(Set("a", "b"))))),
       BadRequest)
   }
 }
