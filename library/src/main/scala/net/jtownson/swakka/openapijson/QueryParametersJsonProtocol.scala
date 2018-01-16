@@ -14,8 +14,7 @@ trait QueryParametersJsonProtocol {
         true,
         "string",
         None,
-        None,
-        enumOf(qp))
+        None)
 
   implicit val strOptQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Option[String]]] =
@@ -26,8 +25,7 @@ trait QueryParametersJsonProtocol {
         false,
         "string",
         None,
-        defaultOf(qp),
-        enumOfOption(qp))
+        defaultOf(qp))
 
   implicit val floatReqQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Float]] =
@@ -38,8 +36,7 @@ trait QueryParametersJsonProtocol {
         true,
         "number",
         Some("float"),
-        None,
-        enumOf(qp))
+        None)
 
   implicit val floatOptQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Option[Float]]] =
@@ -50,8 +47,7 @@ trait QueryParametersJsonProtocol {
         false,
         "number",
         Some("float"),
-        defaultOf(qp),
-        enumOfOption(qp))
+        defaultOf(qp))
 
   implicit val doubleReqQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Double]] =
@@ -62,8 +58,7 @@ trait QueryParametersJsonProtocol {
         true,
         "number",
         Some("double"),
-        None,
-        enumOf(qp))
+        None)
 
   implicit val doubleOptQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Option[Double]]] =
@@ -74,8 +69,7 @@ trait QueryParametersJsonProtocol {
         false,
         "number",
         Some("double"),
-        defaultOf(qp),
-        enumOfOption(qp))
+        defaultOf(qp))
 
   implicit val booleanReqQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Boolean]] =
@@ -86,8 +80,7 @@ trait QueryParametersJsonProtocol {
         true,
         "boolean",
         None,
-        None,
-        enumOf(qp))
+        None)
 
   implicit val booleanOptQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Option[Boolean]]] =
@@ -98,8 +91,7 @@ trait QueryParametersJsonProtocol {
         false,
         "boolean",
         None,
-        defaultOf(qp),
-        enumOfOption(qp))
+        defaultOf(qp))
 
   implicit val intReqQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Int]] =
@@ -110,8 +102,7 @@ trait QueryParametersJsonProtocol {
         true,
         "integer",
         Some("int32"),
-        None,
-        enumOf(qp))
+        None)
 
   implicit val intOptQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Option[Int]]] =
@@ -122,8 +113,7 @@ trait QueryParametersJsonProtocol {
         false,
         "integer",
         Some("int32"),
-        defaultOf(qp),
-        enumOfOption(qp))
+        defaultOf(qp))
 
   implicit val longReqQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Long]] =
@@ -134,8 +124,7 @@ trait QueryParametersJsonProtocol {
         true,
         "integer",
         Some("int64"),
-        None,
-        enumOf(qp))
+        None)
 
   implicit val longOptQueryParamFormat
   : ParameterJsonFormat[QueryParameter[Option[Long]]] =
@@ -146,8 +135,7 @@ trait QueryParametersJsonProtocol {
         false,
         "integer",
         Some("int64"),
-        defaultOf(qp),
-        enumOfOption(qp))
+        defaultOf(qp))
 }
 
 object QueryParametersJsonProtocol extends QueryParametersJsonProtocol

@@ -88,16 +88,10 @@ trait HeaderParamConstrainedConverters {
   })
 
   private def extractIfPresent[T](valueParser: String => T, default: T)(maybeHeader: Option[String]): T =
-    maybeHeader match {
-      case Some(header) => valueParser(header)
-      case None => default
-    }
+    maybeHeader.fold(default)(valueParser)
 
   private def extractIfPresent[T](valueParser: String => T, default: Option[T])(maybeHeader: Option[String]): Option[T] =
-    maybeHeader match {
-      case Some(header) => Some(valueParser(header))
-      case None => default
-    }
+    maybeHeader.fold(default)(header => Some(valueParser(header)))
 
   private def headerTemplate[T, U](fNoDefault: () => Directive1[T],
                         fDefault: T => Directive1[T],
@@ -108,12 +102,7 @@ trait HeaderParamConstrainedConverters {
       t => validator.validate(hp.constraints, t).
         fold(errors => rejectWithValidationErrors(errors), value => provide(value))
 
-    hp.default match {
-      case Some(default) =>
-        fDefault(default).flatMap(fValidate)
-      case None =>
-        fNoDefault().flatMap(fValidate)
-    }
+    hp.default.fold(fNoDefault().flatMap(fValidate))(fDefault(_).flatMap(fValidate))
   }
 
   private def rejectWithValidationErrors[T](validationErrors: String): Directive1[T] =

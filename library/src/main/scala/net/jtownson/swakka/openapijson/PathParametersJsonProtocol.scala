@@ -14,8 +14,7 @@ trait PathParametersJsonProtocol {
         true,
         "string",
         None,
-        None,
-        enumOf(pp))
+        None)
 
   implicit val floatReqPathParamFormat
   : ParameterJsonFormat[PathParameter[Float]] =
@@ -26,8 +25,7 @@ trait PathParametersJsonProtocol {
         true,
         "number",
         Some("float"),
-        None,
-        enumOf(pp))
+        None)
 
   implicit val doubleReqPathParamFormat
   : ParameterJsonFormat[PathParameter[Double]] =
@@ -38,8 +36,7 @@ trait PathParametersJsonProtocol {
         true,
         "number",
         Some("double"),
-        None,
-        enumOf(pp))
+        None)
 
   implicit val booleanReqPathParamFormat
   : ParameterJsonFormat[PathParameter[Boolean]] =
@@ -50,8 +47,7 @@ trait PathParametersJsonProtocol {
         true,
         "boolean",
         None,
-        None,
-        enumOf(pp))
+        None)
 
   implicit val intReqPathParamFormat: ParameterJsonFormat[PathParameter[Int]] =
     (pp: PathParameter[Int]) =>
@@ -61,8 +57,7 @@ trait PathParametersJsonProtocol {
         true,
         "integer",
         Some("int32"),
-        None,
-        enumOf(pp))
+        None)
 
   implicit val longReqPathParamFormat
   : ParameterJsonFormat[PathParameter[Long]] =
@@ -73,8 +68,7 @@ trait PathParametersJsonProtocol {
         true,
         "integer",
         Some("int64"),
-        None,
-        enumOf(pp))
+        None)
 
 
 }

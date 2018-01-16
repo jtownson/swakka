@@ -29,20 +29,18 @@ trait QueryParamConverters {
 
   implicit val stringReqQueryConverter: QueryParamConverter[String] =
     instance((_: String, qp: QueryParameter[String]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name),
         (default: String) => parameter(qp.name.?(default)),
-        (value: String) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val stringOptQueryConverter: QueryParamConverter[Option[String]] = {
     instance((_: String, qp: QueryParameter[Option[String]]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.?),
         (default: Option[String]) => parameter(qp.name.?(default.get)).map(Option(_)),
-        (value: Option[String]) => enumCase(qp, value),
         qp
       )
     })
@@ -50,100 +48,90 @@ trait QueryParamConverters {
 
   implicit val floatReqQueryConverter: QueryParamConverter[Float] =
     instance((_: String, qp: QueryParameter[Float]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Float]),
         (default: Float) => parameter(qp.name.as[Float].?(default)),
-        (value: Float) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val floatOptQueryConverter: QueryParamConverter[Option[Float]] =
     instance((_: String, qp: QueryParameter[Option[Float]]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Float].?),
         (default: Option[Float]) => parameter(qp.name.as[Float].?(default.get)).map(Option(_)),
-        (value: Option[Float]) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val doubleReqQueryConverter: QueryParamConverter[Double] =
     instance((_: String, qp: QueryParameter[Double]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Double]),
         (default: Double) => parameter(qp.name.as[Double].?(default)),
-        (value: Double) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val doubleOptQueryConverter: QueryParamConverter[Option[Double]] =
     instance((_: String, qp: QueryParameter[Option[Double]]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Double].?),
         (default: Option[Double]) => parameter(qp.name.as[Double].?(default.get)).map(Option(_)),
-        (value: Option[Double]) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val booleanReqQueryConverter: QueryParamConverter[Boolean] =
     instance((_: String, qp: QueryParameter[Boolean]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Boolean]),
         (default: Boolean) => parameter(qp.name.as[Boolean].?(default)),
-        (value: Boolean) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val booleanOptQueryConverter: QueryParamConverter[Option[Boolean]] =
     instance((_: String, qp: QueryParameter[Option[Boolean]]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Boolean].?),
         (default: Option[Boolean]) => parameter(qp.name.as[Boolean].?(default.get)).map(Option(_)),
-        (value: Option[Boolean]) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val intReqQueryConverter: QueryParamConverter[Int] =
     instance((_: String, qp: QueryParameter[Int]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Int]),
         (default: Int) => parameter(qp.name.as[Int].?(default)),
-        (value: Int) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val intOptQueryConverter: QueryParamConverter[Option[Int]] =
     instance((_: String, qp: QueryParameter[Option[Int]]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Int].?),
         (default: Option[Int]) => parameter(qp.name.as[Int].?(default.get)).map(Option(_)),
-        (value: Option[Int]) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val longReqQueryConverter: QueryParamConverter[Long] =
     instance((_: String, qp: QueryParameter[Long]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Long]),
         (default: Long) => parameter(qp.name.as[Long].?(default)),
-        (value: Long) => enumCase(qp, value),
         qp
       )
     })
 
   implicit val longOptQueryConverter: QueryParamConverter[Option[Long]] =
     instance((_: String, qp: QueryParameter[Option[Long]]) => {
-      parameterTemplate(
+      queryParameterTemplate(
         () => parameter(qp.name.as[Long].?),
         (default: Option[Long]) => parameter(qp.name.as[Long].?(default.get)).map(Option(_)),
-        (value: Option[Long]) => enumCase(qp, value),
         qp
       )
     })

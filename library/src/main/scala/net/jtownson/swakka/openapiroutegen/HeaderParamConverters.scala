@@ -69,7 +69,6 @@ trait HeaderParamConverters {
     headerTemplate(
       () => headerValueByName(hp.name).map(valueParser(_)),
       (default: T) => optionalHeaderValueByName(hp.name).map(extractIfPresent(valueParser, default)),
-      (value: T) => enumCase(MissingHeaderRejection(hp.name.name), hp, value),
       hp
     )
   })
@@ -81,20 +80,12 @@ trait HeaderParamConverters {
     headerTemplate(
       () => optionalHeaderValueByName(hp.name).map(os => os.map(valueParser(_))),
       (default: Option[T]) => optionalHeaderValueByName(hp.name.name).map(extractIfPresent(valueParser, default)),
-      (value: Option[T]) => enumCase(MissingHeaderRejection(hp.name.name), hp, value),
       hp)
   })
 
   private def extractIfPresent[T](valueParser: String => T, default: T)(maybeHeader: Option[String]): T =
-    maybeHeader match {
-      case Some(header) => valueParser(header)
-      case None => default
-    }
+    maybeHeader.fold(default)(valueParser)
 
   private def extractIfPresent[T](valueParser: String => T, default: Option[T])(maybeHeader: Option[String]): Option[T] =
-    maybeHeader match {
-      case Some(header) => Some(valueParser(header))
-      case None => default
-    }
-
+    maybeHeader.fold(default)(header => Some(valueParser(header)))
 }

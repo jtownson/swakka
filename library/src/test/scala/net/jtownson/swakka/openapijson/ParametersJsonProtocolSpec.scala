@@ -281,18 +281,18 @@ class ParametersJsonProtocolSpec extends FlatSpec {
 
     // Enum usage
     ("Enum example query parameter",
-      QueryParameter[Option[String]]('qp, description = Some("a description"), Some(Some(Statuses.placed.toString)), Some(Statuses.values.toList.map(value => Some(value.toString)))).toJson,
-      queryParamJson(false, "string", None, Some(JsString("placed")), Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
+      QueryParameterConstrained[Option[String], String]('qp, description = Some("a description"), Some(Some(Statuses.placed.toString)), Constraints(enum = Some(Statuses.values.map(value => value.toString)))).toJson,
+      queryParamJson(false, "string", None, Some(JsString("placed")), Some(JsArray(JsString("approved"), JsString("delivered"), JsString("placed"))))
     ),
 
     ("Enum example path parameter",
-      PathParameter[String]('petId, Some("a description"), None, Some(Statuses.values.toList.map(value => value.toString))).toJson,
-      pathParameterJson("string", None, None, Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
+      PathParameterConstrained[String, String]('petId, Some("a description"), None, Constraints(enum = Some(Statuses.values.map(value => value.toString)))).toJson,
+      pathParameterJson("string", None, None, Some(JsArray(JsString("approved"), JsString("delivered"), JsString("placed"))))
     ),
 
     ("Enum example header parameter",
-      HeaderParameter[String](Symbol("x-my-header"), Some("a header"), None, Some(Statuses.values.toList.map(value => value.toString))).toJson,
-      headerParamJson(true, "string", None, None, Some(JsArray(JsString("placed"), JsString("approved"), JsString("delivered"))))
+      HeaderParameterConstrained[String, String](Symbol("x-my-header"), Some("a header"), None, Constraints(enum = Some(Statuses.values.map(value => value.toString)))).toJson,
+      headerParamJson(true, "string", None, None, Some(JsArray(JsString("approved"), JsString("delivered"), JsString("placed"))))
     ),
 
     ("HNil",

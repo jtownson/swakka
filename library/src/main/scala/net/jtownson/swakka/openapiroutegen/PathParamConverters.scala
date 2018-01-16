@@ -22,7 +22,6 @@ import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen.PathHandling.pathWithParamMatcher
 import net.jtownson.swakka.coreroutegen._
 import akka.http.scaladsl.server.PathMatchers.{IntNumber, LongNumber, Segment}
-import RouteGenTemplates._
 
 trait PathParamConverters {
 
@@ -59,6 +58,5 @@ trait PathParamConverters {
 
   private def pathParamDirective[T](pm: PathMatcher1[T]): PathParamConverter[T] =
     ConvertibleToDirective.instance((modelPath: String, pp: PathParameter[T]) =>
-      rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)).
-        flatMap(enumCase(pp)))
+      rawPathPrefixTest(pathWithParamMatcher(modelPath, pp.name.name, pm)))
 }

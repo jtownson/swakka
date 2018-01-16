@@ -22,9 +22,6 @@ import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.coreroutegen.ConvertibleToDirective.instance
 
-
-import RouteGenTemplates._
-
 trait BodyParamConverters {
 
   type BodyParamConverter[U] = ConvertibleToDirective.Aux[BodyParameter[U], U]
@@ -33,9 +30,9 @@ trait BodyParamConverters {
     instance((_: String, bp: BodyParameter[T]) => {
       bp.default match {
         case None =>
-          entity(as[T]).flatMap(enumCase(bp))
+          entity(as[T])
         case Some(default) =>
-          optionalEntity[T](as[T]).map(_.getOrElse(default)).flatMap(enumCase(bp))
+          optionalEntity[T](as[T]).map(_.getOrElse(default))
       }
     })
 
@@ -43,9 +40,9 @@ trait BodyParamConverters {
     instance((_: String, bp: BodyParameter[Option[T]]) => {
       bp.default match {
         case None =>
-          optionalEntity[T](as[T]).flatMap(enumCase(bp))
+          optionalEntity[T](as[T])
         case Some(default) =>
-          optionalEntity[T](as[T]).map(returnOrElse(default)).flatMap(enumCase(bp))
+          optionalEntity[T](as[T]).map(returnOrElse(default))
       }
     })
 

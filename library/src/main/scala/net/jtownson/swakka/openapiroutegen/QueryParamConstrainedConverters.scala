@@ -23,6 +23,8 @@ import net.jtownson.swakka.coreroutegen.ConvertibleToDirective.instance
 import net.jtownson.swakka.coreroutegen._
 import net.jtownson.swakka.openapimodel._
 import net.jtownson.swakka.openapiroutegen.ParamValidator._
+import RouteGenTemplates._
+
 
 trait QueryParamConstrainedConverters {
 
@@ -32,7 +34,7 @@ trait QueryParamConstrainedConverters {
   implicit val stringReqQueryConverterConstrained
     : QueryParamConstrainedConverter[String, String] =
     instance((_: String, qp: QueryParameterConstrained[String, String]) => {
-      parameterTemplate(
+      constrainedQueryParameterTemplate(
         () => parameter(qp.name),
         (default: String) => parameter(qp.name.?(default)),
         stringValidator,
@@ -43,7 +45,7 @@ trait QueryParamConstrainedConverters {
   implicit val floatReqQueryConverterConstrained
     : QueryParamConstrainedConverter[Float, Float] =
     instance((_: String, qp: QueryParameterConstrained[Float, Float]) => {
-      parameterTemplate(
+      constrainedQueryParameterTemplate(
         () => parameter(qp.name.as[Float]),
         (default: Float) => parameter(qp.name.as[Float].?(default)),
         numberValidator,
@@ -54,7 +56,7 @@ trait QueryParamConstrainedConverters {
   implicit val doubleReqQueryConverterConstrained
     : QueryParamConstrainedConverter[Double, Double] =
     instance((_: String, qp: QueryParameterConstrained[Double, Double]) => {
-      parameterTemplate(
+      constrainedQueryParameterTemplate(
         () => parameter(qp.name.as[Double]),
         (default: Double) => parameter(qp.name.as[Double].?(default)),
         numberValidator,
@@ -65,7 +67,7 @@ trait QueryParamConstrainedConverters {
   implicit val booleanReqQueryConverterConstrained
     : QueryParamConstrainedConverter[Boolean, Boolean] =
     instance((_: String, qp: QueryParameterConstrained[Boolean, Boolean]) => {
-      parameterTemplate(
+      constrainedQueryParameterTemplate(
         () => parameter(qp.name.as[Boolean]),
         (default: Boolean) => parameter(qp.name.as[Boolean].?(default)),
         anyValidator,
@@ -76,7 +78,7 @@ trait QueryParamConstrainedConverters {
   implicit val intReqQueryConverterConstrained
     : QueryParamConstrainedConverter[Int, Int] =
     instance((_: String, qp: QueryParameterConstrained[Int, Int]) => {
-      parameterTemplate(
+      constrainedQueryParameterTemplate(
         () => parameter(qp.name.as[Int]),
         (default: Int) => parameter(qp.name.as[Int].?(default)),
         integralValidator,
@@ -87,7 +89,7 @@ trait QueryParamConstrainedConverters {
   implicit val longReqQueryConverterConstrained
     : QueryParamConstrainedConverter[Long, Long] =
     instance((_: String, qp: QueryParameterConstrained[Long, Long]) => {
-      parameterTemplate(
+      constrainedQueryParameterTemplate(
         () => parameter(qp.name.as[Long]),
         (default: Long) => parameter(qp.name.as[Long].?(default)),
         integralValidator,
@@ -99,7 +101,7 @@ trait QueryParamConstrainedConverters {
     : QueryParamConstrainedConverter[Option[String], String] = {
     instance(
       (_: String, qp: QueryParameterConstrained[Option[String], String]) => {
-        parameterTemplate(
+        constrainedQueryParameterTemplate(
           () => parameter(qp.name.?),
           (default: Option[String]) =>
             parameter(qp.name.?(default.get)).map(Option(_)),
@@ -113,7 +115,7 @@ trait QueryParamConstrainedConverters {
     : QueryParamConstrainedConverter[Option[Float], Float] =
     instance(
       (_: String, qp: QueryParameterConstrained[Option[Float], Float]) => {
-        parameterTemplate(
+        constrainedQueryParameterTemplate(
           () => parameter(qp.name.as[Float].?),
           (default: Option[Float]) =>
             parameter(qp.name.as[Float].?(default.get)).map(Option(_)),
@@ -126,7 +128,7 @@ trait QueryParamConstrainedConverters {
     : QueryParamConstrainedConverter[Option[Double], Double] =
     instance(
       (_: String, qp: QueryParameterConstrained[Option[Double], Double]) => {
-        parameterTemplate(
+        constrainedQueryParameterTemplate(
           () => parameter(qp.name.as[Double].?),
           (default: Option[Double]) =>
             parameter(qp.name.as[Double].?(default.get)).map(Option(_)),
@@ -139,7 +141,7 @@ trait QueryParamConstrainedConverters {
     : QueryParamConstrainedConverter[Option[Boolean], Boolean] =
     instance(
       (_: String, qp: QueryParameterConstrained[Option[Boolean], Boolean]) => {
-        parameterTemplate(
+        constrainedQueryParameterTemplate(
           () => parameter(qp.name.as[Boolean].?),
           (default: Option[Boolean]) =>
             parameter(qp.name.as[Boolean].?(default.get)).map(Option(_)),
@@ -151,7 +153,7 @@ trait QueryParamConstrainedConverters {
   implicit val intOptQueryConverterConstrained
     : QueryParamConstrainedConverter[Option[Int], Int] =
     instance((_: String, qp: QueryParameterConstrained[Option[Int], Int]) => {
-      parameterTemplate(
+      constrainedQueryParameterTemplate(
         () => parameter(qp.name.as[Int].?),
         (default: Option[Int]) =>
           parameter(qp.name.as[Int].?(default.get)).map(Option(_)),
@@ -163,7 +165,7 @@ trait QueryParamConstrainedConverters {
   implicit val longOptQueryConverterConstrained
     : QueryParamConstrainedConverter[Option[Long], Long] =
     instance((_: String, qp: QueryParameterConstrained[Option[Long], Long]) => {
-      parameterTemplate(
+      constrainedQueryParameterTemplate(
         () => parameter(qp.name.as[Long].?),
         (default: Option[Long]) =>
           parameter(qp.name.as[Long].?(default.get)).map(Option(_)),
@@ -171,30 +173,4 @@ trait QueryParamConstrainedConverters {
         qp
       )
     })
-
-  def parameterTemplate[T, U](
-      fNoDefault: () => Directive1[T],
-      fDefault: T => Directive1[T],
-      validator: ParamValidator[T, U],
-      qp: QueryParameterConstrained[T, U]): Directive1[T] = {
-
-    val fValidate: T => Directive1[T] =
-      t =>
-        validator
-          .validate(qp.constraints, t)
-          .fold(errors => rejectWithValidationErrors(errors),
-                value => provide(value))
-
-    qp.default match {
-      case Some(default) =>
-        fDefault(default).flatMap(fValidate)
-      case None =>
-        fNoDefault().flatMap(fValidate)
-    }
-  }
-
-  private def rejectWithValidationErrors[T](
-      validationErrors: String): Directive1[T] =
-    reject(ValidationRejection(validationErrors))
-
 }

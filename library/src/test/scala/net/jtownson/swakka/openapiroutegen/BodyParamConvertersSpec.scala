@@ -55,20 +55,4 @@ class BodyParamConvertersSpec extends FlatSpec with ConverterTest {
 
     converterTest[Option[Pet], BodyParameter[Option[Pet]]](post("/p"), route, "got nothing")
   }
-
-  they should "pass enumerated body parameters iff the request provides a valid enum value" in {
-    val pet1 = Pet(1, "pet1")
-    val pet2 = Pet(2, "pet2")
-    val bp = BodyParameter[Pet]('body, enum = Some(Seq(pet1)))
-    converterTest[Pet, BodyParameter[Pet]](Post("/p", pet1), bp, OK)
-    converterTest[Pet, BodyParameter[Pet]](Post("/p", pet2), bp, BadRequest)
-  }
-
-  they should "pass enumerated optional body parameters iff the request provides a valid enum value" in {
-    val pet1 = Pet(1, "pet1")
-    val pet2 = Pet(2, "pet2")
-    val bp = BodyParameter[Option[Pet]]('body, enum = Some(Seq(Some(pet1))))
-    converterTest[Option[Pet], BodyParameter[Option[Pet]]](Post("/p", pet1), bp, OK)
-    converterTest[Option[Pet], BodyParameter[Option[Pet]]](Post("/p", pet2), bp, BadRequest)
-  }
 }

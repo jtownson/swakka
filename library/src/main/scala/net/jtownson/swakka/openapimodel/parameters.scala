@@ -16,24 +16,18 @@
 package net.jtownson.swakka.openapimodel
 
 sealed trait Parameter[T] {
-
   def name: Symbol
 
   def description: Option[String]
 
   def default: Option[T]
-
-  def enum: Option[Seq[T]]
 }
 
 case class MultiValued[T, U <: Parameter[T]](singleParam: U,
                                              name: Symbol,
                                              description: Option[String],
                                              default: Option[Seq[T]])
-    extends Parameter[Seq[T]] {
-
-  override def enum: Option[Seq[Seq[T]]] = None
-}
+    extends Parameter[Seq[T]]
 
 object MultiValued {
   def apply[T, U <: Parameter[T]](
@@ -47,32 +41,27 @@ object MultiValued {
 
 case class FormFieldParameter[T](name: Symbol,
                                  description: Option[String] = None,
-                                 default: Option[T] = None,
-                                 enum: Option[Seq[T]] = None)
+                                 default: Option[T] = None)
     extends Parameter[T]
 
 case class QueryParameter[T](name: Symbol,
                              description: Option[String] = None,
-                             default: Option[T] = None,
-                             enum: Option[Seq[T]] = None)
+                             default: Option[T] = None)
     extends Parameter[T]
 
 case class PathParameter[T](name: Symbol,
                             description: Option[String] = None,
-                            default: Option[T] = None,
-                            enum: Option[Seq[T]] = None)
+                            default: Option[T] = None)
     extends Parameter[T]
 
 case class BodyParameter[T](name: Symbol,
                             description: Option[String] = None,
-                            default: Option[T] = None,
-                            enum: Option[Seq[T]] = None)
+                            default: Option[T] = None)
     extends Parameter[T]
 
 case class HeaderParameter[T](name: Symbol,
                               description: Option[String] = None,
-                              default: Option[T] = None,
-                              enum: Option[Seq[T]] = None)
+                              default: Option[T] = None)
     extends Parameter[T]
 
 
@@ -80,34 +69,23 @@ case class PathParameterConstrained[T, U](name: Symbol,
                                        description: Option[String] = None,
                                        default: Option[T] = None,
                                        constraints: Constraints[U])
-  extends Parameter[T] {
-
-  override def enum: Option[Seq[T]] = ??? // TODO remove enum from the Parameter interface.
-}
+  extends Parameter[T]
 
 case class HeaderParameterConstrained[T, U](name: Symbol,
                               description: Option[String] = None,
                               default: Option[T] = None,
                               constraints: Constraints[U])
-  extends Parameter[T] {
-
-  def enum: Option[Seq[T]] = ??? // TODO remove
-}
+  extends Parameter[T]
 
 case class QueryParameterConstrained[T, U](name: Symbol,
                               description: Option[String] = None,
                               default: Option[T] = None,
                               constraints: Constraints[U])
-  extends Parameter[T] {
+  extends Parameter[T]
 
-  def enum: Option[Seq[T]] = ??? // TODO remove
-}
 
 case class FormFieldParameterConstrained[T, U](name: Symbol,
                                  description: Option[String] = None,
                                  default: Option[T] = None,
                                  constraints: Constraints[U])
-  extends Parameter[T] {
-
-  def enum: Option[Seq[T]] = ??? // TODO remove
-}
+  extends Parameter[T]

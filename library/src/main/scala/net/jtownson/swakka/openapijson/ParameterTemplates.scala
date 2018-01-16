@@ -14,8 +14,7 @@ object ParameterTemplates {
                   required: Boolean,
                   `type`: String,
                   format: Option[String],
-                  default: Option[JsValue] = None,
-                  enum: Option[JsValue] = None): JsValue =
+                  default: Option[JsValue] = None): JsValue =
     jsObject(
       Some("name" -> JsString(name.name)),
       Some("in" -> JsString(in)),
@@ -23,8 +22,7 @@ object ParameterTemplates {
       Some("required" -> JsBoolean(required)),
       Some("type" -> JsString(`type`)),
       format.map("format" -> JsString(_)),
-      default.map("default" -> _),
-      enum.map("enum" -> _)
+      default.map("default" -> _)
     )
 
   def constrainedParam(name: Symbol,
@@ -74,8 +72,7 @@ object ParameterTemplates {
                    name: Symbol,
                    description: Option[String],
                    required: Boolean,
-                   default: Option[JsValue] = None,
-                   enum: Option[JsValue] = None) = {
+                   default: Option[JsValue] = None) = {
     jsObject(
       Some("name" -> JsString(name.name)),
       Some("in" -> JsString("body")),
@@ -86,28 +83,7 @@ object ParameterTemplates {
     )
   }
 
-  def enumOf[T: JsonFormat](param: PathParameter[T]): Option[JsValue] =
-    param.enum.map(_.toJson)
-
-  def enumOf[T: JsonFormat](
-      param: PathParameterConstrained[T, _]): Option[JsValue] =
-    param.enum.map(_.toJson)
-
-  def enumOf[T: JsonFormat](param: QueryParameter[T]): Option[JsValue] =
-    param.enum.map(_.toJson)
-
-  def enumOfOption[T: JsonFormat](
-      param: QueryParameter[Option[T]]): Option[JsValue] =
-    param.enum.map(seq => seq.flatten).map(_.toJson)
-
   def defaultOf[T: JsonWriter](param: Parameter[Option[T]]): Option[JsValue] =
     param.default.flatten.map(_.toJson)
-
-  def enumOfOption[T: JsonFormat](
-      param: HeaderParameter[Option[T]]): Option[JsValue] =
-    param.enum.map(seq => seq.flatten).map(_.toJson)
-
-  def enumOf[T: JsonFormat](param: HeaderParameter[T]): Option[JsValue] =
-    param.enum.map(_.toJson)
 
 }

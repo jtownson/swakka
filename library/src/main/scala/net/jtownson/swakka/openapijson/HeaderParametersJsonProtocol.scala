@@ -13,8 +13,7 @@ trait HeaderParametersJsonProtocol {
         true,
         "string",
         None,
-        None,
-        enumOf(hp))
+        None)
 
   implicit val strOptHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Option[String]]] =
@@ -25,8 +24,7 @@ trait HeaderParametersJsonProtocol {
         false,
         "string",
         None,
-        defaultOf(hp),
-        enumOfOption(hp))
+        defaultOf(hp))
 
   implicit val floatReqHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Float]] =
@@ -37,8 +35,7 @@ trait HeaderParametersJsonProtocol {
         true,
         "number",
         Some("float"),
-        None,
-        enumOf(hp))
+        None)
 
   implicit val floatOptHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Option[Float]]] =
@@ -49,8 +46,7 @@ trait HeaderParametersJsonProtocol {
         false,
         "number",
         Some("float"),
-        defaultOf(hp),
-        enumOfOption(hp))
+        defaultOf(hp))
 
   implicit val doubleReqHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Double]] =
@@ -61,8 +57,7 @@ trait HeaderParametersJsonProtocol {
         true,
         "number",
         Some("double"),
-        None,
-        enumOf(hp))
+        None)
 
   implicit val doubleOptHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Option[Double]]] =
@@ -73,8 +68,7 @@ trait HeaderParametersJsonProtocol {
         false,
         "number",
         Some("double"),
-        defaultOf(hp),
-        enumOfOption(hp))
+        defaultOf(hp))
 
   implicit val booleanReqHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Boolean]] =
@@ -85,8 +79,7 @@ trait HeaderParametersJsonProtocol {
         true,
         "boolean",
         None,
-        None,
-        enumOf(hp))
+        None)
 
   implicit val booleanOptHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Option[Boolean]]] =
@@ -97,8 +90,7 @@ trait HeaderParametersJsonProtocol {
         false,
         "boolean",
         None,
-        defaultOf(hp),
-        enumOfOption(hp))
+        defaultOf(hp))
 
   implicit val intReqHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Int]] =
@@ -109,8 +101,7 @@ trait HeaderParametersJsonProtocol {
         true,
         "integer",
         Some("int32"),
-        None,
-        enumOf(hp))
+        None)
 
   implicit val intOptHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Option[Int]]] =
@@ -121,8 +112,7 @@ trait HeaderParametersJsonProtocol {
         false,
         "integer",
         Some("int32"),
-        defaultOf(hp),
-        enumOfOption(hp))
+        defaultOf(hp))
 
   implicit val longReqHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Long]] =
@@ -133,8 +123,7 @@ trait HeaderParametersJsonProtocol {
         true,
         "integer",
         Some("int64"),
-        None,
-        enumOf(hp))
+        None)
 
   implicit val longOptHeaderParamFormat
   : ParameterJsonFormat[HeaderParameter[Option[Long]]] =
@@ -145,8 +134,7 @@ trait HeaderParametersJsonProtocol {
         false,
         "integer",
         Some("int64"),
-        defaultOf(hp),
-        enumOfOption(hp))
+        defaultOf(hp))
 
 }
 
