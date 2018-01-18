@@ -147,6 +147,7 @@ Request is missing required query parameter 'name'
 
 The example above took a single ```QueryParameter[String]```. 
 There are additionally
+
 - ```QueryParameter[T]```
 - ```PathParameter[T]```
 - ```HeaderParameter[T]```
@@ -155,6 +156,7 @@ There are additionally
 
 In OpenApi, the set of parameters for an endpoint is given as a JSON array. In Swakka,
 you use any ```Product``` type. Specifically, you can use
+
 - a scala tuple
 ```scala
 parameters =
@@ -198,6 +200,7 @@ parameters = Parameters(
     description = Some("file to upload")
   ))
 ``` 
+
 - a shapeless HList
 ```scala
 import shapeless.{HNil, ::}
@@ -462,9 +465,11 @@ To enable this, your code requires an implicit spray JsonFormat for T
 etc).
 
 Internally, Swakka derives two other type classes
+
 1. A _SchemaWriter_ instance. This is a special JsonFormat that writes the Json Schema for T into the body of the swagger.json
 (i.e. it introspects case class T and spits out a json schema as a String).
-3. A _ConvertibleToDirective_ instance. This is an Akka-Http _Directive_ that will match, marshall and extract the request body. 
+
+2. A _ConvertibleToDirective_ instance. This is an Akka-Http _Directive_ that will match, marshall and extract the request body. 
 
 To enable this, you only need to import openapijson._, but I mention it in case you have problems with
 implicits.
