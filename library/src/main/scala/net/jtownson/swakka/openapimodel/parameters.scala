@@ -23,21 +23,33 @@ sealed trait Parameter[T] {
   def default: Option[T]
 }
 
+trait CollectionFormat {
+  def delimiter: Char
+}
+case object multi extends CollectionFormat {
+  override def delimiter = '\u0000'
+}
+case object csv extends CollectionFormat {
+  override def delimiter = ','
+}
+case object ssv extends CollectionFormat {
+  override def delimiter = ' '
+}
+case object tsv extends CollectionFormat {
+  override def delimiter = '\t'
+}
+case object pipes extends CollectionFormat {
+  override def delimiter = '|'
+}
+
 case class MultiValued[T, U <: Parameter[T]](singleParam: U,
-                                             collectionFormat: CollectionFormat = MultiValued.multi,
+                                             collectionFormat: CollectionFormat = multi,
                                              default: Option[Seq[T]] = None)
     extends Parameter[Seq[T]] {
   override def name: Symbol = singleParam.name
 
   override def description: Option[String] = singleParam.description
 }
-
-trait CollectionFormat
-case object multi extends CollectionFormat
-case object csv extends CollectionFormat
-case object ssv extends CollectionFormat
-case object tsv extends CollectionFormat
-case object pipes extends CollectionFormat
 
 case class FormFieldParameter[T](name: Symbol,
                                  description: Option[String] = None,

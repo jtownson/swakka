@@ -16,11 +16,7 @@
 
 package net.jtownson.swakka.openapiroutegen
 
-import akka.http.scaladsl.server.{
-  Directive1,
-  Rejection,
-  ValidationRejection
-}
+import akka.http.scaladsl.server.{Directive1, Rejection, ValidationRejection}
 import akka.http.scaladsl.server.Directives.{onComplete, provide, reject}
 import akka.http.scaladsl.server.directives.BasicDirectives.extract
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
@@ -50,47 +46,63 @@ trait MultiParamConverters {
       }
 
     implicit def qpch[T]: ConstraintShim[T, T, QueryParameter[T]] = qp => None
-    implicit def qpcch[T]: ConstraintShim[T, T, QueryParameterConstrained[T, T]] = qp => Some(qp.constraints)
+    implicit def qpcch[T]
+      : ConstraintShim[T, T, QueryParameterConstrained[T, T]] =
+      qp => Some(qp.constraints)
 
   }
 
-  implicit val sv: ParamValidator[String, String] = stringValidator
-  implicit val osv: ParamValidator[Option[String], String] = optionValidator(sv)
-  implicit val ssv: ParamValidator[Seq[String], String] = sequenceValidator(sv)
+  implicit val implicitStringValidator: ParamValidator[String, String] = stringValidator
+  implicit val optionStringValidator: ParamValidator[Option[String], String] = optionValidator(implicitStringValidator)
+  implicit val stringSequenceValidator: ParamValidator[Seq[String], String] = sequenceValidator(implicitStringValidator)
 
-  implicit def multiValuedConverter[T, P <: Parameter[T], U](
+  implicit def multiValuedQueryParamConverter[T](
+      implicit um: FromStringUnmarshaller[T],
+      mat: Materializer,
+      ec: ExecutionContext,
+      validator: ParamValidator[Seq[T], T],
+      ch: ConstraintShim[T, T, QueryParameter[T]]): MultiParamConverter[T, QueryParameter[T]] =
+    instance((_: String, mp: MultiValued[T, QueryParameter[T]]) =>
+      marshalledQueryParams(mp.name.name, mp.collectionFormat).flatMap(validateAndProvide(mp, validator, ch)))
+
+  implicit def multiValuedQueryParamConstrainedConverter[T, U](
       implicit um: FromStringUnmarshaller[T],
       mat: Materializer,
       ec: ExecutionContext,
       validator: ParamValidator[Seq[T], U],
-      ch: ConstraintShim[T, U, P]): MultiParamConverter[T, P] =
-    instance((_: String, mp: MultiValued[T, P]) => {
+      ch: ConstraintShim[T, U, QueryParameterConstrained[T, U]]): MultiParamConverter[T, QueryParameterConstrained[T, U]] =
+    instance((_: String, mp: MultiValued[T, QueryParameterConstrained[T, U]]) =>
+      marshalledQueryParams(mp.name.name, mp.collectionFormat).flatMap(validateAndProvide(mp, validator, ch)))
 
-      val marshalledParams: Directive1[Try[Seq[T]]] =
-        queryParamsWithName(mp.name.name)
-          .map(params =>
-            Future.sequence(params.map(param => Unmarshal(param).to[T])))
-          .flatMap(marshalledParams => onComplete(marshalledParams))
+  private def marshalledQueryParams[T](name: String, collectionFormat: CollectionFormat)(implicit um: FromStringUnmarshaller[T],
+                                                                                       mat: Materializer,
+                                                                                       ec: ExecutionContext): Directive1[Try[Seq[T]]] =
+    queryParamsWithName(name, collectionFormat)
+      .map(params =>
+        Future.sequence(params.map(param => Unmarshal(param).to[T])))
+      .flatMap(marshalledParams => onComplete(marshalledParams))
 
-      marshalledParams.flatMap({
-        case Success(Nil) =>
-          mp.singleParam.default match {
-            case Some(default) =>
-              provideWithCheck(Seq(default), mp, validator, ch)
-            case _ =>
-              mp.default match {
-                case Some(defaultSeq) =>
-                  provideWithCheck(defaultSeq, mp, validator, ch)
-                case _ => provideWithCheck(Nil, mp, validator, ch)
-              }
-          }
-        case Success(seq) => provideWithCheck(seq, mp, validator, ch)
-        case Failure(t) =>
-          reject(ValidationRejection(
-            s"Failed to marshal multivalued parameter ${mp.name.name}. The following error occurred: $t",
-            Some(t)))
-      })
-    })
+
+  private def validateAndProvide[T, U, P <: Parameter[T]]
+  (mp: MultiValued[T, P], validator: ParamValidator[Seq[T], U], ch: ConstraintShim[T, U, P])(tst: Try[Seq[T]]): Directive1[Seq[T]] =
+    tst match {
+      case Success(Nil) =>
+        mp.singleParam.default match {
+          case Some(default) =>
+            provideWithCheck(Seq(default), mp, validator, ch)
+          case _ =>
+            mp.default match {
+              case Some(defaultSeq) =>
+                provideWithCheck(defaultSeq, mp, validator, ch)
+              case _ => provideWithCheck(Nil, mp, validator, ch)
+            }
+        }
+      case Success(seq) => provideWithCheck(seq, mp, validator, ch)
+      case Failure(t) =>
+        reject(ValidationRejection(
+          s"Failed to marshal multivalued parameter ${mp.name.name}. The following error occurred: $t",
+          Some(t)))
+    }
 
   private def provideWithCheck[T, P <: Parameter[T], U](
       values: Seq[T],
@@ -107,20 +119,40 @@ trait MultiParamConverters {
       .getOrElse(successDefault)
 
     validationResult.fold(
-      errors => reject(validationRejection(values, p, errors)),
+      errors => reject(validationRejection(values, p.name.name, errors)),
       validatedValues => provide(validatedValues))
   }
 
-  private def validationRejection[T, P <: Parameter[T]](
+  private def validationRejection[T](
       s: Seq[T],
-      p: MultiValued[T, P],
+      paramName: String,
       errMsg: String): Rejection =
     ValidationRejection(
-      s"The value $s is not allowed by this request for parameter ${p.name.name}. $errMsg.")
+      s"The value $s is not allowed by this request for parameter ${paramName}. $errMsg.")
 
-  private def queryParamsWithName(name: String): Directive1[Seq[String]] =
-    extract(_.request.uri.query().toSeq)
-      .map(_.filter({ case (key, _) => name == key }).map(_._2))
-      .flatMap(params => provide(params))
+  private val delimitedFormats: Set[CollectionFormat] = Set(pipes, tsv, csv, ssv)
 
+  private def queryParamsWithName(
+      name: String,
+      collectionFormat: CollectionFormat): Directive1[Seq[String]] =
+    collectionFormat match {
+      case format if format == multi =>
+        extract(_.request.uri.query().toSeq)
+          .map(_.filter({ case (key, _) => name == key }).map(_._2))
+          .flatMap(params => provide(params))
+      case format if delimitedFormats.contains(format) =>
+        extract(_.request.uri.query().toSeq)
+          .map(_.find({ case (key, _) => name == key }).map(_._2))
+          .flatMap(
+            maybeParam => {
+              lazy val rejection: Directive1[Seq[String]] = reject(validationRejection(Nil, name, "The parameter is required but missing"))
+              val provision: String => Directive1[Seq[String]] = param => provide(parse(param, format.delimiter))
+
+              maybeParam.fold(rejection)(provision)
+            }
+          )
+    }
+
+  private def parse(param: String, delimiter: Char): Seq[String] =
+    param.split(delimiter)
 }

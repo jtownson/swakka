@@ -16,9 +16,10 @@
 
 package net.jtownson.swakka.openapiroutegen
 
-import akka.http.scaladsl.model.StatusCodes.{OK, BadRequest}
+import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
 import net.jtownson.swakka.openapimodel._
 import org.scalatest.FlatSpec
+import org.scalatest.prop.TableDrivenPropertyChecks._
 
 class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
 
@@ -28,7 +29,23 @@ class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
       MultiValued[String, QueryParameter[String]](QueryParameter[String]('status)),
       OK,
       extractionAssertion(Seq("a1", "a2")))
+  }
 
+  val formatCases = Table(("description", "format", "request"),
+    ("Pipe separated", pipes, Get(s"http://example.com?status=a1%7Ca2")),
+    ("Comma separated", csv, Get(s"http://example.com?status=a1%2Ca2")),
+    ("Tab separated", tsv, Get(s"http://example.com?status=a1%09a2")),
+    ("Space separated", ssv, Get(s"http://example.com?status=a1%20a2"))
+  )
+
+  forAll(formatCases) { (description, format, request) =>
+    they should s"support '$description' collection format" in {
+      converterTest(
+        request,
+        MultiValued[String, QueryParameter[String]](QueryParameter[String]('status), format),
+        OK,
+        extractionAssertion(Seq("a1", "a2")))
+    }
   }
 
   they should "provide missing values as an empty Seq" in {
