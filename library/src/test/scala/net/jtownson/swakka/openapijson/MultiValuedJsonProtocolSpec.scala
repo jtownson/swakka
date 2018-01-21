@@ -17,12 +17,11 @@
 package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapimodel._
-import HListParametersJsonProtocol._
-
+import net.jtownson.swakka.misc.jsObject
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-
-import spray.json.{JsArray, JsBoolean, JsObject, JsString}
+import org.scalatest.prop.TableDrivenPropertyChecks._
+import spray.json.{JsArray, JsBoolean, JsString}
 import spray.json._
 
 class MultiValuedJsonProtocolSpec extends FlatSpec {
@@ -33,29 +32,124 @@ class MultiValuedJsonProtocolSpec extends FlatSpec {
       name = 'status,
       description = Some("Status values that need to be considered for filter"),
       default = Some("available"),
-      constraints = Constraints(enum = Some(Set("available", "pending", "sold")))
+      constraints =
+        Constraints(enum = Some(Set("available", "pending", "sold")))
     )
 
-    val mqp = MultiValued[String, QueryParameterConstrained[String, String]](qp)
+    val mqp =
+      MultiValued[String, QueryParameterConstrained[String, String]](qp, multi)
 
-    val expectedJson =
-      JsObject(
-        "name" -> JsString("status"),
-        "in" -> JsString("query"),
-        "description" -> JsString("Status values that need to be considered for filter"),
-        "required" -> JsBoolean(true),
-        "type" -> JsString("array"),
-        "items" -> JsObject(
-          "type" -> JsString("string"),
-          "enum" -> JsArray(
-            JsString("available"),
-            JsString("pending"),
-            JsString("sold")
-          )
-        ),
-        "collectionFormat" -> JsString("multi")
-      )
+    mqp.toJson shouldBe arrayJson(
+      JsString("query"),
+      JsString("string"),
+      JsString("multi"),
+      JsString("Status values that need to be considered for filter"),
+      Some(
+        JsArray(JsString("available"), JsString("pending"), JsString("sold")))
+    )
+  }
 
-    mqp.toJson shouldBe expectedJson
+  private def arrayJson(in: JsString,
+                        itemType: JsString,
+                        collectionFormat: JsString,
+                        description: JsString,
+                        enum: Option[JsArray]): JsValue =
+    jsObject(
+      Some("name" -> JsString("status")),
+      Some("in" -> in),
+      Some("description" -> description),
+      Some("required" -> JsBoolean(true)),
+      Some("type" -> JsString("array")),
+      Some(
+        "items" -> jsObject(
+          Some("type" -> itemType),
+          enum.map("enum" -> _)
+        )),
+      Some("collectionFormat" -> collectionFormat)
+    )
+
+  it should "support multi format for form fields" in {
+    val fdp = FormFieldParameter[String]('status, Some("a description"))
+
+    val mfp = MultiValued[String, FormFieldParameter[String]](fdp, multi)
+
+    mfp.toJson shouldBe arrayJson(JsString("formData"),
+                                  JsString("string"),
+                                  JsString("multi"),
+                                  JsString("a description"),
+                                  None)
+  }
+
+  it should "support multi format for path params" in {
+    val pp = PathParameter[String]('status, Some("a description"))
+
+    val mpp = MultiValued[String, PathParameter[String]](pp, multi)
+
+    mpp.toJson shouldBe arrayJson(JsString("path"),
+                                  JsString("string"),
+                                  JsString("multi"),
+                                  JsString("a description"),
+                                  None)
+
+  }
+
+  it should "support multi format for header params" in {
+    val hp = HeaderParameter[String]('status, Some("a description"))
+
+    val mhp = MultiValued[String, HeaderParameter[String]](hp, multi)
+
+    mhp.toJson shouldBe arrayJson(JsString("header"),
+                                  JsString("string"),
+                                  JsString("multi"),
+                                  JsString("a description"),
+                                  None)
+
+  }
+
+  val formatCases = Table(("description", "format"),
+                          ("Pipe separated", pipes),
+                          ("Comma separated", csv),
+                          ("Tab separated", tsv),
+                          ("Space separated", ssv))
+
+  forAll(formatCases) { (description, collectionFormat) =>
+    s"$description" should "work for json serialization" in {
+
+      MultiValued[String, HeaderParameter[String]](
+        HeaderParameter[String]('status, Some("a description")),
+        collectionFormat).toJson shouldBe arrayJson(
+        JsString("header"),
+        JsString("string"),
+        JsString(collectionFormat.toString),
+        JsString("a description"),
+        None)
+
+      MultiValued[String, QueryParameter[String]](
+        QueryParameter[String]('status, Some("a description")),
+        collectionFormat).toJson shouldBe arrayJson(
+        JsString("query"),
+        JsString("string"),
+        JsString(collectionFormat.toString),
+        JsString("a description"),
+        None)
+
+      MultiValued[String, FormFieldParameter[String]](
+        FormFieldParameter[String]('status, Some("a description")),
+        collectionFormat).toJson shouldBe arrayJson(
+        JsString("formData"),
+        JsString("string"),
+        JsString(collectionFormat.toString),
+        JsString("a description"),
+        None)
+
+      MultiValued[String, PathParameter[String]](
+        PathParameter[String]('status, Some("a description")),
+        collectionFormat).toJson shouldBe arrayJson(
+        JsString("path"),
+        JsString("string"),
+        JsString(collectionFormat.toString),
+        JsString("a description"),
+        None)
+    }
   }
 }

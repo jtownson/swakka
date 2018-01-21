@@ -24,20 +24,20 @@ sealed trait Parameter[T] {
 }
 
 case class MultiValued[T, U <: Parameter[T]](singleParam: U,
-                                             name: Symbol,
-                                             description: Option[String],
-                                             default: Option[Seq[T]])
-    extends Parameter[Seq[T]]
+                                             collectionFormat: CollectionFormat = MultiValued.multi,
+                                             default: Option[Seq[T]] = None)
+    extends Parameter[Seq[T]] {
+  override def name: Symbol = singleParam.name
 
-object MultiValued {
-  def apply[T, U <: Parameter[T]](
-      singleParam: U,
-      default: Option[Seq[T]] = None): MultiValued[T, U] =
-    MultiValued[T, U](singleParam,
-                      singleParam.name,
-                      singleParam.description,
-                      default)
+  override def description: Option[String] = singleParam.description
 }
+
+trait CollectionFormat
+case object multi extends CollectionFormat
+case object csv extends CollectionFormat
+case object ssv extends CollectionFormat
+case object tsv extends CollectionFormat
+case object pipes extends CollectionFormat
 
 case class FormFieldParameter[T](name: Symbol,
                                  description: Option[String] = None,

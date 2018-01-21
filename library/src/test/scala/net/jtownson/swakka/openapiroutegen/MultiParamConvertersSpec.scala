@@ -53,7 +53,7 @@ class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
 
     converterTest(
       Get(s"http://example.com"),
-      MultiValued[String, QueryParameter[String]](qp, Some(Seq("a", "b"))),
+      MultiValued[String, QueryParameter[String]](qp, multi, Some(Seq("a", "b"))),
       OK,
       extractionAssertion(Seq("a", "b")))
   }
@@ -82,7 +82,6 @@ class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
       OK,
       extractionAssertion(Seq("a")))
 
-    // TODO For these cases it would be better to fail during param.apply
     // values missing but inner default is outside the enum
     converterTest[Seq[String], MultiValued[String, QueryParameterConstrained[String, String]]](
       Get(s"http://example.com"),
