@@ -16,9 +16,11 @@
 
 package net.jtownson.swakka.openapiroutegen
 
+import akka.http.scaladsl.model.HttpHeader
 import akka.http.scaladsl.server.{Directive1, Rejection, ValidationRejection}
 import akka.http.scaladsl.server.Directives.{onComplete, provide, reject}
 import akka.http.scaladsl.server.directives.BasicDirectives.extract
+import akka.http.scaladsl.server.directives.HeaderDirectives._
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
 import akka.stream.Materializer
 import net.jtownson.swakka.coreroutegen.ConvertibleToDirective.instance
@@ -45,16 +47,28 @@ trait MultiParamConverters {
         override def constraints(param: P) = f(param)
       }
 
-    implicit def qpch[T]: ConstraintShim[T, T, QueryParameter[T]] = qp => None
-    implicit def qpcch[T]
-      : ConstraintShim[T, T, QueryParameterConstrained[T, T]] =
-      qp => Some(qp.constraints)
+    implicit def qpch[T]: ConstraintShim[T, T, QueryParameter[T]] = p => None
+    implicit def qpcch[T]: ConstraintShim[T, T, QueryParameterConstrained[T, T]] = p => Some(p.constraints)
 
+    implicit def hpch[T]: ConstraintShim[T, T, HeaderParameter[T]] = p => None
+    implicit def hpcch[T]: ConstraintShim[T, T, HeaderParameterConstrained[T, T]] = p => Some(p.constraints)
+
+//    implicit def ppch[T]: ConstraintShim[T, T, PathParameter[T]] = p => None
+//    implicit def ppcch[T]: ConstraintShim[T, T, PathParameterConstrained[T, T]] = p => Some(p.constraints)
+
+    implicit def ffpch[T]: ConstraintShim[T, T, FormFieldParameter[T]] = p => None
+    implicit def ffpcch[T]: ConstraintShim[T, T, FormFieldParameterConstrained[T, T]] = p => Some(p.constraints)
   }
 
   implicit val implicitStringValidator: ParamValidator[String, String] = stringValidator
-  implicit val optionStringValidator: ParamValidator[Option[String], String] = optionValidator(implicitStringValidator)
-  implicit val stringSequenceValidator: ParamValidator[Seq[String], String] = sequenceValidator(implicitStringValidator)
+  implicit val implicitIntValidator: ParamValidator[Int, Int] = integralValidator
+  implicit val implicitLongValidator: ParamValidator[Long, Long] = integralValidator
+  implicit val implicitFloatValidator: ParamValidator[Float, Float] = numberValidator
+  implicit val implicitDoubleValidator: ParamValidator[Double, Double] = numberValidator
+  implicit val implicitBooleanValidator: ParamValidator[Boolean, Boolean] = anyValidator
+
+  implicit def implicitOptionValidator[T](implicit ev: ParamValidator[T, T]): ParamValidator[Option[T], T] = optionValidator(ev)
+  implicit def implicitSequenceValidator[T](implicit ev: ParamValidator[T, T]): ParamValidator[Seq[T], T] = sequenceValidator(ev)
 
   implicit def multiValuedQueryParamConverter[T](
       implicit um: FromStringUnmarshaller[T],
@@ -63,7 +77,7 @@ trait MultiParamConverters {
       validator: ParamValidator[Seq[T], T],
       ch: ConstraintShim[T, T, QueryParameter[T]]): MultiParamConverter[T, QueryParameter[T]] =
     instance((_: String, mp: MultiValued[T, QueryParameter[T]]) =>
-      marshalledQueryParams(mp.name.name, mp.collectionFormat).flatMap(validateAndProvide(mp, validator, ch)))
+      marshallParams(queryParamsWithName(mp.name.name, mp.collectionFormat)).flatMap(validateAndProvide(mp, validator, ch)))
 
   implicit def multiValuedQueryParamConstrainedConverter[T, U](
       implicit um: FromStringUnmarshaller[T],
@@ -72,16 +86,33 @@ trait MultiParamConverters {
       validator: ParamValidator[Seq[T], U],
       ch: ConstraintShim[T, U, QueryParameterConstrained[T, U]]): MultiParamConverter[T, QueryParameterConstrained[T, U]] =
     instance((_: String, mp: MultiValued[T, QueryParameterConstrained[T, U]]) =>
-      marshalledQueryParams(mp.name.name, mp.collectionFormat).flatMap(validateAndProvide(mp, validator, ch)))
+      marshallParams(queryParamsWithName(mp.name.name, mp.collectionFormat)).flatMap(validateAndProvide(mp, validator, ch)))
 
-  private def marshalledQueryParams[T](name: String, collectionFormat: CollectionFormat)(implicit um: FromStringUnmarshaller[T],
-                                                                                       mat: Materializer,
-                                                                                       ec: ExecutionContext): Directive1[Try[Seq[T]]] =
-    queryParamsWithName(name, collectionFormat)
+  implicit def multiValuedHeaderParamConverter[T](
+      implicit um: FromStringUnmarshaller[T],
+      mat: Materializer,
+      ec: ExecutionContext,
+      validator: ParamValidator[Seq[T], T],
+      ch: ConstraintShim[T, T, HeaderParameter[T]]): MultiParamConverter[T, HeaderParameter[T]] =
+    instance((_: String, mp: MultiValued[T, HeaderParameter[T]]) =>
+      marshallParams(headerParamsWithName(mp.name.name, mp.collectionFormat)).flatMap(validateAndProvide(mp, validator, ch)))
+
+  implicit def multiValuedHeaderParamConstrainedConverter[T, U](
+      implicit um: FromStringUnmarshaller[T],
+      mat: Materializer,
+      ec: ExecutionContext,
+      validator: ParamValidator[Seq[T], U],
+      ch: ConstraintShim[T, U, HeaderParameterConstrained[T, U]]): MultiParamConverter[T, HeaderParameterConstrained[T, U]] =
+    instance((_: String, mp: MultiValued[T, HeaderParameterConstrained[T, U]]) =>
+      marshallParams(headerParamsWithName(mp.name.name, mp.collectionFormat)).flatMap(validateAndProvide(mp, validator, ch)))
+
+  private def marshallParams[T](paramExtraction: Directive1[Seq[String]])(implicit um: FromStringUnmarshaller[T],
+                                                                     mat: Materializer,
+                                                                     ec: ExecutionContext): Directive1[Try[Seq[T]]] =
+    paramExtraction
       .map(params =>
         Future.sequence(params.map(param => Unmarshal(param).to[T])))
       .flatMap(marshalledParams => onComplete(marshalledParams))
-
 
   private def validateAndProvide[T, U, P <: Parameter[T]]
   (mp: MultiValued[T, P], validator: ParamValidator[Seq[T], U], ch: ConstraintShim[T, U, P])(tst: Try[Seq[T]]): Directive1[Seq[T]] =
@@ -128,7 +159,7 @@ trait MultiParamConverters {
       paramName: String,
       errMsg: String): Rejection =
     ValidationRejection(
-      s"The value $s is not allowed by this request for parameter ${paramName}. $errMsg.")
+      s"The value $s is not allowed by this request for parameter $paramName. $errMsg.")
 
   private val delimitedFormats: Set[CollectionFormat] = Set(pipes, tsv, csv, ssv)
 
@@ -151,6 +182,23 @@ trait MultiParamConverters {
               maybeParam.fold(rejection)(provision)
             }
           )
+    }
+
+  private def headerParamsWithName(
+      name: String,
+      collectionFormat: CollectionFormat): Directive1[Seq[String]] =
+    collectionFormat match {
+      case format if format == multi => {
+        extract(_.request.headers)
+          .map(_.filter({ case HttpHeader(key, _) => key == name.toLowerCase }).map(_.value))
+            .flatMap(headerValues => provide(headerValues))
+      }
+      case format if delimitedFormats.contains(format) =>
+        optionalHeaderValueByName(name).flatMap(maybeHeader => {
+          lazy val rejection: Directive1[Seq[String]] = reject(validationRejection(Nil, name, s"The header $name is required but missing"))
+          val provision: String => Directive1[Seq[String]] = header => provide(parse(header, format.delimiter))
+          maybeHeader.fold(rejection)(provision)
+        })
     }
 
   private def parse(param: String, delimiter: Char): Seq[String] =

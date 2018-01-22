@@ -16,7 +16,9 @@
 
 package net.jtownson.swakka.openapiroutegen
 
+import akka.http.scaladsl.model.{HttpHeader, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
+import akka.http.scaladsl.model.headers.RawHeader
 import net.jtownson.swakka.openapimodel._
 import org.scalatest.FlatSpec
 import org.scalatest.prop.TableDrivenPropertyChecks._
@@ -31,20 +33,69 @@ class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
       extractionAssertion(Seq("a1", "a2")))
   }
 
-  val formatCases = Table(("description", "format", "request"),
+  val stringQueryFormatCases = Table(
+    ("description", "format", "request"),
+    ("Multi param", multi, Get(s"http://example.com?status=a1&status=a2")),
     ("Pipe separated", pipes, Get(s"http://example.com?status=a1%7Ca2")),
     ("Comma separated", csv, Get(s"http://example.com?status=a1%2Ca2")),
     ("Tab separated", tsv, Get(s"http://example.com?status=a1%09a2")),
     ("Space separated", ssv, Get(s"http://example.com?status=a1%20a2"))
   )
 
-  forAll(formatCases) { (description, format, request) =>
-    they should s"support '$description' collection format" in {
+  forAll(stringQueryFormatCases) { (description, format, request) =>
+    "multi query params" should s"support '$description' collection format for strings" in {
       converterTest(
         request,
         MultiValued[String, QueryParameter[String]](QueryParameter[String]('status), format),
         OK,
         extractionAssertion(Seq("a1", "a2")))
+
+      converterTest(
+        request,
+        MultiValued[String, QueryParameterConstrained[String, String]](QueryParameterConstrained[String, String](name = 'status, constraints = Constraints()), format),
+        OK,
+        extractionAssertion(Seq("a1", "a2")))
+    }
+  }
+
+  val intQueryFormatCases = Table(
+    ("description", "format", "request"),
+    ("Multi param", multi, Get(s"http://example.com?status=1&status=2")),
+    ("Pipe separated", pipes, Get(s"http://example.com?status=1%7C2")),
+    ("Comma separated", csv, Get(s"http://example.com?status=1%2C2")),
+    ("Tab separated", tsv, Get(s"http://example.com?status=1%092")),
+    ("Space separated", ssv, Get(s"http://example.com?status=1%202"))
+  )
+
+  forAll(intQueryFormatCases) { (description, format, request) =>
+    "multi query params" should s"support '$description' collection format for ints" in {
+      converterTest(
+        request,
+        MultiValued[Int, QueryParameter[Int]](QueryParameter[Int]('status), format),
+        OK,
+        extractionAssertion(Seq(1, 2)))
+    }
+  }
+
+  private def hGet(httpHeaders: HttpHeader*): HttpRequest =
+    Get(s"http://example.com?status=1&status=2").withHeaders(httpHeaders: _*)
+
+  val intHeaderFormatCases = Table(
+    ("description", "format", "request"),
+    ("Multi param", multi, hGet(RawHeader("x", "1"), RawHeader("x", "2"))),
+    ("Pipe separated", pipes, hGet(RawHeader("x", "1|2"))),
+    ("Comma separated", csv, hGet(RawHeader("x", "1,2"))),
+    ("Tab separated", tsv, hGet(RawHeader("x", "1\t2"))),
+    ("Space separated", ssv, hGet(RawHeader("x", "1 2")))
+  )
+
+  forAll(intHeaderFormatCases) { (description, format, request) =>
+    "multi header params" should s"support '$description' collection format for ints" in {
+      converterTest(
+        request,
+        MultiValued[Int, HeaderParameter[Int]](HeaderParameter[Int]('x), format),
+        OK,
+        extractionAssertion(Seq(1, 2)))
     }
   }
 
