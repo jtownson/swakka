@@ -80,24 +80,24 @@ case class HeaderParameter[T](name: Symbol,
 case class PathParameterConstrained[T, U](name: Symbol,
                                        description: Option[String] = None,
                                        default: Option[T] = None,
-                                       constraints: Constraints[U])
+                                       constraints: Constraints[U] = Constraints[U]())
   extends Parameter[T]
 
 case class HeaderParameterConstrained[T, U](name: Symbol,
                               description: Option[String] = None,
                               default: Option[T] = None,
-                              constraints: Constraints[U])
+                              constraints: Constraints[U] = Constraints[U]())
   extends Parameter[T]
 
 case class QueryParameterConstrained[T, U](name: Symbol,
                               description: Option[String] = None,
                               default: Option[T] = None,
-                              constraints: Constraints[U])
+                              constraints: Constraints[U] = Constraints[U]())
   extends Parameter[T]
 
 
 case class FormFieldParameterConstrained[T, U](name: Symbol,
                                  description: Option[String] = None,
                                  default: Option[T] = None,
-                                 constraints: Constraints[U])
+                                 constraints: Constraints[U] = Constraints[U]())
   extends Parameter[T]

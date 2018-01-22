@@ -16,7 +16,7 @@
 
 package net.jtownson.swakka.openapiroutegen
 
-import akka.http.scaladsl.model.{HttpHeader, HttpRequest}
+import akka.http.scaladsl.model.{FormData, HttpHeader, HttpRequest}
 import akka.http.scaladsl.model.StatusCodes.{BadRequest, OK}
 import akka.http.scaladsl.model.headers.RawHeader
 import net.jtownson.swakka.openapimodel._
@@ -74,6 +74,12 @@ class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
         MultiValued[Int, QueryParameter[Int]](QueryParameter[Int]('status), format),
         OK,
         extractionAssertion(Seq(1, 2)))
+
+      converterTest(
+        request,
+        MultiValued[Int, QueryParameterConstrained[Int, Int]](QueryParameterConstrained[Int, Int]('status), format),
+        OK,
+        extractionAssertion(Seq(1, 2)))
     }
   }
 
@@ -94,6 +100,40 @@ class MultiParamConvertersSpec extends FlatSpec with ConverterTest {
       converterTest(
         request,
         MultiValued[Int, HeaderParameter[Int]](HeaderParameter[Int]('x), format),
+        OK,
+        extractionAssertion(Seq(1, 2)))
+
+      converterTest(
+        request,
+        MultiValued[Int, HeaderParameterConstrained[Int, Int]](HeaderParameterConstrained[Int, Int]('x), format),
+        OK,
+        extractionAssertion(Seq(1, 2)))
+    }
+  }
+
+  private def fPost(kvs: (String, String)*): HttpRequest =
+    Post("/", FormData(kvs: _*))
+
+  val intFormFieldFormatCases = Table(
+    ("description", "format", "request"),
+    ("Multi param", multi, fPost("x" -> "1", "x" -> "2")),
+    ("Pipe separated", pipes, fPost("x" -> "1|2")),
+    ("Comma separated", csv, fPost("x" -> "1,2")),
+    ("Tab separated", tsv, fPost("x" -> "1\t2")),
+    ("Space separated", ssv, fPost("x" -> "1 2"))
+  )
+
+  forAll(intFormFieldFormatCases) { (description, format, request) =>
+    "multi form field params" should s"support '$description' collection format for ints" in {
+      converterTest(
+        request,
+        MultiValued[Int, FormFieldParameter[Int]](FormFieldParameter[Int]('x), format),
+        OK,
+        extractionAssertion(Seq(1, 2)))
+
+      converterTest(
+        request,
+        MultiValued[Int, FormFieldParameterConstrained[Int, Int]](FormFieldParameterConstrained[Int, Int]('x), format),
         OK,
         extractionAssertion(Seq(1, 2)))
     }

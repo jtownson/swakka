@@ -21,6 +21,7 @@ import akka.http.scaladsl.server.{Directive1, Rejection, ValidationRejection}
 import akka.http.scaladsl.server.Directives.{onComplete, provide, reject}
 import akka.http.scaladsl.server.directives.BasicDirectives.extract
 import akka.http.scaladsl.server.directives.HeaderDirectives._
+import akka.http.scaladsl.server.directives.FormFieldDirectives._
 import akka.http.scaladsl.unmarshalling.{FromStringUnmarshaller, Unmarshal}
 import akka.stream.Materializer
 import net.jtownson.swakka.coreroutegen.ConvertibleToDirective.instance
@@ -53,11 +54,12 @@ trait MultiParamConverters {
     implicit def hpch[T]: ConstraintShim[T, T, HeaderParameter[T]] = p => None
     implicit def hpcch[T]: ConstraintShim[T, T, HeaderParameterConstrained[T, T]] = p => Some(p.constraints)
 
-//    implicit def ppch[T]: ConstraintShim[T, T, PathParameter[T]] = p => None
-//    implicit def ppcch[T]: ConstraintShim[T, T, PathParameterConstrained[T, T]] = p => Some(p.constraints)
-
     implicit def ffpch[T]: ConstraintShim[T, T, FormFieldParameter[T]] = p => None
     implicit def ffpcch[T]: ConstraintShim[T, T, FormFieldParameterConstrained[T, T]] = p => Some(p.constraints)
+
+    // Array value path parameters are apparently in the swagger spec,
+    // but would anybody split their url paths with pipes or commas??!
+    // Leaving out for now.
   }
 
   implicit val implicitStringValidator: ParamValidator[String, String] = stringValidator
@@ -105,6 +107,24 @@ trait MultiParamConverters {
       ch: ConstraintShim[T, U, HeaderParameterConstrained[T, U]]): MultiParamConverter[T, HeaderParameterConstrained[T, U]] =
     instance((_: String, mp: MultiValued[T, HeaderParameterConstrained[T, U]]) =>
       marshallParams(headerParamsWithName(mp.name.name, mp.collectionFormat)).flatMap(validateAndProvide(mp, validator, ch)))
+
+  implicit def multiValuedFormFieldParamConverter[T](
+      implicit um: FromStringUnmarshaller[T],
+      mat: Materializer,
+      ec: ExecutionContext,
+      validator: ParamValidator[Seq[T], T],
+      ch: ConstraintShim[T, T, FormFieldParameter[T]]): MultiParamConverter[T, FormFieldParameter[T]] =
+    instance((_: String, mp: MultiValued[T, FormFieldParameter[T]]) =>
+      marshallParams(formFieldParamsWithName(mp.name.name, mp.collectionFormat)).flatMap(validateAndProvide(mp, validator, ch)))
+
+  implicit def multiValuedFormFieldParamConstrainedConverter[T, U](
+      implicit um: FromStringUnmarshaller[T],
+      mat: Materializer,
+      ec: ExecutionContext,
+      validator: ParamValidator[Seq[T], U],
+      ch: ConstraintShim[T, U, FormFieldParameterConstrained[T, U]]): MultiParamConverter[T, FormFieldParameterConstrained[T, U]] =
+    instance((_: String, mp: MultiValued[T, FormFieldParameterConstrained[T, U]]) =>
+      marshallParams(formFieldParamsWithName(mp.name.name, mp.collectionFormat)).flatMap(validateAndProvide(mp, validator, ch)))
 
   private def marshallParams[T](paramExtraction: Directive1[Seq[String]])(implicit um: FromStringUnmarshaller[T],
                                                                      mat: Materializer,
@@ -199,6 +219,16 @@ trait MultiParamConverters {
           val provision: String => Directive1[Seq[String]] = header => provide(parse(header, format.delimiter))
           maybeHeader.fold(rejection)(provision)
         })
+    }
+
+  private def formFieldParamsWithName(
+      name: String,
+      collectionFormat: CollectionFormat): Directive1[Seq[String]] =
+    collectionFormat match {
+      case format if format == multi =>
+        formFields(name.as[String].*).map(_.toSeq)
+      case format if delimitedFormats.contains(format) =>
+        formField(name.as[String]).map(value => parse(value, format.delimiter))
     }
 
   private def parse(param: String, delimiter: Char): Seq[String] =
