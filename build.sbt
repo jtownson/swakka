@@ -18,7 +18,7 @@ import sbt.Keys.scalaVersion
 
 lazy val commonSettings = Seq(
   organization := "net.jtownson",
-  version := "0.1a-SNAPSHOT",
+  version := "0.5",
 
 //  scalaOrganization := "org.typelevel",
 //  scalaVersion := "2.12.4-bin-typelevel-4",
