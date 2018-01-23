@@ -202,6 +202,7 @@ parameters = Parameters(
 ``` 
 
 - a shapeless HList
+
 ```scala
 import shapeless.{HNil, ::}
 // ...
@@ -226,12 +227,11 @@ parameters =
 ```
 
 
-```
 The parameters Product type of each endpoint in your API defines a _Params_ type parameter.
 See ```net.jtownson.swakka.openapimodel.Operation```.
 
-For each of your swagger endpoints, you provide an endpoint implementation function. This is
-what handles the request. The function type of this endpoint implementation is dependent on the
+For each of your swagger endpoints, you provide an endpoint implementation function to handles the request.
+The function type of this endpoint implementation is dependent on the
 Params type definition. If for instance,
 
 ```scala
@@ -242,121 +242,8 @@ then the endpoint will have a dependent function type of ```(Boolean, String, Lo
 
 This is a key point. Swakka reads the Params defined in your endpoints and generates Akka-Http
 Routes that extract those Params. The Route returned from your endpoint function is then used
-as a nested, inner Route. 
+as a nested, inner Route which completes the response. 
 
-### Responses
-
-The responses from your API are defined in the same fashion, except responses comprises 
-a Product of ```ResponseValue[_, _]``` elements. 
-
-For example, as a HList.
-```scala
-val responses = 
-  ResponseValue[String](
-    responseCode = "404",
-    description = "Pet not found with the id provided. Response body contains a String error message."
-  ) ::
-  ResponseValue[Pet](
-    responseCode = "200",
-    description = "Pet returned in the response body"
-  ) ::
-  ResponseValue[Error](
-    responseCode = "500",
-    description = "There was an error. Response will contain an Error json object to help debugging."
-  ) ::
-  HNil
-```
-
-or equivalently a tuple
-```scala
-val responses = 
-(
-  ResponseValue[String](
-    responseCode = "404",
-    description = "Pet not found with the id provided. Response body contains a String error message."
-  ),
-  ResponseValue[Pet](
-    responseCode = "200",
-    description = "Pet returned in the response body"
-  ),
-  ResponseValue[Error](
-    responseCode = "500",
-    description = "There was an error. Response will contain an Error json object to help debugging."
-  )
-)
-```
-
-Each ```ResponseValue``` takes two type parameters:
-
-1. The type of the response body. This can be any any case class. 
-As for any Akka-Http app, you need a a spray ```JsonFormat``` to enable marshalling of your response.
-Additionally, Swakka generates a ```SchemaWriter```, which is another ```JsonFormat``` for writing
-a json schema for the case class into the swagger file.
-    
-2. Any headers set in the response (e.g. caching headers)
-
-This provides a declarative, type-level approach to generating swagger response elements.
-
-Here is an example to show how it works:
-
-```scala
-import net.jtownson.swakka.openapimodel._
-import net.jtownson.swakka.openapijson._
-
-import spray.json._
-
-case class Success(id: String)
-
-type CacheControl = Header[String]
-
-// This is a responses definition, which you can include in a wider API definition
-val responses: Responses = 
-  ResponseValue[Success, CacheControl](
-    responseCode = "200", 
-    description = "ok",
-    headers = Header[String](Symbol("cache-control"), Some("a cache control header specifying the max-age of the entity")))
-    
-// Or just print directly
-println(responses.toJson)    
-```
-
-This will output the following Swagger snippet
-```json
-{
-  "200": {
-    "description": "ok",
-    "headers": {
-      "cache-control": {
-        "type": "string",
-        "description": "a cache control header specifying the max-age of the entity"
-      }
-    },
-    "schema": {
-      "type": "object",
-      "required": ["id"],
-      "properties": {
-        "id": {
-          "type": "string"
-        }
-      }
-    }
-  }
-}
-```  
-
-Given your OpenApi definition, Swakka creates two things:
-
-1. An Akka Route
-2. A swagger.json
-
-Note that ```Response[T, Headers]``` definitions do not modify the generated Akka Route (step 1), 
-they only modify the swagger.json (step 2).
-
-This means neither the scala compiler nor Akka's runtime will tell you if the response types declared in your OpenApi 
-definition are in sync with the actual type returned by your endpoint implementation.
-If you change the return type of an endpoint, you must _remember_ to update the OpenApi definition.
-
-(I am working on fixing this).
 
 ### Optional Parameters
 
@@ -471,7 +358,7 @@ Internally, Swakka derives two other type classes
 
 2. A _ConvertibleToDirective_ instance. This is an Akka-Http _Directive_ that will match, marshall and extract the request body. 
 
-To enable this, you only need to import openapijson._, but I mention it in case you have problems with
+To enable this, you only need to import openapijson._, coreroutegen._ and openapiroutegen._, but I mention it in case you have problems with
 implicits.
 
 Here is some example code showing these two steps (taken from the Petstore2 testcase):
@@ -517,10 +404,130 @@ class Petstore2Spec extends FlatSpec with RouteTest with TestFrameworkInterface 
 If you want to see some fully working, copy-and-pasteable code, there are implementations of the Petstore app in Swakka's
 examples project and in the library unit tests. Take your pick.
 
-### Annotating BodyParameters and Responses
-You will probably want to annotate your custom model classes (either those used for requests or for responses) so that
-the swagger file contains useful comments about each of the fields.
+### Responses
 
+The Swagger response declarations for your API are defined in a similar fashion to parameters, except responses comprise 
+a Product of ```ResponseValue[_, _]``` elements. 
+
+For example, as a HList.
+```scala
+val responses = 
+  ResponseValue[String](
+    responseCode = "404",
+    description = "Pet not found with the id provided. Response body contains a String error message."
+  ) ::
+  ResponseValue[Pet](
+    responseCode = "200",
+    description = "Pet returned in the response body"
+  ) ::
+  ResponseValue[Error](
+    responseCode = "500",
+    description = "There was an error. Response will contain an Error json object to help debugging."
+  ) ::
+  HNil
+```
+
+or equivalently a tuple
+```scala
+val responses = 
+(
+  ResponseValue[String](
+    responseCode = "404",
+    description = "Pet not found with the id provided. Response body contains a String error message."
+  ),
+  ResponseValue[Pet](
+    responseCode = "200",
+    description = "Pet returned in the response body"
+  ),
+  ResponseValue[Error](
+    responseCode = "500",
+    description = "There was an error. Response will contain an Error json object to help debugging."
+  )
+)
+```
+
+Each ```ResponseValue``` takes two type parameters:
+
+1. The type of the response body. This response body type can be a Swagger native type (
+String, Boolean, Float, Double, Int, or Long), a case class or a Seq or Map built from these
+types). 
+ 
+The main requirement from a Scala point of view is that, for these types, the compiler can find 
+a spray ```JsonFormat``` to enable marshalling of your response (as for any Akka-Htt app), plus a Swakka 
+```SchemaWriter```. SchemaWriter is an extension to ```JsonFormat``` for writing a json schema for the response type
+(and body parameters) into the swagger file. Swakka provides SchemaWriter instances for all the types mentioned above
+(including arbitrary case classes). For any other type, use can write a custom SchemaWriter (in
+a similar fashion to the way you would provide a custom Spray JsonFormat). See Petstore2Spec in
+the codebase for an example.
+    
+2. Any headers set in the response (e.g. caching headers). See the example below.
+
+This provides a declarative, type-level approach to generating swagger response elements.
+
+Here is an example to show how it works:
+
+```scala
+import net.jtownson.swakka.openapimodel._
+import net.jtownson.swakka.openapijson._
+
+import spray.json._
+
+case class Success(id: String)
+
+type CacheControl = Header[String]
+
+// This is a responses definition, which you can include in a wider API definition
+val responses: Responses = 
+  ResponseValue[Success, CacheControl](
+    responseCode = "200", 
+    description = "ok",
+    headers = Header[String](Symbol("cache-control"), Some("a cache control header specifying the max-age of the entity")))
+    
+// Or just print directly
+println(responses.toJson)    
+```
+
+This will output the following Swagger snippet
+```json
+{
+  "200": {
+    "description": "ok",
+    "headers": {
+      "cache-control": {
+        "type": "string",
+        "description": "a cache control header specifying the max-age of the entity"
+      }
+    },
+    "schema": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+```  
+
+Given your OpenApi definition, Swakka creates two things:
+
+1. An Akka Route. This extracts declared request parameters and passes them to your endpoint functions.
+2. A swagger.json to provide your api definition to the world outside.
+
+Note that ```Response[T, Headers]``` definitions do not modify the generated Akka Route (step 1), 
+they only modify the swagger.json (step 2).
+
+This means neither the scala compiler nor Akka's runtime will tell you if the response types declared in your OpenApi 
+definition are in sync with the actual type returned by your endpoint functions.
+If you change the return type of an endpoint, you must _remember_ to update the OpenApi definition.
+
+(I am considering options to fix this).
+
+
+### Annotating BodyParameters and Responses
+For your custom request and response types, you will often want to provide useful documentation about their fields.
 There are two ways to do this. 
 
 The first is using a Swagger annotation called @ApiModelProperty.
@@ -537,10 +544,10 @@ import net.jtownson.swakka.jsonprotocol._
 case class A(@ApiModelProperty("some docs about foo") foo: Int)
 ```
 
-The second is to create your own ```ClassDoc[T]``` and bring that into scope. 
+The second is to create your own implicit ```ClassDoc[T]``` instance and bring that into scope. 
 It has a single method, called ```entries``` which returns a ```Map[String, FieldDoc]``` 
-describing some or all of the fields in your model classes. If you want to return
-hardcoded maps on a class by class basis, you can use an apply method on ClassDoc.
+describing some or all of the fields in a model class. The ```ClassDoc``` companion object provides
+an apply to turn a ```Map[String, FieldDoc]``` directly into a ```ClassDoc```.
 e.g.
 
 ```scala
