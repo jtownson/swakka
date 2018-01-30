@@ -30,12 +30,18 @@ lazy val commonSettings = Seq(
   scalacOptions := Seq(/*"-Xlog-implicits",*/ "-Ypartial-unification", "-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 )
 
+val sonatypeCredentialsFile = Path.userHome / ".sbt" / "0.13" / ".sonatype_credentials"
+
 lazy val sonatypeCredentials = (sys.env.get("SONATYPE_USER"), sys.env.get("SONATYPE_PASSWORD")) match {
   case (Some(user), Some(password)) =>
     Credentials("Sonatype Nexus Repository Manager",
       "oss.sonatype.org",
       user, password)
-  case _ => Credentials.toDirect(Credentials(Path.userHome / ".sbt" / "0.13" / ".sonatype_credentials"))
+  case _ if sonatypeCredentialsFile.isFile => Credentials.toDirect(Credentials(sonatypeCredentialsFile))
+  case _ => Credentials("Sonatype Nexus Repository Manager",
+      "oss.sonatype.org",
+      "guest", "")
+
 }
 
 lazy val sonatypeSettings = Seq(
