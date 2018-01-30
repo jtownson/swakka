@@ -35,6 +35,12 @@ import net.jtownson.swakka.openapijson._
 
 import scala.collection.mutable
 
+/**
+  * This is the original Swagger V1 petstore example.
+  * Note, it checks the host header and has a basePath.
+  * Run with
+  * curl -H 'Host: petstore.swagger.io:8080' -i localhost:8080/v1/swagger.json
+  */
 object PetstoreV1 extends App {
 
   case class Pet(id: String, name: String, tag: Option[String] = None)
