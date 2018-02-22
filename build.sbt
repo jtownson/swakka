@@ -18,7 +18,7 @@ import sbt.Keys.scalaVersion
 
 lazy val commonSettings = Seq(
   organization := "net.jtownson",
-  version := "0.51-SNAPSHOT",
+  version := "0.51",
 
 //  scalaOrganization := "org.typelevel",
 //  scalaVersion := "2.12.4-bin-typelevel-4",
@@ -45,9 +45,9 @@ lazy val sonatypeCredentials = (sys.env.get("SONATYPE_USER"), sys.env.get("SONAT
 }
 
 lazy val sonatypeSettings = Seq(
-  homepage := Some(url("https://bitbucket.org/jtownson/swakka")),
-  scmInfo := Some(ScmInfo(url("https://bitbucket.org/jtownson/swakka"), "git@bitbucket.org:jtownson/swakka.git")),
-  developers := List(Developer("jtownson", "Jeremy Townson", "jeremy dot townson at gmail dot com", url("https://bitbucket.org/jtownson"))),
+  homepage := Some(url("https://github.com/jtownson/swakka")),
+  scmInfo := Some(ScmInfo(url("https://github.com/jtownson/swakka"), "git@github.com:jtownson/swakka.git")),
+  developers := List(Developer("jtownson", "Jeremy Townson", "jeremy dot townson at gmail dot com", url("https://github.com/jtownson"))),
   licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
   pomIncludeRepository := (_ => false),
 

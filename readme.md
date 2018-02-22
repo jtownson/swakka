@@ -4,7 +4,7 @@ Swakka - Swagger for Akka-Http
 Quickstart
 
 ```sbtshell
-libraryDependencies += "net.jtownson" %% "swakka" % "0.5" 
+libraryDependencies += "net.jtownson" %% "swakka" % "0.51"
 ```
 
 Swakka is
