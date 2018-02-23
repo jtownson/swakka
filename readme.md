@@ -7,6 +7,8 @@ Quickstart
 libraryDependencies += "net.jtownson" %% "swakka" % "0.51"
 ```
 
+[![Latest version](https://index.scala-lang.org/jtownson/swakka/swakka/latest.svg)](https://index.scala-lang.org/jtownson/swakka/swakka)
+
 Swakka is
 
 1. A Scala library for creating Swagger definitions in a type-safe fashion.
