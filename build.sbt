@@ -18,15 +18,15 @@ import sbt.Keys.scalaVersion
 
 lazy val commonSettings = Seq(
   organization := "net.jtownson",
-  version := "0.51",
+  version := "0.52",
 
 //  scalaOrganization := "org.typelevel",
 //  scalaVersion := "2.12.4-bin-typelevel-4",
 
   autoCompilerPlugins := true,
-  addCompilerPlugin("io.tryp" % "splain" % "0.2.7" cross CrossVersion.patch),
+//  addCompilerPlugin("io.tryp" % "splain" % "0.3.1" cross CrossVersion.patch),
 
-  scalaVersion := "2.12.4",
+  scalaVersion := "2.12.7",
   scalacOptions := Seq(/*"-Xlog-implicits",*/ "-Ypartial-unification", "-unchecked", "-deprecation", "-feature", "-language:implicitConversions")
 )
 
@@ -64,14 +64,14 @@ lazy val sonatypeSettings = Seq(
   credentials += sonatypeCredentials
 )
 
-
+val akkaHttpVersion = "10.1.4"
 val akka = Seq(
-  "com.typesafe.akka" %% "akka-http-core" % "10.0.5",
-  "com.typesafe.akka" %% "akka-http" % "10.0.5",
-  "com.typesafe.akka" %% "akka-http-testkit" % "10.0.5",
-  "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.5",
-  "com.typesafe.akka" %% "akka-http-jackson" % "10.0.5",
-  "com.typesafe.akka" %% "akka-http-xml" % "10.0.5")
+  "com.typesafe.akka" %% "akka-http-core" % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-http-jackson" % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-http-xml" % akkaHttpVersion)
 
 
 val shapeless = Seq(
@@ -85,7 +85,7 @@ val scalatest = Seq(
 )
 
 val scalaReflection = Seq(
-  "org.scala-lang" % "scala-reflect" % "2.12.4"
+  "org.scala-lang" % "scala-reflect" % "2.12.7"
 )
 
 val swaggerAnnotations = Seq(
