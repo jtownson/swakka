@@ -74,7 +74,7 @@ object PingPong extends App {
 
   val route: Route = openApiRoute(
     api,
-    swaggerRouteSettings = Some(DocRouteSettings(corsUseCase = SpecificallyThese(corsHeaders))))
+    docRouteSettings = Some(DocRouteSettings(corsUseCase = SpecificallyThese(corsHeaders))))
 
   val bindingFuture = Http().bindAndHandle(
     route,

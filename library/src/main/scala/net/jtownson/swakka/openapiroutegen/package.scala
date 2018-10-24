@@ -29,7 +29,7 @@ package object openapiroutegen extends OpenApiConverters with OpenApiRouteGen {
   /**
     * This is the hook to generate a Route for an OpenApi definition.
     * @param api the swagger model
-    * @param swaggerRouteSettings a settings object that dictates whether to include the swagger file itself in the Route
+    * @param docRouteSettings a settings object that dictates whether to include the swagger file itself in the Route
     *                             (along with the URL at which to serve it and which CORS headers to set).
     * @tparam Paths A Paths HList. Please refer to the the project readme or sample code for usage.
     * @tparam SecurityDefinitions A HList of SecurityDefinitions. Again, please refer to the readme or samples.
@@ -37,12 +37,12 @@ package object openapiroutegen extends OpenApiConverters with OpenApiRouteGen {
     *         defined therein.
     */
   def openApiRoute[Paths, SecurityDefinitions]
-  (api: OpenApi[Paths, SecurityDefinitions], swaggerRouteSettings: Option[DocRouteSettings] = None)
+  (api: OpenApi[Paths, SecurityDefinitions], docRouteSettings: Option[DocRouteSettings] = None)
   (implicit ev1: RouteGen[Paths], ev2: JsonFormat[OpenApi[Paths, SecurityDefinitions]]): Route =
     hostDirective(api.host) {
       schemesDirective(api.schemes) {
         basePathDirective(api.basePath) {
-          swaggerRouteSettings map {
+          docRouteSettings map {
             ev1.toRoute(api.paths) ~ swaggerRoute(api, _)
           } getOrElse {
             ev1.toRoute(api.paths)
@@ -58,7 +58,7 @@ package object openapiroutegen extends OpenApiConverters with OpenApiRouteGen {
     * swaggerRoute is called from within openApiRoute to provide an overall Route combining the API
     * definition and the swagger metadata. In that context requests hosts and protcols are checked
     * and the swagger basePath is appended (e.g. if you swagger file defines basePath as /root and
-    * swaggerRouteSettings define the swagger path as /swagger.json, swaggerRoute will serve the
+    * docRouteSettings define the swagger path as /swagger.json, swaggerRoute will serve the
     * file from /swagger.json, whereas openApiRoute will serve the file from /root/swagger.json.
     *
     * @param api the API definition

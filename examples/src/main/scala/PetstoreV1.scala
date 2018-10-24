@@ -156,7 +156,7 @@ object PetstoreV1 extends App {
 
   val apiRoutes = openApiRoute(
     api = petstoreApi,
-    swaggerRouteSettings =
+    docRouteSettings =
       Some(DocRouteSettings(corsUseCase = SpecificallyThese(corsHeaders)))
   )
 

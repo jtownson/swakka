@@ -73,7 +73,7 @@ object Greeter1 extends App {
   //       b) a swagger.json. This is added to the API route above.
   val route: Route = openApiRoute(
     api,
-    swaggerRouteSettings = Some(SwaggerRouteSettings()))
+    docRouteSettings = Some(SwaggerRouteSettings()))
 
   val bindingFuture = Http().bindAndHandle(
     route,
