@@ -72,6 +72,12 @@ object Schemas {
       Some("format" -> JsString("date-time"))
     )
 
+  def enumSchema(description: Option[String], values: Seq[Any]) = jsObject(
+    Some("type" -> JsString("string")),
+    Some("enum" -> JsArray(values.map(value => JsString(value.toString)): _*)),
+    description.map("description" -> JsString(_))
+  )
+
   private def optionalJsArray(requiredFields: List[String]): Option[JsArray] =
     optionally(requiredFields).map(requiredFields => requiredFields.map(JsString(_))).map(JsArray(_: _*))
 

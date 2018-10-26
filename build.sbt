@@ -96,6 +96,10 @@ val jsonPath = Seq(
   "com.jayway.jsonpath" % "json-path" % "2.2.0"
 )
 
+val enumeratum = Seq(
+  "com.beachape" %% "enumeratum" % "1.5.13"
+)
+
 lazy val library = project
   .settings(
     name := "swakka",
@@ -107,7 +111,8 @@ lazy val library = project
         scalaReflection ++
         shapeless ++
         swaggerAnnotations ++
-        jsonPath)
+        jsonPath ++
+        enumeratum)
 
 lazy val examples = project
   .settings(
