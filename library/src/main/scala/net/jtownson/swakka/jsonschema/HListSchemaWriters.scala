@@ -30,7 +30,7 @@ import spray.json.DefaultJsonProtocol._
 trait HListSchemaWriters {
 
   implicit val hNilSchemaWriter: SchemaWriter[HNil] =
-    _  => JsNull
+    instance(_  => JsNull)
 
   implicit def hlistObjectEncoder[K <: Symbol, H, T <: HList](
       implicit

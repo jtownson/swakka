@@ -21,7 +21,7 @@ import spray.json.{DefaultJsonProtocol, JsonFormat, JsonWriter}
 trait JsonSchemaJsonProtocol extends DefaultJsonProtocol with SchemaWriters {
 
   implicit def jsonSchemaJsonWriter[T](implicit ev: SchemaWriter[T]): JsonWriter[JsonSchema[T]] =
-    ev.write
+    JsonWriter.func2Writer(t => ev.write(t))
 
   implicit def jsonSchemaJsonFormat[T](implicit ev: SchemaWriter[T]): JsonFormat[JsonSchema[T]] =
     lift(jsonSchemaJsonWriter[T])

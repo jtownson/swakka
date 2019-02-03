@@ -23,5 +23,7 @@ trait ParameterJsonFormat[T] extends JsonFormat[T] {
 }
 
 object ParameterJsonFormat {
-  def instance[T](f: T => JsValue): ParameterJsonFormat[T] = (obj: T) => f(obj)
+  def instance[T](f: T => JsValue): ParameterJsonFormat[T] = new ParameterJsonFormat[T] {
+    override def write(obj: T): JsValue = f(obj)
+  }
 }

@@ -31,7 +31,7 @@ trait PathsJsonProtocol {
       implicit ev1: ParameterJsonFormat[Params],
       ev2: ResponseJsonFormat[Responses])
     : JsonWriter[Operation[Params, EndpointFunction, Responses]] =
-    (operation: Operation[Params, EndpointFunction, Responses]) => {
+    JsonWriter.func2Writer((operation: Operation[Params, EndpointFunction, Responses]) => {
 
       val parameters: JsValue = ev1.write(operation.parameters)
       val responses = ev2.write(operation.responses)
@@ -50,7 +50,7 @@ trait PathsJsonProtocol {
       ).flatten
 
       JsObject(fields: _*)
-    }
+    })
 
   private def optionalBooleanField(s: String, b: Boolean): Option[(String, JsBoolean)] =
     Some(s -> JsBoolean(b)).filter(_ => b)
@@ -66,7 +66,7 @@ trait PathsJsonProtocol {
   private def optionalArrayField(s: String,
                                  j: JsValue): Option[(String, JsValue)] =
     j match {
-      case (JsArray(elements)) =>
+      case JsArray(elements) =>
         optionalField(s, j, elements)
       case _ =>
         None
@@ -75,7 +75,7 @@ trait PathsJsonProtocol {
   private def optionalObjectField(s: String,
                                   j: JsValue): Option[(String, JsValue)] =
     j match {
-      case (JsObject(fields)) =>
+      case JsObject(fields) =>
         optionalField(s, j, fields)
       case _ =>
         None
@@ -93,7 +93,7 @@ trait PathsJsonProtocol {
   }
 
   implicit val hNilPathItemFormat: PathsJsonFormat[HNil] =
-    _ => JsObject()
+    instance(_ => JsObject())
 
   implicit def hConsPathItemFormat[H, T <: HList](
       implicit hFmt: PathsJsonFormat[H],

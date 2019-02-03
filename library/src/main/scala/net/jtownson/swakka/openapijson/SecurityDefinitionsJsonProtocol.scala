@@ -116,11 +116,11 @@ trait SecurityDefinitionsJsonProtocol {
 
   implicit val securityRequirementJsonFormat
     : SecurityDefinitionsJsonFormat[SecurityRequirement] =
-    (securityRequirement: SecurityRequirement) => {
+    instance((securityRequirement: SecurityRequirement) => {
       JsObject(
         securityRequirement.name.name -> JsArray(
           securityRequirement.refs.map(JsString(_)).toList: _*))
-    }
+    })
 
   implicit val hnilWriterRecord: SecurityDefinitionsJsonFormat[HNil] =
     instance(_ => JsObject())

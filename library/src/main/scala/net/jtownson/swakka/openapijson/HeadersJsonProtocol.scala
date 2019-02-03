@@ -51,7 +51,7 @@ trait HeadersJsonProtocol {
   //  implicit val arrayHeaderFormat: HeadersJsonFormat[Header[String]] = ???
 
   implicit val hNilHeaderFormat: HeadersJsonFormat[HNil] =
-    _ => JsNull
+    instance(_ => JsNull)
 
   private def headerJson(name: Symbol, `type`: String, format: Option[String], description: Option[String]): JsValue = {
     JsObject(

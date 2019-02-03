@@ -23,5 +23,7 @@ trait SecurityDefinitionsJsonFormat[T] extends JsonFormat[T] {
 }
 
 object SecurityDefinitionsJsonFormat {
-  def instance[T](f: T => JsValue): SecurityDefinitionsJsonFormat[T] = (obj: T) => f(obj)
+  def instance[T](f: T => JsValue): SecurityDefinitionsJsonFormat[T] = new SecurityDefinitionsJsonFormat[T] {
+    override def write(obj: T): JsValue = f(obj)
+  }
 }

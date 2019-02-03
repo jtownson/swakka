@@ -42,20 +42,19 @@ trait MultiParamConverters {
   }
 
   object ConstraintShim {
-    def instance[T, U, P <: Parameter[T]](
-        f: Parameter[T] => Option[Constraints[U]]) =
+    def apply[T, U, P <: Parameter[T]](f: P => Option[Constraints[U]]) =
       new ConstraintShim[T, U, P] {
         override def constraints(param: P) = f(param)
       }
 
-    implicit def qpch[T]: ConstraintShim[T, T, QueryParameter[T]] = p => None
-    implicit def qpcch[T]: ConstraintShim[T, T, QueryParameterConstrained[T, T]] = p => Some(p.constraints)
+    implicit def qpch[T]: ConstraintShim[T, T, QueryParameter[T]] = ConstraintShim(_ => None)
+    implicit def qpcch[T] = ConstraintShim[T, T, QueryParameterConstrained[T, T]](p => Some(p.constraints))
 
-    implicit def hpch[T]: ConstraintShim[T, T, HeaderParameter[T]] = p => None
-    implicit def hpcch[T]: ConstraintShim[T, T, HeaderParameterConstrained[T, T]] = p => Some(p.constraints)
+    implicit def hpch[T]: ConstraintShim[T, T, HeaderParameter[T]] = ConstraintShim(_ => None)
+    implicit def hpcch[T]: ConstraintShim[T, T, HeaderParameterConstrained[T, T]] = ConstraintShim(p => Some(p.constraints))
 
-    implicit def ffpch[T]: ConstraintShim[T, T, FormFieldParameter[T]] = p => None
-    implicit def ffpcch[T]: ConstraintShim[T, T, FormFieldParameterConstrained[T, T]] = p => Some(p.constraints)
+    implicit def ffpch[T]: ConstraintShim[T, T, FormFieldParameter[T]] = ConstraintShim(_ => None)
+    implicit def ffpcch[T]: ConstraintShim[T, T, FormFieldParameterConstrained[T, T]] = ConstraintShim(p => Some(p.constraints))
 
     // Array value path parameters are apparently in the swagger spec,
     // but would anybody split their url paths with pipes or commas??!

@@ -16,43 +16,44 @@
 
 package net.jtownson.swakka.jsonschema
 
+import net.jtownson.swakka.jsonschema.SchemaWriter.instance
 import net.jtownson.swakka.jsonschema.Schemas._
 import net.jtownson.swakka.openapimodel._
 
 trait BasicSchemaWriters {
 
   implicit val unitWriter: SchemaWriter[Unit] =
-    (_: JsonSchema[Unit]) => unitSchema
+    instance((_: JsonSchema[Unit]) => unitSchema)
 
   implicit val stringWriter: SchemaWriter[String] =
-    (s: JsonSchema[String]) => stringSchema(s.description)
+    instance((s: JsonSchema[String]) => stringSchema(s.description))
 
   implicit def booleanWriter: SchemaWriter[Boolean] =
-    (s: JsonSchema[Boolean]) => booleanSchema(s.description)
+    instance((s: JsonSchema[Boolean]) => booleanSchema(s.description))
 
   implicit def intWriter: SchemaWriter[Int] =
-    (s: JsonSchema[Int]) => numericSchema(s.description, "integer", Some("int32"))
+    instance((s: JsonSchema[Int]) => numericSchema(s.description, "integer", Some("int32")))
 
   implicit def longWriter: SchemaWriter[Long] =
-    (s: JsonSchema[Long]) => numericSchema(s.description, "integer", Some("int64"))
+    instance((s: JsonSchema[Long]) => numericSchema(s.description, "integer", Some("int64")))
 
   implicit def floatWriter: SchemaWriter[Float] =
-    (s: JsonSchema[Float]) => numericSchema(s.description, "number", Some("float"))
+    instance((s: JsonSchema[Float]) => numericSchema(s.description, "number", Some("float")))
 
   implicit def doubleWriter: SchemaWriter[Double] =
-    (s: JsonSchema[Double]) => numericSchema(s.description, "number", Some("double"))
+    instance((s: JsonSchema[Double]) => numericSchema(s.description, "number", Some("double")))
 
   implicit def optionWriter[T](implicit ev: SchemaWriter[T]): SchemaWriter[Option[T]] =
-    (s: JsonSchema[Option[T]]) => ev.write(JsonSchema[T](s.description))
+    instance((s: JsonSchema[Option[T]]) => ev.write(JsonSchema[T](s.description)))
 
   implicit def seqWriter[T](implicit ev: SchemaWriter[T]): SchemaWriter[Seq[T]] =
-    (s: JsonSchema[Seq[T]]) => arraySchema(s.description, ev.write(JsonSchema[T]()))
+    instance((s: JsonSchema[Seq[T]]) => arraySchema(s.description, ev.write(JsonSchema[T]())))
 
   implicit def mapWriter[K, V](implicit ev: SchemaWriter[K]): SchemaWriter[Map[K, V]] =
-    (s: JsonSchema[Map[K, V]]) => mapSchema(s.description, ev.write(JsonSchema[K]()))
+    instance((s: JsonSchema[Map[K, V]]) => mapSchema(s.description, ev.write(JsonSchema[K]())))
 
   implicit def responseValueWriter[T, Headers](implicit ev: SchemaWriter[T]):
   SchemaWriter[ResponseValue[T, Headers]] =
-    (_: JsonSchema[ResponseValue[T, Headers]]) => ev.write(JsonSchema[T]())
+    instance((_: JsonSchema[ResponseValue[T, Headers]]) => ev.write(JsonSchema[T]()))
 
 }

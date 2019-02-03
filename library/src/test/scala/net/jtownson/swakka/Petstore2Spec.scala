@@ -90,7 +90,7 @@ class Petstore2Spec
   implicit val orderJsonFormat: RootJsonFormat[Order] = jsonFormat6(Order)
   // This is an example of customizing the writing of JsonSchema for a class.
   implicit val orderSchemaWriter: SchemaWriter[Order] =
-    (_: JsonSchema[Order]) => orderSchema
+    SchemaWriter.instance((_: JsonSchema[Order]) => orderSchema)
 
   implicit val userJsonFormat: RootJsonFormat[User] = jsonFormat8(User)
 

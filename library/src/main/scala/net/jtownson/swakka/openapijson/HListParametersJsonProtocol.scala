@@ -27,7 +27,7 @@ import spray.json._
 trait HListParametersJsonProtocol {
 
   implicit val hNilParamFormat: ParameterJsonFormat[HNil] =
-    _ => JsArray()
+    instance(_ => JsArray())
 
   implicit def hConsParamFormat[H, T <: HList](
       implicit head: ParameterJsonFormat[H],
@@ -42,9 +42,7 @@ trait HListParametersJsonProtocol {
   implicit def genericParamFormat[Params: |¬|[Parameter[_]]#λ, ParamsList]
   (implicit gen: Generic.Aux[Params, ParamsList],
    ev: ParameterJsonFormat[ParamsList]): ParameterJsonFormat[Params] =
-    ParameterJsonFormat.instance(params => ev.write(gen.to(params)))
-
-
+    instance(params => ev.write(gen.to(params)))
 }
 
 object HListParametersJsonProtocol extends HListParametersJsonProtocol

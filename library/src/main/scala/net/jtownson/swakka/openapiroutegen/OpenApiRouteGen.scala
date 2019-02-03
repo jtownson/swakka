@@ -30,15 +30,15 @@ trait OpenApiRouteGen {
   implicit def hconsRouteGen[H, T <: HList](
                                              implicit ev1: RouteGen[H],
                                              ev2: RouteGen[T]): RouteGen[H :: T] =
-    (l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail)
+    RouteGen((l: H :: T) => ev1.toRoute(l.head) ~ ev2.toRoute(l.tail))
 
   implicit val hNilRouteGen: RouteGen[HNil] =
-    (_: HNil) => RouteDirectives.reject
+    RouteGen((_: HNil) => RouteDirectives.reject)
 
   implicit def genericRouteGen[Paths: |¬|[PathItem[_, _, _]]#λ, PathsList]
   (implicit gen: Generic.Aux[Paths, PathsList],
    ev: RouteGen[PathsList]): RouteGen[Paths] =
-    (p: Paths) => ev.toRoute(gen.to(p))
+    RouteGen((p: Paths) => ev.toRoute(gen.to(p)))
 
   implicit def pathItemRouteGen[RequestParams <: Product,
                                 EndpointParams,
@@ -47,8 +47,8 @@ trait OpenApiRouteGen {
       implicit ev1: AkkaHttpInvoker[RequestParams, EndpointParams, EndpointFunction],
       ev2: ConvertibleToDirective.Aux[RequestParams, EndpointParams])
     : RouteGen[PathItem[RequestParams, EndpointFunction, Responses]] =
-    (pathItem: PathItem[RequestParams, EndpointFunction, Responses]) =>
-      pathItemRoute(pathItem)
+    RouteGen((pathItem: PathItem[RequestParams, EndpointFunction, Responses]) =>
+      pathItemRoute(pathItem))
 
   def pathItemRoute[RequestParams <: Product,
                     EndpointParams,

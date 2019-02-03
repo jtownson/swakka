@@ -26,7 +26,11 @@ trait ParamValidator[T, U] {
 
 object ParamValidator {
 
-  def anyValidator[T]: ParamValidator[T, T] = (constraints: Constraints[T], value: T) => {
+  def apply[T, U](f: (Constraints[U], T) => Either[String, T]): ParamValidator[T, U] = new ParamValidator[T, U] {
+    override def validate(constraints: Constraints[U], value: T): Either[String, T] = f(constraints, value)
+  }
+
+  def anyValidator[T]: ParamValidator[T, T] = ParamValidator((constraints: Constraints[T], value: T) => {
     import constraints._
 
     val validationFailures: immutable.Seq[String] = List(
@@ -37,9 +41,9 @@ object ParamValidator {
       Right(value)
     else
       Left(validationFailures.mkString(", "))
-  }
+  })
 
-  val stringValidator: ParamValidator[String, String] = (constraints: Constraints[String], value: String) => {
+  val stringValidator: ParamValidator[String, String] = ParamValidator((constraints: Constraints[String], value: String) => {
 
     import constraints._
 
@@ -51,9 +55,9 @@ object ParamValidator {
     ).flatten // flatten the existence of a constraint + flatten the existence of an error against that constraint
 
     Either.cond(validationFailures.isEmpty, value, validationFailures.mkString(", "))
-  }
+  })
 
-  def numberValidator[T: Numeric]: ParamValidator[T, T] = (constraints: Constraints[T], value: T) => {
+  def numberValidator[T: Numeric]: ParamValidator[T, T] = ParamValidator((constraints: Constraints[T], value: T) => {
 
     import constraints._
 
@@ -66,9 +70,9 @@ object ParamValidator {
     ).flatten
 
     Either.cond(validationFailures.isEmpty, value, validationFailures.mkString(", "))
-  }
+  })
 
-  def integralValidator[T: Integral]: ParamValidator[T, T] = (constraints: Constraints[T], value: T) => {
+  def integralValidator[T: Integral]: ParamValidator[T, T] = ParamValidator((constraints: Constraints[T], value: T) => {
 
     val numberValidation: Either[String, T] = numberValidator[T].validate(constraints, value)
 
@@ -77,17 +81,23 @@ object ParamValidator {
     val integralValidation: Either[String, T] = Either.cond(maybeValidationErr.isEmpty, value, maybeValidationErr.mkString)
 
     sequenceEither[T, T](Seq(numberValidation, integralValidation), value)
-  }
+  })
 
   def optionValidator[T](innerValidator: ParamValidator[T, T]): ParamValidator[Option[T], T] = {
-    (constraints: Constraints[T], value: Option[T]) =>
-      value.map(innerValidator.validate(constraints, _).map(Option(_))).getOrElse(Right(value))
+    ParamValidator((constraints: Constraints[T], value: Option[T]) => {
+      value.map{t =>
+        innerValidator.validate(constraints, t) match {
+          case Left(s) => Left(s)
+          case Right(tt) => Right(Option(tt))
+        }
+      }.getOrElse(Right(value))
+    })
   }
 
   def sequenceValidator[T](innerValidator: ParamValidator[T, T]): ParamValidator[Seq[T], T] =
-    (constraints: Constraints[T], value: Seq[T]) => {
+    ParamValidator((constraints: Constraints[T], value: Seq[T]) => {
       sequenceEither[T, Seq[T]](value.map(innerValidator.validate(constraints, _)), value)
-    }
+    })
 
   private def sequenceEither[T, U](eithers: Seq[Either[String, T]], value: U): Either[String, U] = {
     val errors: Seq[String] = eithers.collect({case Left(err) => err})

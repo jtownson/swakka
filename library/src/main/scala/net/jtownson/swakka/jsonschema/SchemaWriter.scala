@@ -27,7 +27,7 @@ object SchemaWriter {
 
   def apply[T](implicit ev: SchemaWriter[T]): SchemaWriter[T] = ev
 
-  def instance[T](f: JsonSchema[T] => JsValue): SchemaWriter[T] =
-    (schema: JsonSchema[T]) => f(schema)
-
+  def instance[T](f: JsonSchema[T] => JsValue): SchemaWriter[T] = new SchemaWriter[T] {
+    override def write(schema: JsonSchema[T]): JsValue = f(schema)
+  }
 }

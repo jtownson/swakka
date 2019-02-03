@@ -23,5 +23,7 @@ trait ResponseJsonFormat[T] extends JsonFormat[T] {
 }
 
 object ResponseJsonFormat {
-  def instance[T](f: T => JsValue): ResponseJsonFormat[T] = (obj: T) => f(obj)
+  def instance[T](f: T => JsValue): ResponseJsonFormat[T] = new ResponseJsonFormat[T] {
+    override def write(obj: T): JsValue = f(obj)
+  }
 }

@@ -23,5 +23,7 @@ trait HeadersJsonFormat[T] extends JsonFormat[T] {
 }
 
 object HeadersJsonFormat {
-  def instance[T](f: T => JsValue): HeadersJsonFormat[T] = (obj: T) => f(obj)
+  def instance[T](f: T => JsValue): HeadersJsonFormat[T] = new HeadersJsonFormat[T] {
+    override def write(obj: T): JsValue = f(obj)
+  }
 }

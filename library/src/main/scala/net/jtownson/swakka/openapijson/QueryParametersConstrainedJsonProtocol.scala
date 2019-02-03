@@ -2,13 +2,14 @@ package net.jtownson.swakka.openapijson
 
 import net.jtownson.swakka.openapimodel.QueryParameterConstrained
 import ParameterTemplates._
+import net.jtownson.swakka.openapijson.ParameterJsonFormat.instance
 import spray.json.{JsArray, JsBoolean, JsNumber, JsString}
 
 trait QueryParametersConstrainedJsonProtocol {
 
   implicit val strReqQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[String, String]] =
-    (qp: QueryParameterConstrained[String, String]) =>
+    instance((qp: QueryParameterConstrained[String, String]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -19,11 +20,11 @@ trait QueryParametersConstrainedJsonProtocol {
         enum = qp.constraints.enum.map(set => JsArray(set.map(JsString(_)).toVector)),
         minLength = qp.constraints.minLength.map(JsNumber(_)),
         maxLength = qp.constraints.maxLength.map(JsNumber(_)),
-        pattern = qp.constraints.pattern.map(JsString(_)))
+        pattern = qp.constraints.pattern.map(JsString(_))))
 
   implicit val floatReqQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Float, Float]] =
-    (qp: QueryParameterConstrained[Float, Float]) =>
+    instance((qp: QueryParameterConstrained[Float, Float]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -35,11 +36,11 @@ trait QueryParametersConstrainedJsonProtocol {
         maximum = qp.constraints.maximum.map(JsNumber(_)),
         minimum = qp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = qp.constraints.exclusiveMaximum.map(JsNumber(_)),
-        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_)))
+        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_))))
 
   implicit val doubleReqQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Double, Double]] =
-    (qp: QueryParameterConstrained[Double, Double]) =>
+    instance((qp: QueryParameterConstrained[Double, Double]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -51,11 +52,11 @@ trait QueryParametersConstrainedJsonProtocol {
         maximum = qp.constraints.maximum.map(JsNumber(_)),
         minimum = qp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = qp.constraints.exclusiveMaximum.map(JsNumber(_)),
-        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_)))
+        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_))))
 
   implicit val booleanReqQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Boolean, Boolean]] =
-    (qp: QueryParameterConstrained[Boolean, Boolean]) =>
+    instance((qp: QueryParameterConstrained[Boolean, Boolean]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -63,11 +64,11 @@ trait QueryParametersConstrainedJsonProtocol {
         `type` = "boolean",
         format = None,
         default = None,
-        enum = qp.constraints.enum.map(set => JsArray(set.map(JsBoolean(_)).toVector)))
+        enum = qp.constraints.enum.map(set => JsArray(set.map(JsBoolean(_)).toVector))))
 
   implicit val intReqQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Int, Int]] =
-    (qp: QueryParameterConstrained[Int, Int]) =>
+    instance((qp: QueryParameterConstrained[Int, Int]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -80,11 +81,11 @@ trait QueryParametersConstrainedJsonProtocol {
         maximum = qp.constraints.maximum.map(JsNumber(_)),
         minimum = qp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = qp.constraints.exclusiveMaximum.map(JsNumber(_)),
-        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_)))
+        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_))))
 
   implicit val longReqQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Long, Long]] =
-    (qp: QueryParameterConstrained[Long, Long]) =>
+    instance((qp: QueryParameterConstrained[Long, Long]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -97,11 +98,11 @@ trait QueryParametersConstrainedJsonProtocol {
         maximum = qp.constraints.maximum.map(JsNumber(_)),
         minimum = qp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = qp.constraints.exclusiveMaximum.map(JsNumber(_)),
-        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_)))
+        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_))))
 
   implicit val strOptQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Option[String], String]] =
-    (qp: QueryParameterConstrained[Option[String], String]) =>
+    instance((qp: QueryParameterConstrained[Option[String], String]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -112,11 +113,11 @@ trait QueryParametersConstrainedJsonProtocol {
         enum = qp.constraints.enum.map(set => JsArray(set.map(JsString(_)).toVector)),
         minLength = qp.constraints.minLength.map(JsNumber(_)),
         maxLength = qp.constraints.maxLength.map(JsNumber(_)),
-        pattern = qp.constraints.pattern.map(JsString(_)))
+        pattern = qp.constraints.pattern.map(JsString(_))))
 
   implicit val floatOptQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Option[Float], Float]] =
-    (qp: QueryParameterConstrained[Option[Float], Float]) =>
+    instance((qp: QueryParameterConstrained[Option[Float], Float]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -128,11 +129,11 @@ trait QueryParametersConstrainedJsonProtocol {
         maximum = qp.constraints.maximum.map(JsNumber(_)),
         minimum = qp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = qp.constraints.exclusiveMaximum.map(JsNumber(_)),
-        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_)))
+        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_))))
 
   implicit val doubleOptQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Option[Double], Double]] =
-    (qp: QueryParameterConstrained[Option[Double], Double]) =>
+    instance((qp: QueryParameterConstrained[Option[Double], Double]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -144,11 +145,11 @@ trait QueryParametersConstrainedJsonProtocol {
         maximum = qp.constraints.maximum.map(JsNumber(_)),
         minimum = qp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = qp.constraints.exclusiveMaximum.map(JsNumber(_)),
-        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_)))
+        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_))))
 
   implicit val booleanOptQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Option[Boolean], Boolean]] =
-    (qp: QueryParameterConstrained[Option[Boolean], Boolean]) =>
+    instance((qp: QueryParameterConstrained[Option[Boolean], Boolean]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -156,11 +157,11 @@ trait QueryParametersConstrainedJsonProtocol {
         `type` = "boolean",
         format = None,
         default = defaultOf(qp),
-        enum = qp.constraints.enum.map(set => JsArray(set.map(JsBoolean(_)).toVector)))
+        enum = qp.constraints.enum.map(set => JsArray(set.map(JsBoolean(_)).toVector))))
 
   implicit val intOptQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Option[Int], Int]] =
-    (qp: QueryParameterConstrained[Option[Int], Int]) =>
+    instance((qp: QueryParameterConstrained[Option[Int], Int]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -173,11 +174,11 @@ trait QueryParametersConstrainedJsonProtocol {
         maximum = qp.constraints.maximum.map(JsNumber(_)),
         minimum = qp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = qp.constraints.exclusiveMaximum.map(JsNumber(_)),
-        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_)))
+        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_))))
 
   implicit val longOptQueryParamFormatConstrained
   : ParameterJsonFormat[QueryParameterConstrained[Option[Long], Long]] =
-    (qp: QueryParameterConstrained[Option[Long], Long]) =>
+    instance((qp: QueryParameterConstrained[Option[Long], Long]) =>
       constrainedParam(name = qp.name,
         in = "query",
         description = qp.description,
@@ -190,7 +191,7 @@ trait QueryParametersConstrainedJsonProtocol {
         maximum = qp.constraints.maximum.map(JsNumber(_)),
         minimum = qp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = qp.constraints.exclusiveMaximum.map(JsNumber(_)),
-        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_)))
+        exclusiveMinimum = qp.constraints.exclusiveMinimum.map(JsNumber(_))))
 }
 
 object QueryParametersConstrainedJsonProtocol extends QueryParametersConstrainedJsonProtocol

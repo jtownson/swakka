@@ -19,10 +19,8 @@ package net.jtownson.swakka.openapijson
 import akka.http.scaladsl.server.directives.FileInfo
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import net.jtownson.swakka.openapijson.ParameterTemplates.{
-  constrainedParam,
-  defaultOf
-}
+import net.jtownson.swakka.openapijson.ParameterJsonFormat.instance
+import net.jtownson.swakka.openapijson.ParameterTemplates.{constrainedParam, defaultOf}
 import net.jtownson.swakka.openapimodel._
 import spray.json.{JsArray, JsBoolean, JsNumber, JsString}
 
@@ -30,7 +28,7 @@ trait FormFieldParametersConstrainedJsonProtocol {
 
   implicit val requiredStringFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[String, String]] =
-    (fdp: FormFieldParameterConstrained[String, String]) =>
+    instance((fdp: FormFieldParameterConstrained[String, String]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -42,12 +40,12 @@ trait FormFieldParametersConstrainedJsonProtocol {
           JsArray(set.map(JsString(_)).toVector)),
         minLength = fdp.constraints.minLength.map(JsNumber(_)),
         maxLength = fdp.constraints.maxLength.map(JsNumber(_)),
-        pattern = fdp.constraints.pattern.map(JsString(_))
+        pattern = fdp.constraints.pattern.map(JsString(_)))
     )
 
   implicit val requiredBooleanFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[Boolean, Boolean]] =
-    (fdp: FormFieldParameterConstrained[Boolean, Boolean]) =>
+    instance((fdp: FormFieldParameterConstrained[Boolean, Boolean]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -56,12 +54,12 @@ trait FormFieldParametersConstrainedJsonProtocol {
         `type` = "boolean",
         format = None,
         enum = fdp.constraints.enum.map(set =>
-          JsArray(set.map(JsBoolean(_)).toVector)),
-    )
+          JsArray(set.map(JsBoolean(_)).toVector))
+    ))
 
   implicit val requiredIntFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[Int, Int]] =
-    (fdp: FormFieldParameterConstrained[Int, Int]) =>
+    instance((fdp: FormFieldParameterConstrained[Int, Int]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -76,11 +74,11 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minimum = fdp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
-    )
+    ))
 
   implicit val requiredLongFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[Long, Long]] =
-    (fdp: FormFieldParameterConstrained[Long, Long]) =>
+    instance((fdp: FormFieldParameterConstrained[Long, Long]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -95,11 +93,11 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minimum = fdp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
-    )
+    ))
 
   implicit val requiredFloatFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[Float, Float]] =
-    (fdp: FormFieldParameterConstrained[Float, Float]) =>
+    instance((fdp: FormFieldParameterConstrained[Float, Float]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -113,11 +111,11 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minimum = fdp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
-    )
+    ))
 
   implicit val requiredDoubleFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[Double, Double]] =
-    (fdp: FormFieldParameterConstrained[Double, Double]) =>
+    instance((fdp: FormFieldParameterConstrained[Double, Double]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -131,12 +129,12 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minimum = fdp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
-    )
+    ))
 
   implicit val optionalStringFormDataParamFormatConstrained
     : ParameterJsonFormat[
       FormFieldParameterConstrained[Option[String], String]] =
-    (fdp: FormFieldParameterConstrained[Option[String], String]) =>
+    instance((fdp: FormFieldParameterConstrained[Option[String], String]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -150,12 +148,12 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minLength = fdp.constraints.minLength.map(JsNumber(_)),
         maxLength = fdp.constraints.maxLength.map(JsNumber(_)),
         pattern = fdp.constraints.pattern.map(JsString(_))
-    )
+    ))
 
   implicit val optionalBooleanFormDataParamFormatConstrained
     : ParameterJsonFormat[
       FormFieldParameterConstrained[Option[Boolean], Boolean]] =
-    (fdp: FormFieldParameterConstrained[Option[Boolean], Boolean]) =>
+    instance((fdp: FormFieldParameterConstrained[Option[Boolean], Boolean]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -165,12 +163,12 @@ trait FormFieldParametersConstrainedJsonProtocol {
         format = None,
         default = defaultOf(fdp),
         enum = fdp.constraints.enum.map(set =>
-          JsArray(set.map(JsBoolean(_)).toVector)),
-    )
+          JsArray(set.map(JsBoolean(_)).toVector))
+    ))
 
   implicit val optionalIntFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[Option[Int], Int]] =
-    (fdp: FormFieldParameterConstrained[Option[Int], Int]) =>
+    instance((fdp: FormFieldParameterConstrained[Option[Int], Int]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -186,11 +184,11 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minimum = fdp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
-    )
+    ))
 
   implicit val optionalLongFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[Option[Long], Long]] =
-    (fdp: FormFieldParameterConstrained[Option[Long], Long]) =>
+    instance((fdp: FormFieldParameterConstrained[Option[Long], Long]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -206,11 +204,11 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minimum = fdp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
-    )
+    ))
 
   implicit val optionalFloatFormDataParamFormatConstrained
     : ParameterJsonFormat[FormFieldParameterConstrained[Option[Float], Float]] =
-    (fdp: FormFieldParameterConstrained[Option[Float], Float]) =>
+    instance((fdp: FormFieldParameterConstrained[Option[Float], Float]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -225,12 +223,12 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minimum = fdp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
-    )
+    ))
 
   implicit val optionalDoubleFormDataParamFormatConstrained
     : ParameterJsonFormat[
       FormFieldParameterConstrained[Option[Double], Double]] =
-    (fdp: FormFieldParameterConstrained[Option[Double], Double]) =>
+    instance((fdp: FormFieldParameterConstrained[Option[Double], Double]) =>
       constrainedParam(
         in = "formData",
         name = fdp.name,
@@ -245,7 +243,7 @@ trait FormFieldParametersConstrainedJsonProtocol {
         minimum = fdp.constraints.minimum.map(JsNumber(_)),
         exclusiveMaximum = fdp.constraints.exclusiveMaximum.map(JsNumber(_)),
         exclusiveMinimum = fdp.constraints.exclusiveMinimum.map(JsNumber(_))
-    )
+    ))
 
 }
 

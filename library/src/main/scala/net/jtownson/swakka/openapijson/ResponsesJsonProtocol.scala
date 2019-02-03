@@ -27,7 +27,7 @@ import spray.json.{JsArray, JsNull, JsObject, JsString, JsValue}
 trait ResponsesJsonProtocol {
 
   implicit val hNilResponseFormat: ResponseJsonFormat[HNil] =
-    _ => JsObject()
+    instance(_ => JsObject())
 
 
   implicit def hConsResponseFormat[H, T <: HList]

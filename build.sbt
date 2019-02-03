@@ -18,7 +18,7 @@ import sbt.Keys.scalaVersion
 
 lazy val commonSettings = Seq(
   organization := "net.jtownson",
-  version := "0.52",
+  version := "0.53",
 
 //  scalaOrganization := "org.typelevel",
 //  scalaVersion := "2.12.4-bin-typelevel-4",
@@ -84,8 +84,12 @@ val scalatest = Seq(
   "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % "test"
 )
 
-val scalaReflection = Seq(
-  "org.scala-lang" % "scala-reflect" % "2.12.7"
+val scalaReflection_2_12 = Seq(
+  "org.scala-lang" % "scala-reflect" % "2.12.8"
+)
+
+val scalaReflection_2_11 = Seq(
+  "org.scala-lang" % "scala-reflect" % "2.11.12"
 )
 
 val swaggerAnnotations = Seq(
@@ -108,22 +112,32 @@ lazy val library = project
     libraryDependencies ++=
       akka ++
         scalatest ++
-        scalaReflection ++
         shapeless ++
         swaggerAnnotations ++
         jsonPath ++
         enumeratum)
+  .cross
+
+lazy val library_2_12 = library("2.12.8").settings(
+  libraryDependencies ++= scalaReflection_2_12,
+  name := "swakka"
+)
+
+lazy val library_2_11 = library("2.11.12").settings(
+  libraryDependencies ++= scalaReflection_2_11,
+  name := "swakka"
+)
 
 lazy val examples = project
   .settings(
     name := "swakka-examples",
     publishArtifact := false,
     commonSettings)
-  .dependsOn(library)
+  .dependsOn(library_2_12)
 
 lazy val root = (project in file("."))
   .settings(
     name := "swakka-build",
     publishArtifact := false,
     commonSettings)
-  .aggregate(library, examples)
+  .aggregate(library_2_11, library_2_12, examples)

@@ -27,3 +27,9 @@ import akka.http.scaladsl.server._
 trait RouteGen[T] {
   def toRoute(t: T): Route
 }
+
+object RouteGen {
+  def apply[T](f: T => Route): RouteGen[T] = new RouteGen[T] {
+    override def toRoute(t: T): Route = f(t)
+  }
+}
